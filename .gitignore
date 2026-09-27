@@ -2,3 +2,6 @@
 node_modules/
 .bk-test.json
 package-lock.json
+__pycache__/
+*.pyc
+fa_*.png

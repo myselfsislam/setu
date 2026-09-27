@@ -25,7 +25,7 @@ with sync_playwright() as p:
               for(let i=0;i<bx.length;i++)for(let j=i+1;j<bx.length;j++){const a=bx[i],c=bx[j];if(a.l<c.r-2&&c.l<a.r-2&&a.t<c.b-2&&c.t<a.b-2)ov++;}
               return [ov,m.scrollHeight-m.clientHeight,document.documentElement.scrollWidth-window.innerWidth]})()""")
             res.append(t+':'+('OVERLAP ' if r[0] else '')+('ok' if r[1]<=2 else '+'+str(r[1]))+(' HSCROLL' if r[2]>0 else ''))
-            if (w,h) in [(390,844),(320,640)] and t=='spend': pg.screenshot(path=f'fa_{w}_{t}.png')
+            pass
         print(w,h,res,errs);FAIL+=sum(1 for r in res if not r.endswith('ok'))+len(errs);ctx.close()
     b.close()
 srv.terminate()
