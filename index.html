@@ -178,7 +178,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .wz h1{font-size:30px;line-height:1.1}
 .wz .lead{color:var(--soft);margin:6px 0 0}
 .field{display:block}.field>span{display:block;font-size:13px;color:var(--soft);margin-bottom:5px;font-weight:600}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
 .fields{display:flex;flex-direction:column;gap:12px}
 .hintline{display:inline-block;font-size:13px;color:#0D7A5E;background:var(--t-mint);font-weight:700;margin-top:8px;padding:4px 10px;border-radius:999px}
 .hintline:empty{display:none}
@@ -210,6 +210,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .tip:hover .tipt,.tipb:focus+.tipt{opacity:1;visibility:visible;transform:translate(-50%,0)}
 .tip.r:hover .tipt,.tip.r .tipb:focus+.tipt{transform:none}
 @media (max-width:879px){.wz input,.wz select{background:var(--card);box-shadow:inset 0 0 0 1.5px var(--rule)}.wz input:focus{box-shadow:none}.wz .seg{background:var(--card);box-shadow:inset 0 0 0 1.5px var(--rule)}.wz .seg [aria-checked="true"]{background:var(--t-indigo);box-shadow:none}}
+.ratebox{display:flex;flex-direction:column;gap:2px;background:var(--t-indigo);border-radius:14px;padding:10px 13px}.ratebox span{font-size:12.5px;color:var(--soft);font-weight:600}.ratebox b{font-family:"Bricolage Grotesque",sans-serif;font-size:17px}.ratebox small{font-size:12px;color:var(--soft)}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow:auto;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -297,6 +298,22 @@ function migrate(p){if(!p||p.emi!=null)return p;
   p.emi=0;p.sip=0;p.indiaOther=+p.india||0;p.cardBal=p.debt==='card'?(+p.debtINR||0):0;p.plBal=p.debt==='loan'?(+p.debtINR||0):0;p.otherLoanBal=0;return p;}
 function indiaMonthly(p){return (+p.emi||0)+(+p.sip||0)+(+p.indiaOther||0);}
 var S=load();S.profile=migrate(S.profile);
+/* Live GBP to INR rate: fetched automatically, cached for the day, never typed by the user */
+var FX=S.fxRate||{rate:(S.profile&&+S.profile.fx)||129,at:null,src:null};
+function fxNow(){return +FX.rate||129;}
+function applyFx(){if(S.profile)S.profile.fx=fxNow();}
+applyFx();
+function fetchFx(force){
+  var today0=new Date().toISOString().slice(0,10);
+  if(!force&&FX.at&&FX.at.slice(0,10)===today0)return Promise.resolve(false);
+  var srcs=[['https://api.frankfurter.dev/v1/latest?base=GBP&symbols=INR',function(j){return j&&j.rates&&j.rates.INR;},'European Central Bank'],
+            ['https://open.er-api.com/v6/latest/GBP',function(j){return j&&j.rates&&j.rates.INR;},'ExchangeRate-API']];
+  function tryAt(i){if(i>=srcs.length)return Promise.resolve(false);
+    return fetch(srcs[i][0],{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){var v=+srcs[i][1](j);if(!(v>50&&v<500))throw 0;
+      FX={rate:Math.round(v*100)/100,at:new Date().toISOString(),src:srcs[i][2]};S.fxRate=FX;applyFx();save();return true;}).catch(function(){return tryAt(i+1);});}
+  return tryAt(0);
+}
+function fxLabel(){return '₹'+fxNow().toFixed(2)+' = £1'+(FX.at?', updated '+new Date(FX.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):', last known rate');}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));storageOK=true;}catch(e){storageOK=false;}}
 var tab='home',phase=null,addCat='groceries',viewMonth=null,sheetFn=null,wz=null;
 try{tab=sessionStorage.getItem('setu-tab')||'home';}catch(e){}
@@ -317,7 +334,8 @@ function dLabel(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'sho
 function daysSince(iso){return Math.floor((Date.now()-new Date(iso+'T00:00').getTime())/864e5);}
 
 /* UK take-home, England/Wales/NI rates for 2026/27 (thresholds frozen) */
-function takeHome(g,penPct){
+function penPctOf(v){return (v===''||v==null)?5:(+v||0);}
+function takeHome(g,penPct){penPct=penPctOf(penPct);
   g=+g||0;var pa=12570;if(g>100000)pa=Math.max(0,12570-(g-100000)/2);
   var pen=Math.max(0,Math.min(g,50270)-6240)*(+penPct||0)/100;
   var ti=Math.max(0,g-pen-pa);
@@ -329,7 +347,7 @@ function takeHome(g,penPct){
 /* ---------- money model ---------- */
 function month(){
   var p=S.profile,th=takeHome(p.salary,p.pension),india=indiaMonthly(p)/(+p.fx||129);
-  var parts=[['Rent',+p.rent||0,'--s-rent'],['Bills',+p.bills||0,'--s-bills'],['Everyday',+p.everyday||0,'--s-day'],['India',india,'--s-india']];
+  var parts=[['Rent',+p.rent||0,'--s-rent'],['Bills',+p.bills||0,'--s-bills'],['Personal',+p.everyday||0,'--s-day'],['India',india,'--s-india']];
   var left=th.month-sum(parts.map(function(x){return x[1];}));
   return {th:th,india:india,parts:parts,left:left,ukCosts:(+p.rent||0)+(+p.bills||0)+(+p.everyday||0)};
 }
@@ -568,7 +586,7 @@ function vGoals(){
 
 /* ---------- Wizard ---------- */
 var HH={single:{bills:300,everyday:450},couple:{bills:400,everyday:800},family:{bills:500,everyday:1100}};
-function startWizard(){var p=S.profile;wz={step:p?1:0,d:Object.assign({name:'',age:30,moved:today(),household:'single',salary:'',pension:5,rent:'',bills:300,everyday:450,indiaOther:0,fx:129,emi:0,cardBal:0,plBal:0,otherLoanBal:0,invested:0,sip:0,savedUK:0,efMonths:4,retireAge:'',retireSpend:75000,homeOn:false,homeCost:'',homeYear:new Date().getFullYear()+5,homeSaved:0,inf:6,ret:10,wd:3.5},p||{})};render();}
+function startWizard(){var p=S.profile;wz={step:p?1:0,d:Object.assign({name:'',age:30,moved:today(),household:'single',salary:'',pension:'',rent:'',bills:300,everyday:450,indiaOther:0,fx:fxNow(),emi:0,cardBal:0,plBal:0,otherLoanBal:0,invested:0,sip:0,savedUK:0,efMonths:4,retireAge:'',retireSpend:75000,homeOn:false,homeCost:'',homeYear:new Date().getFullYear()+5,homeSaved:0,inf:6,ret:10,wd:3.5},p||{})};render();}
 function fld(k,label,type,extra,pre,suf){var v=wz.d[k];var inp='<input data-k="'+k+'" type="'+(type||'number')+'"'+(type==='text'||type==='date'?'':' inputmode="decimal" step="any"')+' value="'+esc(v)+'"'+(extra||'')+'>';return '<label class="field"><span>'+label+'</span>'+(pre||suf?'<span class="adorn'+(suf?' suf':'')+'">'+(pre?'<i>'+pre+'</i>':'')+inp+(suf?'<i>'+suf+'</i>':'')+'</span>':inp)+'</label>';}
 function tip(id,text,right){return '<span class="tip'+(right?' r':'')+'"><button type="button" class="tipb" aria-label="More info" aria-describedby="tip-'+id+'">i</button><span role="tooltip" id="tip-'+id+'" class="tipt">'+text+'</span></span>';}
 function seg(k,opts){return '<div class="seg" role="radiogroup">'+opts.map(function(o){return '<button role="radio" data-seg="'+k+'" data-v="'+o[0]+'" aria-checked="'+(String(wz.d[k])===String(o[0]))+'">'+o[1]+'</button>';}).join('')+'</div>';}
@@ -577,8 +595,8 @@ function vWizard(){
   if(s===0)return '<div class="wz"><div class="brand">'+LOGO+'Setu</div><div class="introhero">'+ILL.trip+'<h1>Your money bridge from India to the UK</h1></div><ul class="promise"><li style="--c:var(--indigo)"><i>'+gl('chart')+'</i>See how much money you have left each month</li><li style="--c:var(--rani)"><i>'+gl('list')+'</i>Follow a simple checklist for your first 90 days</li><li style="--c:var(--marigold)"><i>'+gl('home')+'</i>Plan for a home and retirement in India</li></ul><p class="private">It’s free and takes 3 minutes. Your answers stay on this device.</p><div class="foot col2"><button class="btn go" data-wz="next">Let’s go</button><button class="link" data-sheet="backup">Restore from a backup</button></div></div>';
   var top='<div class="top">'+(s>1||S.profile?'<button class="x" data-wz="'+(s>1?'back':'cancel')+'" aria-label="'+(s>1?'Back':'Close')+'">'+(s>1?'‹':'×')+'</button>':'')+'<div class="dots">'+[1,2,3,4,5].map(function(i){return '<i class="'+(i<=s?'on':'')+'"></i>';}).join('')+'</div><span class="small soft">'+s+' of 5</span></div>';
   var body='';
-  if(s===1)body='<div><h1>About you</h1><p class="lead">This helps us set dates on your checklist.</p></div><div class="fields">'+fld('name','First name (optional)','text')+'<div class="grid2">'+fld('age','Your age')+fld('moved','Date you moved','date')+'</div><div class="field"><span>Who lives with you in the UK?</span>'+seg('household',[['single','Just me'],['couple','Partner'],['family','Family']])+'</div>'+fld('fx','Rupees per £1'+tip('fx','How many rupees you get for £1. You can change it any time in Settings.'),'','','₹')+'</div>';
-  if(s===2)body='<div><h1>Your money each month</h1><p class="lead">Rough numbers are fine. You can change them later.</p></div><div class="fields"><div>'+fld('salary','Yearly salary (before tax)','','','£')+'<div class="hintline" id="th"></div></div><div class="grid2">'+fld('rent','Rent per month','','','£')+fld('pension','Pension you pay'+tip('pen','The % of your salary that goes into your work pension. 5% is common.',true),'','','','%')+fld('bills','Bills per month'+tip('bills','Council tax, gas, electricity, water, internet and phone'),'','','£')+fld('everyday','Everyday spending'+tip('day','Food, travel, eating out and shopping',true),'','','£')+'</div>'+fld('indiaOther','Money for family and insurance in India, per month'+tip('io','Money you send home and insurance you pay. Don’t add loans or SIPs here, they come next.'),'','','₹')+'</div>';
+  if(s===1)body='<div><h1>About you</h1><p class="lead">This helps us set dates on your checklist.</p></div><div class="fields">'+fld('name','First name (optional)','text')+'<div class="grid2">'+fld('age','Your age')+fld('moved','Date you moved','date')+'</div><div class="field"><span>Who lives with you in the UK?</span>'+seg('household',[['single','Just me'],['couple','Partner'],['family','Family']])+'</div>'+'<div class="ratebox"><span>Today’s rupee rate</span><b>₹'+fxNow().toFixed(2)+' = £1</b><small>'+(FX.at?'Updated '+new Date(FX.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'. ':'')+'We keep this up to date for you.</small></div></div>';
+  if(s===2)body='<div><h1>Your money each month</h1><p class="lead">Rough numbers are fine. You can change them later.</p></div><div class="fields"><div>'+fld('salary','Yearly salary (before tax)','','','£')+'<div class="hintline" id="th"></div></div><div class="grid2">'+fld('rent','Rent per month','','','£')+fld('pension','Your pension %'+tip('pen','Your own payment into your work pension, shown as “Pension” or “Employee pension” on your payslip. It is not National Insurance. Leave blank if you’re not sure: we’ll use 5%, the usual amount.',true),'',' placeholder="5"','','%')+fld('bills','Bills per month'+tip('bills','Council tax, gas, electricity, water, internet and phone'),'','','£')+fld('everyday','Monthly personal expenditure'+tip('day','What you spend on yourself each month: food, travel, eating out and shopping',true),'','','£')+'</div>'+fld('indiaOther','Money for family and insurance in India, per month'+tip('io','Money you send home and insurance you pay. Don’t add loans or SIPs here, they come next.'),'','','₹')+'</div>';
   if(s===3)body='<div><h1>What you owe</h1><p class="lead">Only loans and credit cards. Your savings come next.</p></div><div class="fields">'+fld('emi','Total EMIs you pay each month'+tip('emi','Add up all your loan EMIs: car, personal, education or home'),'','','₹')+'<div class="grid2">'+fld('cardBal','Credit card balance'+tip('cb','How much you still owe on your cards. Put 0 if you pay the full bill every month.'),'','','₹')+fld('plBal','Personal loan still to pay'+tip('pl','The total amount left, not the monthly EMI',true),'','','₹')+'</div>'+fld('otherLoanBal','Other loans still to pay'+tip('ol','The total left on car, education or home loans'),'','','₹')+'<div class="hintline owe" id="owe"></div></div>';
   if(s===4)body='<div><h1>What you have</h1><p class="lead">Only savings and investments. Don’t add loans here.</p></div><div class="fields">'+fld('savedUK','Savings in the UK'+tip('su','Money in your UK bank that you could use in an emergency'),'','','£')+fld('invested','Invested in India'+tip('inv','Total value of your mutual funds, shares, EPF, PPF and fixed deposits'),'','','₹')+fld('sip','SIPs you pay each month'+tip('sip','Money you invest every month in India. We count it towards your retirement.'),'','','₹')+'<div class="hintline" id="have"></div></div>';
   if(s===5)body='<div><h1>What are you saving for?</h1><p class="lead">You can skip this and add it later.</p></div><div class="fields"><div class="grid2">'+fld('retireAge','Age you want to retire')+fld('retireSpend','Money you’d need each month'+tip('rs','How much you’d spend each month in India, in today’s prices',true),'','','₹')+'</div><div class="field"><span>Do you want to buy a home in India?</span>'+seg('homeOn',[['false','Not now'],['true','Yes']])+'</div>'+(String(d.homeOn)==='true'?'<div class="grid2">'+fld('homeCost','Price today','','','₹')+fld('homeYear','Buy in year')+'</div>'+fld('homeSaved','Saved for it so far','','','₹'):'')+'</div>';
@@ -588,7 +606,7 @@ function vWizard(){
 function bindWizard(){
   var th=document.getElementById('th'),ow=document.getElementById('owe'),hv=document.getElementById('have');
   function upd(){var d=wz.d,fx=+d.fx||129;
-    if(th){var g=+d.salary;th.textContent=g>0?'≈ '+gbp(takeHome(g,d.pension).month)+' a month in your bank after tax':'';}
+    if(th){var g=+d.salary;th.textContent=g>0?'≈ '+gbp(takeHome(g,d.pension).month)+' a month in your bank after tax'+(d.pension===''||d.pension==null?' (with a 5% pension)':''):'';}
     if(ow){var o=(+d.cardBal||0)+(+d.plBal||0)+(+d.otherLoanBal||0);ow.textContent=o>0?'You owe '+inr(o)+' in total':(+d.emi>0?'Now add how much is left on each loan':'');}
     if(hv){var h=(+d.savedUK||0)*fx+(+d.invested||0);hv.textContent=h>0?'You have about '+inr(h)+' ('+gbp(h/fx)+')':'';}
     var b=document.querySelector('[data-wz="next"]');if(b&&wz.step===2)b.disabled=!(+d.salary>0&&d.rent!=='');}
@@ -599,7 +617,7 @@ function wizardAction(a){
   if(a==='next'){wz.step++;render();var f=document.querySelector('.wz input');if(f)f.focus();return;}
   if(a==='back'){wz.step=Math.max(1,wz.step-1);render();return;}
   if(a==='cancel'){wz=null;render();return;}
-  if(a==='finish'){var d=wz.d;d.homeOn=String(d.homeOn)==='true';['age','salary','pension','rent','bills','everyday','indiaOther','fx','emi','cardBal','plBal','otherLoanBal','invested','sip','savedUK','retireAge','retireSpend','homeCost','homeYear','homeSaved'].forEach(function(k){d[k]=d[k]===''?0:+d[k];});if(!d.fx)d.fx=129;if(!d.moved)d.moved=today();delete d.india;delete d.debt;delete d.debtINR;
+  if(a==='finish'){var d=wz.d;d.homeOn=String(d.homeOn)==='true';['age','salary','rent','bills','everyday','indiaOther','fx','emi','cardBal','plBal','otherLoanBal','invested','sip','savedUK','retireAge','retireSpend','homeCost','homeYear','homeSaved'].forEach(function(k){d[k]=d[k]===''?0:+d[k];});d.fx=fxNow();if(!d.moved)d.moved=today();delete d.india;delete d.debt;delete d.debtINR;d.pension=(d.pension===''||d.pension==null)?'':+d.pension;
     var first=!S.profile;S.profile=d;wz=null;tab='home';lastTab=null;save();render();toast(first?'Your plan is ready':'Setup saved');if(first)setTimeout(confetti,250);}
 }
 
@@ -615,7 +633,7 @@ var SHEETS={
   task:function(id){var t=TASKS.find(function(x){return x.id===id;}),on=!!S.checks[id],dd=dueDate(t);return {title:t.title,body:(dd?'<p class="small soft">Try to finish by '+dLabel(dd)+'</p>':'')+'<p>'+esc(t.text)+'</p>'+(t.link?'<a class="official" href="'+t.link+'" target="_blank" rel="noopener">Read the official guidance</a>':'')+'<div class="acts" style="margin-top:16px"><button class="btn '+(on?'':'go')+'" data-tick="'+id+'" data-close-after>'+(on?'Mark as not done':'Mark as done')+'</button></div>'};},
   items:function(){var vm=viewMonth||mKey(),C=cats(),it=S.items.filter(function(x){return x.date.slice(0,7)===vm;}).sort(function(a,b){return a.date<b.date?1:-1;});
     return {title:'Spending in '+mLabel(vm),body:it.length?'<div class="list">'+it.map(function(x){var c=C.find(function(y){return y.k===x.cat;});return '<button class="li" data-item="'+x.id+'"><span class="grow"><b style="display:block;font-weight:600">'+esc(x.note||(c?c.label:'Spending'))+'</b><span class="small soft">'+esc(c?c.label:'')+', '+dLabel(new Date(x.date+'T12:00'))+'</span></span><span class="f" style="font-weight:700">'+gbp2(x.amt)+'</span></button>';}).join('')+'</div><p class="fine">Tap an item to edit or delete it.</p>':'<p class="soft">Nothing logged for '+mLabel(vm)+' yet. Add spending from the Spending tab.</p>'};},
-  settings:function(){var p=S.profile;if(!p)return SHEETS.about();return {title:'Settings',body:'<div class="list">'+[['setup','Edit my setup','Pay, rent, loans and savings'],['fx','Rupee rate','₹'+p.fx+' per £'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['backup','Back up your data','Move your data to another phone or computer'],['about','About Setu','What Setu is, and what it isn’t']].map(function(r){return '<button class="li" data-set="'+r[0]+'"><span class="grow"><b style="display:block;font-weight:600">'+r[1]+'</b><span class="small soft">'+esc(r[2])+'</span></span><span class="chev">›</span></button>';}).join('')+'<button class="li" data-set="reset"><span class="grow"><b style="display:block;font-weight:600;color:var(--rust)">Start over</b><span class="small soft">Delete everything on this device</span></span></button></div>'+(storageOK?'':'<p class="small bad">This browser is blocking storage, so your data will be lost when you close the page.</p>')};},
+  settings:function(){var p=S.profile;if(!p)return SHEETS.about();return {title:'Settings',body:'<div class="list">'+[['setup','Edit my setup','Pay, rent, loans and savings'],['fx','Rupee rate',fxLabel()+'. Tap to refresh.'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['backup','Back up your data','Move your data to another phone or computer'],['about','About Setu','What Setu is, and what it isn’t']].map(function(r){return '<button class="li" data-set="'+r[0]+'"><span class="grow"><b style="display:block;font-weight:600">'+r[1]+'</b><span class="small soft">'+esc(r[2])+'</span></span><span class="chev">›</span></button>';}).join('')+'<button class="li" data-set="reset"><span class="grow"><b style="display:block;font-weight:600;color:var(--rust)">Start over</b><span class="small soft">Delete everything on this device</span></span></button></div>'+(storageOK?'':'<p class="small bad">This browser is blocking storage, so your data will be lost when you close the page.</p>')};},
   backup:function(){return {title:'Back up your data',body:'<p class="small soft">Copy this text and keep it somewhere safe. On a new phone or computer, paste it here and tap Restore.</p><textarea id="bk" rows="6">'+esc(JSON.stringify(S))+'</textarea><div class="acts" style="margin-top:12px"><button class="btn" data-restore>Restore from text</button></div>'};},
   about:function(){return {title:'About Setu',body:'<p>Setu helps people who move from India to the UK. It shows how much money you have left each month, gives you a checklist for both countries, and helps you plan for a home and retirement in India.</p><p>It gives general guidance only. It is not financial, tax or immigration advice, and rules can change. Check the official websites, and talk to a qualified adviser before big decisions.</p><p class="small soft">Pay after tax uses 2026/27 tax rates for England, Wales and Northern Ireland. Scotland’s rates are a little different. Everything you enter stays on this device and is never sent anywhere.</p>'};}
 };
@@ -639,7 +657,7 @@ document.addEventListener('click',function(e){
   if(d.sheet){var n=d.sheet;if(n==='goals'){goalsSheet();return;}openSheet(function(){return SHEETS[n]();});return;}
   if(d.set){var s=d.set;
     if(s==='setup'){sheetFn=null;startWizard();return;}
-    if(s==='fx'){formSheet('Rupee rate',[{k:'fx',label:'How many rupees for £1'}],S.profile,function(o){S.profile.fx=o.fx||S.profile.fx;});return;}
+    if(s==='fx'){toast('Checking the latest rate…');fetchFx(true).then(function(ok){render();toast(ok?'Rate updated: '+fxLabel().split(',')[0]:'Couldn’t reach the rate service. Using the last known rate.');});return;}
     if(s==='assume'){formSheet('How we do the maths',[{k:'inf',label:'How fast prices rise in India, % a year'},{k:'ret',label:'How fast investments grow, % a year'},{k:'wd',label:'How much of your savings you’d spend each year after retiring, % (3–3.5 is safe)'},{k:'efMonths',label:'How many months of costs to keep as emergency savings'}],S.profile,function(o){Object.assign(S.profile,o);});return;}
     if(s==='reset'){if(confirm('Delete everything you’ve added to Setu on this device? You can’t undo this.')){try{localStorage.removeItem(KEY);}catch(err){}S={v:1,profile:null,checks:{},items:[],cats:null};sheetFn=null;wz=null;phase=null;startWizard();}return;}
     openSheet(function(){return SHEETS[s]();});return;}
@@ -665,6 +683,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Enter'&&e.target&&(e.target.id==='amt'||e.target.id==='note')){e.preventDefault();var b=document.querySelector('[data-add]');if(b)b.click();}
 });
 render();
+fetchFx(false).then(function(ch){if(ch)render();});
 })();
 </script>
 </body>
