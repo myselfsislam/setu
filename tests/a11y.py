@@ -29,7 +29,7 @@ try:
         pg.locator('[data-tab="goals"]:visible').first.click();pg.click('[data-funds="retire"]');pg.wait_for_timeout(500);scan(pg,tag+' funds sheet');pg.click('[data-close]')
         pg.click('[data-sheet="settings"]:visible');pg.wait_for_timeout(300);scan(pg,tag+' settings');pg.click('[data-set="transfer"]');pg.wait_for_timeout(300);scan(pg,tag+' transfer');pg.click('[data-close]')
         if w>1400:
-            pg.click('[data-rtab="news"]');pg.wait_for_timeout(600);scan(pg,tag+' news')
+            pg.click('[data-railtoggle]') if 'collapsed' in pg.evaluate("document.getElementById('rail').className") else None;pg.wait_for_timeout(300);scan(pg,tag+' markets');pg.click('[data-rtab="news"]');pg.wait_for_timeout(600);scan(pg,tag+' news')
         ctx.close()
     b.close()
 finally: srv.terminate()

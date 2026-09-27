@@ -4,7 +4,7 @@
 import subprocess,sys,os
 HERE=os.path.dirname(os.path.abspath(__file__))
 failed=[]
-for name in ['e2e.py','calc.py','a11y.py','layout.py']:
+for name in ['e2e.py','calc.py','a11y.py','layout.py','rail.py']:
     print('\n===== '+name+' =====',flush=True)
     r=subprocess.run([sys.executable,os.path.join(HERE,name)])
     if r.returncode: failed.append(name)
