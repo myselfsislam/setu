@@ -280,6 +280,21 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .means{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.45}
 .desk{display:none}
 @media (min-width:880px){.desk{display:block}.dsum{text-align:left;cursor:pointer;width:100%}.dsrow{display:flex;gap:16px;align-items:center;margin-top:6px}.dcat{display:grid;grid-template-columns:78px 1fr;align-items:center;gap:8px}.dcat .bar{margin:3px 0}.v-home .dsum{grid-column:auto}}
+.tblcard{padding:12px 14px 10px}
+.tblwrap{overflow-y:auto;overflow-x:hidden;margin:6px 0 0;border-radius:12px}
+.stbl{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:fixed}
+.stbl col.cw{width:auto}.stbl col.cc{width:34%}.stbl col.ca{width:92px}
+.stbl thead th{position:sticky;top:0;background:var(--card);z-index:1;text-align:left;font-size:11.5px;font-weight:700;color:var(--soft);padding:6px 6px;border-bottom:1.5px solid var(--rule)}
+.stbl td{padding:8px 6px;border-bottom:1px solid var(--rule);vertical-align:middle}
+.stbl .tnum{text-align:right;white-space:nowrap}.stbl td.tnum b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:14.5px}.stbl td.tnum small{display:block;font-size:11px;color:var(--soft);font-weight:600}
+.stbl tbody tr[data-item]{cursor:pointer;transition:background-color .15s ease}
+@media (hover:hover){.stbl tbody tr[data-item]:hover{background:var(--t-indigo)}}
+.stbl tr:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px}
+.dayrow th,.dayrow td{background:var(--bg);font-size:12px;font-weight:800;color:var(--soft);padding:5px 6px;text-align:left}.dayrow td{text-align:right}
+.tdate{color:var(--soft);white-space:nowrap;font-size:12.5px}.twhat{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcat{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.tcat i{flex-shrink:0}.tcat i{width:8px;height:8px;border-radius:50%;background:var(--cc)}
+.stbl tfoot th,.stbl tfoot td{padding:8px 6px;border-top:1.5px solid var(--rule);font-weight:800;text-align:left;position:sticky;bottom:0;background:var(--card)}.stbl tfoot td{text-align:right}
+@media (min-width:880px){.v-spend .tblcard{grid-column:1/-1}.stbl col.cc{width:28%}.stbl col.ca{width:140px}}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -586,8 +601,8 @@ function render(){
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function fitOptional(){var m=document.getElementById('main');if(!m)return;var o=[].slice.call(m.querySelectorAll('.opt'));o.forEach(function(e){e.style.display='';});
   o.sort(function(a,b){return (+a.dataset.prio)-(+b.dataset.prio);});while(m.scrollHeight>m.clientHeight+2&&o.length){o.shift().style.display='none';}}
-window.addEventListener('resize',function(){fitOptional();fitRail();});
-function afterRender(enter){fitOptional();
+window.addEventListener('resize',function(){sizeTable();fitOptional();sizeTable();fitRail();});
+function afterRender(enter){sizeTable();fitOptional();sizeTable();
   document.querySelectorAll('[data-count]').forEach(function(el){
     var to=+el.dataset.count,key=el.dataset.key||'',fmt=el.dataset.fmt,from=enter?0:(countFrom[key]!=null?countFrom[key]:to);countFrom[key]=to;
     var f=function(v){return fmt==='pct'?Math.round(v)+'%':fmt==='inr'?inr(v):gbp(v);};
@@ -684,6 +699,17 @@ function moneyInRow(vm,spent){
   return '<div class="moneyin" role="button" tabindex="0" data-monthin="'+vm+'"><span><span class="small soft">Money in</span><b class="f">'+gbp(inAmt)+'</b><span class="small '+(mi.salary?'soft':'addlink')+'">'+(mi.salary?'Salary'+(mi.carry?' + '+gbp(mi.carry)+' carried':''):'+ Add salary & last month')+'</span></span>'+
     '<span class="r"><span class="small soft">Cash left now'+tip('cl','Money in, minus rent, bills, India payments and what you’ve spent this month.',true)+'</span><b class="f '+(cash<0?'bad':'')+'">'+gbp(cash)+'</b><span class="small soft">after all costs so far</span></span></div>';
 }
+function spendTable(items,C){
+  var fx=fxNow(),rows=items.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(b.created||0)-(a.created||0);}),tot=sum(rows.map(function(x){return x.amt;})),h='',lastD=null;
+  var byDay={};rows.forEach(function(x){byDay[x.date]=(byDay[x.date]||0)+x.amt;});
+  rows.forEach(function(x){var c=C.find(function(y){return y.k===x.cat;}),k=cc(x.cat),d=new Date(x.date+'T12:00');
+    if(x.date!==lastD){lastD=x.date;var isT=x.date===today();h+='<tr class="dayrow"><th colspan="2" scope="rowgroup">'+(isT?'Today':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}))+'</th><td class="tnum">'+gbp2(byDay[x.date])+'</td></tr>';}
+    h+='<tr data-item="'+x.id+'" tabindex="0"><td class="twhat">'+esc(x.note||(c?c.label:'Spending'))+'</td><td><span class="tcat" style="--cc:'+k[0]+'"><i></i>'+esc(c?c.label:'')+'</span></td><td class="tnum"><b>'+gbp2(x.amt)+'</b><small>'+inr(x.amt*fx)+'</small></td></tr>';});
+  return '<section class="card tblcard"><div class="row-b"><h3>Your spending log</h3><span class="small soft">'+rows.length+' item'+(rows.length>1?'s':'')+', '+gbp2(tot)+'</span></div>'+
+    '<div class="tblwrap"><table class="stbl"><colgroup><col class="cw"><col class="cc"><col class="ca"></colgroup><thead><tr><th scope="col">What</th><th scope="col">Category</th><th scope="col" class="tnum">Amount</th></tr></thead><tbody>'+h+'</tbody><tfoot><tr><th colspan="2" scope="row">Total this month</th><td class="tnum"><b>'+gbp2(tot)+'</b><small>'+inr(tot*fx)+'</small></td></tr></tfoot></table></div><p class="fine" style="margin-top:6px">Tap a row to edit or delete it.</p></section>';
+}
+function sizeTable(){var w=document.querySelector('.tblwrap'),m=document.getElementById('main');if(!w||!m)return;w.style.maxHeight='';
+  var room=m.getBoundingClientRect().bottom-w.getBoundingClientRect().top-parseFloat(getComputedStyle(m).paddingBottom||0)-34;w.style.maxHeight=Math.max(130,Math.floor(room))+'px';}
 function vSpend(){
   var C=cats(),cur=mKey(),vm=viewMonth||cur,items=S.items.filter(function(x){return x.date.slice(0,7)===vm;}),tot=sum(items.map(function(x){return x.amt;})),bud=sum(C.map(function(c){return c.budget;})),left=bud-tot,used=pct(tot,bud);
   var R=38,L=2*Math.PI*R,off=(L*(1-used/100)).toFixed(1);
@@ -693,11 +719,12 @@ function vSpend(){
   h+='<section class="card"><div class="chips">'+C.map(function(c){var k=cc(c.k);return '<button class="chip" data-cat="'+c.k+'" aria-pressed="'+(addCat===c.k)+'" style="--cc:'+k[0]+'"><i>'+gl(k[1])+'</i>'+esc(c.label)+'</button>';}).join('')+'</div>'+
     '<div class="inrow"><input id="amt" class="a" type="number" inputmode="decimal" step="any" placeholder="£ 0.00" aria-label="Amount in pounds"><input id="note" placeholder="What was it?" aria-label="What was it"><button class="btn go" data-add style="padding:12px 18px">Add</button></div>';
   var la=lastAdded();if(la){var lc=C.find(function(c){return c.k===la.cat;});h+='<div class="undo"><span>Added '+esc(la.note||(lc?lc.label:'spending'))+' '+gbp2(la.amt)+'</span><button class="link bad" data-undo="'+la.id+'">Undo</button></div>';}
-  h+='</section><section class="tiles">';
+  h+='</section><section class="tiles'+(items.length?' opt" data-prio="0':'')+'">';
   C.forEach(function(c){var v=sum(items.filter(function(x){return x.cat===c.k;}).map(function(x){return x.amt;})),pcc=c.budget?v/c.budget*100:(v?100:0),k=cc(c.k);
     h+='<button class="tile" data-cat-edit="'+c.k+'" style="--cc:'+k[0]+'"><div class="row-b"><span><i>'+gl(k[1])+'</i>'+esc(c.label)+'</span><span class="v"><b>'+gbp(v)+'</b>/'+gbp(c.budget)+'</span></div><div class="bar'+(pcc>100?' over':'')+'"><div data-w="'+Math.min(100,pcc).toFixed(1)+'" style="width:'+Math.min(100,pcc).toFixed(1)+'%"></div></div></button>';});
   if(!items.length)h+='<div class="emptyline">'+ILL.bag+'<span>Nothing added yet. Add what you spend above. Tap a category to change its budget.</span></div>';
   h+='</section>';
+  if(items.length)h+=spendTable(items,C);
   return h;
 }
 
@@ -868,7 +895,7 @@ var SHEETS={
 
 /* ---------- events ---------- */
 document.addEventListener('click',function(e){
-  var t=e.target.closest&&e.target.closest('button,[data-bg],[data-monthin]');if(!t)return;
+  var t=e.target.closest&&e.target.closest('button,[data-bg],[data-monthin],tr[data-item]');if(!t)return;
   if(t.hasAttribute('data-bg')){if(e.target===t)closeSheet();return;}
   if(t.hasAttribute('data-close')){closeSheet();return;}
   var d=t.dataset;
@@ -916,7 +943,7 @@ function goalsSheet(){
 }
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&sheetFn){closeSheet();return;}
-  if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.dataset&&e.target.dataset.monthin){e.preventDefault();e.target.click();return;}
+  if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.dataset&&(e.target.dataset.monthin||e.target.dataset.item)){e.preventDefault();e.target.click();return;}
   if(e.key==='Enter'&&e.target&&(e.target.id==='amt'||e.target.id==='note')){e.preventDefault();var b=document.querySelector('[data-add]');if(b)b.click();}
 });
 render();
