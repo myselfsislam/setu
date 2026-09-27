@@ -259,6 +259,27 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 @media (max-height:800px){.v-spend .ring{width:64px;height:64px}.v-spend .ring b{font-size:15px}.v-spend .mid{font-size:24px}.v-spend .mhead{margin:-8px -8px -4px}.moneyin{margin-top:8px;padding-top:7px}.moneyin b{font-size:17px}.v-spend .tile{padding:7px 10px 6px}.v-spend .tiles{gap:5px}.v-spend .chips{margin-bottom:8px}.v-spend .undo{margin-top:6px}}
 @media (max-height:720px){.moneyin .small:last-child{display:none}.v-spend .leftchip{margin-top:3px;padding:2px 8px}.v-spend .card{padding:9px 13px}.v-spend .inrow input{padding:9px 11px}.v-spend .inrow .btn{padding:9px 14px!important}.v-spend{gap:7px!important}.v-spend .bar{margin:4px 0 0}}
 @media (max-height:640px){.moneyin .small:first-child{display:none}.v-spend .mhead{display:none}.v-spend .undo{display:none}}
+.rail{display:none}
+@media (min-width:1360px){
+  .rail{display:flex;flex-direction:column;gap:12px;width:360px;flex-shrink:0;padding:24px 22px 24px 0;overflow-y:auto}
+  main{max-width:none!important}
+  .v-home .hero .jar{right:32px}
+}
+@media (min-width:1700px){.rail{width:400px}}
+.rhead{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 0}.rhead h2{font-size:22px}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--mint);background:var(--t-mint);padding:4px 10px;border-radius:999px}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--mint)}
+@media (prefers-reduced-motion:no-preference){.live i{animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{opacity:.3}}}
+.rc{padding:13px 15px}.rc h3{font-size:15px;margin-bottom:6px}
+.rrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--rule)}.rc h3+.rrow{border-top:0}
+.rn{display:flex;flex-direction:column;min-width:0;flex:0 0 42%}.rn b{font-size:14px;font-family:"Bricolage Grotesque",sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rn .small{font-size:11.5px}
+.rrow .spark{flex:1;min-width:0;height:26px}
+.rv2{display:flex;flex-direction:column;align-items:flex-end;font-weight:800;font-size:13px;flex-shrink:0;min-width:58px}.rv2 .small{font-weight:600;font-size:10.5px}
+.rfoot{font-size:11px;color:var(--soft);margin:6px 0 0}
+.rgrid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.means{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.45}
+.desk{display:none}
+@media (min-width:880px){.desk{display:block}.dsum{text-align:left;cursor:pointer;width:100%}.dsrow{display:flex;gap:16px;align-items:center;margin-top:6px}.dcat{display:grid;grid-template-columns:78px 1fr;align-items:center;gap:8px}.dcat .bar{margin:3px 0}.v-home .dsum{grid-column:auto}}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -400,6 +421,11 @@ function ratesCard(){
   return '<section class="card rates opt" data-prio="1"><div class="row-b"><h3>Rates that shape your plan</h3><span class="small soft">'+RATES.asOf+'</span></div><div class="rgrid">'+
     RATES.list.map(function(x,i){return '<div class="rt" style="--rc:'+x[4]+'"><span class="small soft">'+x[0]+tip('rt'+i,x[3],i%2===1)+'</span><b class="f">'+x[1]+'</b><span class="small soft">'+x[2]+'</span></div>';}).join('')+'</div></section>';
 }
+var FXM=S.fxMulti||null,fxmBusy=false;
+function fetchFxMulti(){var t=new Date().toISOString().slice(0,10);if(fxmBusy||(FXM&&FXM.at===t))return;fxmBusy=true;
+  var st=new Date(Date.now()-40*864e5).toISOString().slice(0,10);
+  fetch('https://api.frankfurter.dev/v1/'+st+'..?base=GBP&symbols=INR,USD,EUR',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    var d=Object.keys(j.rates||{}).sort();if(d.length<5)throw 0;FXM={at:t,days:d,rates:j.rates};S.fxMulti=FXM;save();}).catch(function(){}).then(function(){refreshRail();});}
 function fxLabel(){return '₹'+fxNow().toFixed(2)+' = £1'+(FX.at?', updated '+new Date(FX.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):', last known rate');}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));storageOK=true;}catch(e){storageOK=false;}}
 var tab='home',phase=null,addCat='groceries',viewMonth=null,sheetFn=null,wz=null;
@@ -553,14 +579,14 @@ function render(){
       '<div class="sfoot"><button class="sn" data-sheet="settings">'+GEAR+'<span>Settings</span></button><p>Free and private. Everything stays on this device. General guidance, not financial advice.</p></div></aside>'+
     '<div class="col"><header class="mhd">'+mh+'<button class="gear" data-sheet="settings" aria-label="Settings">'+GEAR+'</button></header>'+
     '<main id="main" class="v-'+tab+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+V[tab]()+'</main>'+
-    '<nav class="tabbar" role="tablist" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'tb');}).join('')+'</nav></div></div>'+(sheetFn?sheetHTML(anim):'');
+    '<nav class="tabbar" role="tablist" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'tb');}).join('')+'</nav></div><aside class="rail" id="rail" aria-label="Markets today">'+(isWide()?railBody():'')+'</aside></div>'+(sheetFn?sheetHTML(anim):'');
   var m2=document.getElementById('main');if(m2)m2.scrollTop=keep;
-  afterRender(enter);lastTicked=null;bindSheet();var sh1=document.querySelector('.sheet');if(sh1&&shTop)sh1.scrollTop=shTop;
+  afterRender(enter);lastTicked=null;bindSheet();fitRail();loadRail();var sh1=document.querySelector('.sheet');if(sh1&&shTop)sh1.scrollTop=shTop;
 }
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function fitOptional(){var m=document.getElementById('main');if(!m)return;var o=[].slice.call(m.querySelectorAll('.opt'));o.forEach(function(e){e.style.display='';});
   o.sort(function(a,b){return (+a.dataset.prio)-(+b.dataset.prio);});while(m.scrollHeight>m.clientHeight+2&&o.length){o.shift().style.display='none';}}
-window.addEventListener('resize',function(){fitOptional();});
+window.addEventListener('resize',function(){fitOptional();fitRail();});
 function afterRender(enter){fitOptional();
   document.querySelectorAll('[data-count]').forEach(function(el){
     var to=+el.dataset.count,key=el.dataset.key||'',fmt=el.dataset.fmt,from=enter?0:(countFrom[key]!=null?countFrom[key]:to);countFrom[key]=to;
@@ -628,6 +654,9 @@ function vHome(){
   if(+p.retireAge&&+p.retireSpend){var r=retire(lt);tiles.push(['Retire at '+r.target,Math.round(pct(r.atT,r.needT))+'%','of the way there','var(--mint)']);}
   if(p.homeOn&&+p.homeCost){var hc=homeCalc();tiles.push(['Home in '+p.homeYear,Math.round(pct(hc.fv,hc.cost))+'%','saved by then','var(--marigold)']);}
   if(tiles.length)h+='<button class="card glance" data-tab="goals">'+tiles.map(function(t){return '<span class="gl"><span class="small soft"><i class="dot" style="background:'+t[3]+'"></i>'+esc(t[0])+'</span><span class="f gv">'+t[1]+'</span><span class="small soft">'+t[2]+'</span></span>';}).join('')+'<span class="chev">›</span></button>';
+  var Cs=cats(),itm=S.items.filter(function(x){return x.date.slice(0,7)===mKey();}),spt=sum(itm.map(function(x){return x.amt;})),bd=sum(Cs.map(function(c){return c.budget;})),dn=doneCount(TASKS),nt=nextTask();
+  h+='<button class="card desk dsum opt" data-prio="3" data-tab="spend"><div class="row-b"><h3>Spending this month</h3><span class="chev">›</span></div><div class="dsrow"><div><div class="mid f">'+gbp(spt)+'</div><div class="small soft">of '+gbp(bd)+' budget</div></div><div class="grow">'+Cs.map(function(c){var v=sum(itm.filter(function(x){return x.cat===c.k;}).map(function(x){return x.amt;})),k=cc(c.k);return '<div class="dcat"><span class="small">'+esc(c.label)+'</span><div class="bar" style="--cc:'+k[0]+'"><div data-w="'+Math.min(100,pct(v,c.budget)).toFixed(1)+'" style="width:'+Math.min(100,pct(v,c.budget)).toFixed(1)+'%"></div></div></div>';}).join('')+'</div></div></button>';
+  h+='<button class="card desk dsum opt" data-prio="3" data-tab="check"><div class="row-b"><h3>Your first 90 days</h3><span class="chev">›</span></div><div class="dsrow">'+bridgeSVG(dn/TASKS.length,false).replace('<svg ','<svg style="width:120px;height:62px;flex-shrink:0" ')+'<div><div class="mid f">'+Math.round(dn/TASKS.length*100)+'% done</div><div class="small soft">'+dn+' of '+TASKS.length+' steps</div>'+(nt?'<div class="small" style="margin-top:4px;font-weight:700">Next: '+esc(nt.title)+'</div>':'')+'</div></div></button>';
   h+=marketCard();
   return h;
 }
@@ -699,6 +728,7 @@ var FUNDS={
  baf:{name:'Balanced advantage fund',desc:'Mixes shares and bonds, and moves between them. A smoother ride.',risk:2,plan:9,q:'ICICI Prudential Balanced Advantage Fund Direct Growth',cost:'About 0.9% a year'},
  short:{name:'Short-term debt fund',desc:'Lends to banks and companies for 1–3 years. Small, steady growth.',risk:2,plan:7,q:'HDFC Short Term Debt Fund Direct Growth',cost:'About 0.4% a year'},
  liquid:{name:'Liquid fund',desc:'Very short-term lending. Your money is easy to take out any time.',risk:1,plan:6.5,q:'HDFC Liquid Fund Direct Growth',cost:'About 0.2% a year'},
+ gold:{name:'Gold',desc:'',risk:3,plan:8,q:'Nippon India Gold Savings Fund Direct Growth',cost:''},
  fd:{name:'NRE fixed deposit',desc:'A fixed rate you know in advance. Interest is tax-free in India.',risk:1,plan:6.4,fixed:'6.25–6.45%',fixedNote:'SBI NRE rates for 1–10 years, Sept 2026',cost:'No fees'}
 };
 var GOALFUNDS={retire:[['n50',7],['nn50',7],['mid',8],['small',10],['us',7],['baf',5]],home:[['fd',0],['liquid',0],['short',1],['baf',3],['n50',5]]};
@@ -712,7 +742,8 @@ function mfMetrics(data){
   var mon=[],lastM=-1;pts.forEach(function(x){var m=new Date(x[0]);var k=m.getFullYear()*12+m.getMonth();if(k!==lastM){mon.push(x[1]);lastM=k;}else mon[mon.length-1]=x[1];});
   var rets=[];for(var i=1;i<mon.length;i++)rets.push(mon[i]/mon[i-1]-1);rets=rets.slice(-60);var mu=rets.reduce(function(a,b){return a+b;},0)/Math.max(1,rets.length);
   var vol=Math.sqrt(rets.reduce(function(a,b){return a+(b-mu)*(b-mu);},0)/Math.max(1,rets.length-1))*Math.sqrt(12)*100;
-  return {r1:cagr(1),r3:cagr(3),r5:cagr(5),dd:dd,ddYear:ddYear,vol:vol,since:new Date(pts[0][0]).getFullYear(),spark:mon.slice(-60),asOf:new Date(last[0]).toISOString().slice(0,10)};
+  var prev=pts[pts.length-2],m1v=at(1/12),d90=pts.filter(function(x){return x[0]>=last[0]-92*864e5;}),step=Math.max(1,Math.floor(d90.length/45));
+  return {d1:prev?(last[1]/prev[1]-1)*100:null,m1:m1v?(last[1]/m1v-1)*100:null,sp90:d90.filter(function(x,i){return i%step===0||i===d90.length-1;}).map(function(x){return x[1];}),r1:cagr(1),r3:cagr(3),r5:cagr(5),dd:dd,ddYear:ddYear,vol:vol,since:new Date(pts[0][0]).getFullYear(),spark:mon.slice(-60),asOf:new Date(last[0]).toISOString().slice(0,10)};
 }
 function loadFund(id){
   var f=FUNDS[id],t=today();if(!f||f.fixed||mfBusy[id]||mfTried[id]||(S.mf[id]&&S.mf[id].at===t))return;
@@ -721,7 +752,7 @@ function loadFund(id){
     var pick=(list||[]).filter(function(x){var n=x.schemeName||'';return /direct/i.test(n)&&/growth/i.test(n)&&!/idcw|dividend|bonus/i.test(n);})[0]||(list||[])[0];
     if(!pick)throw 0;return fetch('https://api.mfapi.in/mf/'+pick.schemeCode).then(function(r){return r.json();});
   }).then(function(j){var m=mfMetrics(j.data||[]);if(!m)throw 0;m.at=t;m.src=(j.meta&&j.meta.scheme_name)||'';S.mf[id]=m;save();})
-  .catch(function(){if(!S.mf[id]||S.mf[id].fail)S.mf[id]={fail:true,at:null};}).then(function(){mfBusy[id]=false;refreshSheet();});
+  .catch(function(){if(!S.mf[id]||S.mf[id].fail)S.mf[id]={fail:true,at:null};}).then(function(){mfBusy[id]=false;refreshSheet();refreshRail();});
 }
 function pctTxt(v){return v==null?'–':(v>=0?'+':'')+v.toFixed(1)+'%';}
 function riskDots(n){var h='';for(var i=1;i<=5;i++)h+='<i class="'+(i<=n?'on':'')+'"></i>';return '<span class="rdots" aria-label="Ups and downs: '+n+' of 5">'+h+'</span>';}
@@ -744,6 +775,40 @@ function sheetFunds(g){
 }
 function fundRow(g){var p=S.profile,id=g==='retire'?p.retFund:p.homeFund,f=FUNDS[id];
   return '<button class="fundpick" data-funds="'+g+'"><span class="grow"><span class="small soft">'+(f?'Investing in':'How will you invest?')+'</span><b>'+(f?esc(f.name):'Compare fund types')+'</b></span><span class="dadd">'+(f?'Change':'Choose')+' ›</span></button>';}
+
+/* ---------- Markets rail (wide screens) ---------- */
+var RAILF=[['n50','Nifty 50'],['nn50','Nifty Next 50'],['mid','Midcap 150'],['small','Smallcap 250'],['us','US S&P 500 (in ₹)'],['gold','Gold (in ₹)']];
+function isWide(){return window.matchMedia&&window.matchMedia('(min-width:1360px)').matches;}
+function chg(v,dp){if(v==null||isNaN(v))return '<span class="soft">–</span>';return '<span class="'+(v>=0?'ok':'bad')+'">'+(v>=0?'▲ ':'▼ ')+Math.abs(v).toFixed(dp==null?1:dp)+'%</span>';}
+function railBody(){
+  var h='<div class="rhead"><h2>Markets today</h2><span class="live"><i></i>Live</span></div>';
+  // currencies
+  h+='<section class="card rc"><h3>Your pound buys</h3>';
+  var cur=[['INR','₹','rupees'],['USD','$','US dollars'],['EUR','€','euros']];
+  if(FXM&&FXM.days){var dd=FXM.days,lastD=dd[dd.length-1],first=dd[0],mago=dd.filter(function(x){return x<=new Date(new Date(lastD).getTime()-30*864e5).toISOString().slice(0,10);});var ref=mago.length?mago[mago.length-1]:first;
+    h+=cur.map(function(c){var v=FXM.rates[lastD][c[0]],o=FXM.rates[ref][c[0]];var series=dd.map(function(x){return FXM.rates[x][c[0]];});
+      return '<div class="rrow"><span class="rn"><b>'+c[1]+(c[0]==='INR'?v.toFixed(2):v.toFixed(3))+'</b><span class="small soft">'+c[2]+'</span></span>'+spark(series,90,26)+'<span class="rv2">'+chg((v/o-1)*100)+'<span class="small soft">30 days</span></span></div>';}).join('');
+    h+='<p class="rfoot">European Central Bank rates, '+new Date(lastD).toLocaleDateString('en-GB',{day:'numeric',month:'short'})+'</p>';}
+  else h+='<p class="small soft">Live rates appear on your hosted site.</p>';
+  h+='</section>';
+  // markets via index/category fund prices
+  var any=false,rows=RAILF.map(function(r){var m=S.mf[r[0]];if(!m||m.fail||m.d1===undefined)return '<div class="rrow"><span class="rn"><b>'+r[1]+'</b><span class="small soft">'+(m&&m.fail?'Not available':'Loading…')+'</span></span></div>';any=true;
+      return '<div class="rrow"><span class="rn"><b>'+r[1]+'</b><span class="small soft">1 year '+chg(m.r1,0)+'</span></span>'+spark(m.sp90,90,26)+'<span class="rv2">'+chg(m.d1,2)+'<span class="small soft">1 day</span></span></div>';}).join('');
+  h+='<section class="card rc"><h3>Markets in India</h3>'+rows+'<p class="rfoot">'+(any?'From index fund prices, which update each evening (1 working day behind). 3-month charts.':'Uses daily fund prices from mfapi.in.')+'</p></section>';
+  // key rates
+  h+='<section class="card rc"><h3>Key rates</h3><div class="rgrid2">'+RATES.list.map(function(x){return '<div class="rt" style="--rc:'+x[4]+'"><span class="small soft">'+x[0]+'</span><b class="f">'+x[1]+'</b><span class="small soft">'+x[2]+'</span></div>';}).join('')+'</div></section>';
+  // what it means
+  var tips=[],I=fxInsight();if(I)tips.push(I.say);
+  var n=S.mf.n50;if(n&&n.m1!=null)tips.push('Indian large companies are '+(n.m1>=0?'up ':'down ')+Math.abs(n.m1).toFixed(1)+'% this month. For long-term SIPs, short moves like this matter little.');
+  tips.push('An NRE fixed deposit pays about 6.3% a year, above India’s 4.82% inflation, so your money grows about 1.5% a year in real terms.');
+  tips.push('UK prices are rising 3.1% a year. Keep your UK emergency fund in an account paying at least that.');
+  h+='<section class="card rc"><h3>What this means for you</h3><ul class="means">'+tips.slice(0,4).map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul><p class="rfoot">General information, not advice.</p></section>';
+  return h;
+}
+function fitRail(){var r=document.getElementById('rail');if(!r)return;var c=[].slice.call(r.querySelectorAll('.rc')).reverse();c.forEach(function(e){e.style.display='';});var i=0;while(r.scrollHeight>r.clientHeight+2&&i<c.length-1){c[i].style.display='none';i++;}}
+function refreshRail(){var r=document.getElementById('rail');if(r&&isWide()){r.innerHTML=railBody();fitRail();}}
+function loadRail(){if(!isWide())return;RAILF.forEach(function(r){var m=S.mf[r[0]];if(m&&!m.fail&&m.d1===undefined){delete S.mf[r[0]];mfTried[r[0]]=false;}loadFund(r[0]);});fetchFxMulti();}
+window.addEventListener('resize',function(){if(isWide()&&S.profile&&!wz){var r=document.getElementById('rail');if(r&&!r.innerHTML)r.innerHTML=railBody();loadRail();}});
 
 /* ---------- Wizard ---------- */
 var HH={single:{bills:300,everyday:450},couple:{bills:400,everyday:800},family:{bills:500,everyday:1100}};
