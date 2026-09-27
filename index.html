@@ -225,6 +225,19 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .hero .inr{font-size:18px;font-weight:700;color:var(--hero-soft)}
 .key small{font-size:10.5px;color:var(--hero-soft);font-weight:600;margin-top:1px;white-space:nowrap}
 .amt{text-align:right}.amt small{display:block;font-family:Figtree,sans-serif;font-size:11.5px;font-weight:600;color:var(--soft);line-height:1.1}
+.mkrow{display:flex;align-items:center;gap:14px;margin-top:6px}.mkrow>div:first-child{flex-shrink:0}
+.sparkbox{flex:1;min-width:0}.spark{width:100%;height:48px;display:block}
+.rng{display:flex;justify-content:space-between;font-size:11px;color:var(--soft);margin-top:2px}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.rt{background:var(--bg);border-radius:14px;padding:9px 11px;display:flex;flex-direction:column;border-left:4px solid var(--rc)}
+.rt b{font-size:22px;font-weight:800;line-height:1.15}
+@media (max-width:879px){
+  .market{padding:10px 14px}.market .row-b{display:none}.market p{display:none}.market .mkrow{margin-top:0}.market .mid{font-size:22px}.market .spark{height:38px}.market .rng{display:none}
+  .market .mkrow>div:first-child::before{content:"£1 in rupees, live";display:block;font-size:11.5px;color:var(--soft);font-weight:600}
+  .rates{padding:10px 14px}.rates h3{font-size:15px}.rgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:6px}.rt{padding:7px 8px;border-left-width:3px;border-radius:12px}.rt b{font-size:17px}.rt>span:last-child{display:none}.rt .small{font-size:10.5px;line-height:1.2}
+  .rt .tip{display:none}
+}
+@media (min-width:880px){.v-home .plan{grid-row:span 2}.v-home .market{grid-column:2;align-self:start}.v-goals .rates,.v-goals .market{grid-column:auto;align-self:start}}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow:auto;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -332,6 +345,39 @@ function fetchFx(force){
     return fetch(srcs[i][0],{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){var v=+srcs[i][1](j);if(!(v>50&&v<500))throw 0;
       FX={rate:Math.round(v*100)/100,at:new Date().toISOString(),src:srcs[i][2]};S.fxRate=FX;applyFx();save();return true;}).catch(function(){return tryAt(i+1);});}
   return tryAt(0);
+}
+var FXH=S.fxHist||null;
+function fetchFxHist(){
+  var t=new Date().toISOString().slice(0,10);if(FXH&&FXH.at===t)return Promise.resolve(false);
+  var st=new Date(Date.now()-95*864e5).toISOString().slice(0,10);
+  return fetch('https://api.frankfurter.dev/v1/'+st+'..?base=GBP&symbols=INR',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    var pts=Object.keys(j.rates||{}).sort().map(function(d){return [d,+j.rates[d].INR];}).filter(function(x){return x[1]>50;});
+    if(pts.length<10)return false;FXH={at:t,pts:pts};S.fxHist=FXH;save();return true;}).catch(function(){return false;});
+}
+/* Published figures. Update these when the next announcements come out. */
+var RATES={asOf:'27 Sept 2026',list:[
+  ['UK interest rate','3.75%','Held on 17 Sept','UK savings and mortgage rates move with this. Next decision: 5 Nov.','var(--indigo)'],
+  ['UK inflation','3.1%','August 2026','How fast prices are rising in the UK. The target is 2%.','var(--rani)'],
+  ['India interest rate','5.25%','Kept on 5 Aug','The RBI repo rate. Indian loan and fixed deposit rates move with this.','var(--marigold)'],
+  ['India inflation','4.82%','August 2026','How fast prices are rising in India. Setu plans with 6% to be safe.','var(--teal)']]};
+function fxInsight(){
+  if(!FXH||!FXH.pts.length)return null;var v=FXH.pts.map(function(x){return x[1];}),now=fxNow(),mn=Math.min.apply(null,v),mx=Math.max.apply(null,v);
+  var ago=FXH.pts.filter(function(x){return x[0]<=new Date(Date.now()-30*864e5).toISOString().slice(0,10);});var m30=ago.length?ago[ago.length-1][1]:v[0];
+  var pos=mx>mn?(now-mn)/(mx-mn):.5,ch=(now/m30-1)*100;
+  return {mn:mn,mx:mx,ch:ch,pos:pos,v:v,say:pos>=.7?'The pound is strong right now. A good time to send money to India.':pos<=.3?'The pound is weaker than usual. If you can, wait a little before sending big amounts.':'The pound is around its usual level for the last 3 months.'};
+}
+function spark(v,w,h){if(!v||v.length<2)return '';var mn=Math.min.apply(null,v),mx=Math.max.apply(null,v),rg=(mx-mn)||1;
+  var pts=v.map(function(x,i){return (i/(v.length-1)*w).toFixed(1)+','+(h-3-(x-mn)/rg*(h-6)).toFixed(1);});
+  return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--indigo)" stop-opacity=".28"/><stop offset="1" stop-color="var(--indigo)" stop-opacity="0"/></linearGradient></defs><polygon points="0,'+h+' '+pts.join(' ')+' '+w+','+h+'" fill="url(#sg)"/><polyline points="'+pts.join(' ')+'" fill="none" stroke="var(--indigo)" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';}
+function marketCard(){
+  var I=fxInsight(),r=fxNow();
+  return '<section class="card market opt" data-prio="2"><div class="row-b"><h3>Pound to rupee</h3><span class="small soft">Live, last 3 months</span></div>'+
+    '<div class="mkrow"><div><div class="mid f">₹'+r.toFixed(2)+'</div><div class="small '+(I?(I.ch>=0?'ok':'bad'):'soft')+'" style="font-weight:700">'+(I?(I.ch>=0?'▲ ':'▼ ')+Math.abs(I.ch).toFixed(1)+'% in 30 days':'for £1')+'</div></div>'+(I?'<div class="sparkbox">'+spark(I.v,160,48)+'<div class="rng"><span>Low ₹'+I.mn.toFixed(1)+'</span><span>High ₹'+I.mx.toFixed(1)+'</span></div></div>':'')+'</div>'+
+    '<p class="small" style="margin:8px 0 0">'+(I?esc(I.say):'The 3-month trend appears when you’re online.')+'</p></section>';
+}
+function ratesCard(){
+  return '<section class="card rates opt" data-prio="1"><div class="row-b"><h3>Rates that shape your plan</h3><span class="small soft">'+RATES.asOf+'</span></div><div class="rgrid">'+
+    RATES.list.map(function(x,i){return '<div class="rt" style="--rc:'+x[4]+'"><span class="small soft">'+x[0]+tip('rt'+i,x[3],i%2===1)+'</span><b class="f">'+x[1]+'</b><span class="small soft">'+x[2]+'</span></div>';}).join('')+'</div></section>';
 }
 function fxLabel(){return '₹'+fxNow().toFixed(2)+' = £1'+(FX.at?', updated '+new Date(FX.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):', last known rate');}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));storageOK=true;}catch(e){storageOK=false;}}
@@ -490,7 +536,10 @@ function render(){
   afterRender(enter);lastTicked=null;bindSheet();
 }
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-function afterRender(enter){
+function fitOptional(){var m=document.getElementById('main');if(!m)return;var o=[].slice.call(m.querySelectorAll('.opt'));o.forEach(function(e){e.style.display='';});
+  o.sort(function(a,b){return (+a.dataset.prio)-(+b.dataset.prio);});while(m.scrollHeight>m.clientHeight+2&&o.length){o.shift().style.display='none';}}
+window.addEventListener('resize',function(){fitOptional();});
+function afterRender(enter){fitOptional();
   document.querySelectorAll('[data-count]').forEach(function(el){
     var to=+el.dataset.count,key=el.dataset.key||'',fmt=el.dataset.fmt,from=enter?0:(countFrom[key]!=null?countFrom[key]:to);countFrom[key]=to;
     var f=function(v){return fmt==='pct'?Math.round(v)+'%':fmt==='inr'?inr(v):gbp(v);};
@@ -523,7 +572,7 @@ function nudges(){
   var late=due.filter(function(t){return dueDate(t)<now;});
   if(due.length)out.push({tone:'rani',ic:'clock',t:late.length?late.length+' checklist step'+(late.length>1?'s are':' is')+' overdue':due.length+' step'+(due.length>1?'s':'')+' due this week',x:'Start with: '+(late[0]||due[0]).title+'.',cta:'Open checklist',go:'tab:check'});
   var efT=m.ukCosts*(+p.efMonths||4),have=+p.savedUK||0;
-  if(have<efT)out.push({tone:'indigo',ic:'shield',t:'Your savings last '+Math.round(have/Math.max(1,m.ukCosts)*4.3)+' weeks',x:'Try to build this up to '+(p.efMonths||4)+' months of costs ('+gbp(efT)+'). It’s step 1 of your plan.',cta:'See why',go:'plan:0'});
+  if(have<efT)out.push({tone:'indigo',ic:'shield',t:have>0?'Your savings last '+Math.round(have/Math.max(1,m.ukCosts)*4.3)+' weeks':'No emergency savings yet',x:'Try to build this up to '+(p.efMonths||4)+' months of costs ('+gbp(efT)+'). It’s step 1 of your plan.',cta:'See why',go:'plan:0'});
   if(+p.cardBal>0)out.push({tone:'rani',ic:'card',t:'Pay off the credit card first',x:'Card interest in India can be 36–45% a year. Clearing it saves you the most money.',cta:'See plan',go:'plan:1'});
   var cats0=cats(),bud=sum(cats0.map(function(c){return c.budget;})),spent=sum(S.items.filter(function(x){return x.date.slice(0,7)===mKey();}).map(function(x){return x.amt;}));
   var frac=now.getDate()/new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
@@ -555,6 +604,7 @@ function vHome(){
   if(+p.retireAge&&+p.retireSpend){var r=retire(lt);tiles.push(['Retire at '+r.target,Math.round(pct(r.atT,r.needT))+'%','of the way there','var(--mint)']);}
   if(p.homeOn&&+p.homeCost){var hc=homeCalc();tiles.push(['Home in '+p.homeYear,Math.round(pct(hc.fv,hc.cost))+'%','saved by then','var(--marigold)']);}
   if(tiles.length)h+='<button class="card glance" data-tab="goals">'+tiles.map(function(t){return '<span class="gl"><span class="small soft"><i class="dot" style="background:'+t[3]+'"></i>'+esc(t[0])+'</span><span class="f gv">'+t[1]+'</span><span class="small soft">'+t[2]+'</span></span>';}).join('')+'<span class="chev">›</span></button>';
+  h+=marketCard();
   return h;
 }
 
@@ -602,6 +652,7 @@ function vGoals(){
     h+='<section class="card goal">'+ILL.house+'<h3>Your home in India, '+p.homeYear+'</h3><div class="kick">Likely price by then</div><div class="mid">'+inr(hc.cost)+'</div>'+
       '<div class="bar" style="--cc:var(--marigold)"><div data-w="'+hp.toFixed(1)+'" style="width:'+hp.toFixed(1)+'%"></div></div><p class="gp">'+(hc.need>0?'Save about <b>'+gbp(hc.need/fx)+' a month</b> for it. Taking a home loan for part, or buying later, makes this smaller.':'You’re on track for your home.')+' You’re '+Math.round(hp)+'% of the way.</p></section>';}
   if(!h)h='<section class="card goal">'+ILL.house+'<h3>What are you saving for?</h3><p class="gp soft" style="padding-right:70px">Add when you’d like to retire, or a home in India. Setu will show how much to save each month.</p></section>';
+  h+=ratesCard()+marketCard().replace('data-prio="2"','data-prio="0"');
   h+='<div class="acts"><button class="btn go" data-sheet="goals">Change goals</button></div><p class="fine">We assume prices in India rise 6% a year and investments grow 10% a year. You can change this in Settings.</p>';
   return h;
 }
@@ -712,6 +763,7 @@ document.addEventListener('keydown',function(e){
 });
 render();
 fetchFx(false).then(function(ch){if(ch)render();});
+fetchFxHist().then(function(ch){if(ch)render();});
 })();
 </script>
 </body>
