@@ -96,6 +96,9 @@ try:
     pg.click('.mimid');pg.wait_for_timeout(200);pg.fill('[data-cost="rent"]','1200');pg.fill('[data-cost="everyday"]','500');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
     P=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")
     check('Monthly costs editor saves',P['profile']['rent']==1200 and P['profile']['everyday']==500,(P['profile']['rent'],P['profile']['everyday']))
+    pg.click('.mimid');pg.wait_for_timeout(200);pg.fill('#iitems .irow:nth-child(1) .iname','Term insurance');pg.click('[data-iadd]');pg.fill('#iitems .irow:last-child .iname','Phone bill');pg.fill('#iitems .irow:last-child .ival','500');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
+    P2=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")['profile']
+    check('India payments can be renamed and added',[x['name'] for x in P2['indiaItems']][:1]==['Term insurance'] and any(x['name']=='Phone bill' and x['amt']==500 for x in P2['indiaItems']) and P2['indiaOther']==sum(x['amt'] for x in P2['indiaItems'] if x['kind']!='invest'))
     check('Personal spending equals category budgets',abs(sum(c['budget'] for c in P['cats'])-P['profile']['everyday'])<1)
     check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
