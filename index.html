@@ -976,7 +976,7 @@ function loadNews(force){
   var out={at:Date.now(),key:ids.join(',')};
   var uk='https://www.gov.uk/api/search.json?filter_organisations=hm-revenue-customs&filter_organisations=hm-treasury&order=-public_timestamp&count=8&fields=title&fields=link&fields=public_timestamp&fields=description&fields=content_store_document_type';
   var pUK=getJSON(uk).then(function(j){out.uk=(j.results||[]).filter(function(r){return r.title&&r.link;}).slice(0,6).map(function(r){return {t:r.title,u:'https://www.gov.uk'+r.link,at:r.public_timestamp||'',d:(r.content_store_document_type||'').replace(/_/g,' ')};});}).catch(function(){newsFail.uk=1;});
-  var pInv=getJSON(gdeltURL(terms,'','3d',40)).then(function(j){out.inv=cleanArts(j).map(function(a){var id=ids.find(function(i){return isInvest(a.t,i);});return id?Object.assign(a,{tag:NTOPIC[id].label}):null;}).filter(Boolean).slice(0,15);}).catch(function(){newsFail.inv=1;});
+  var pInv=getJSON(gdeltURL(terms,'','3d',40),6000).then(function(j){out.inv=cleanArts(j).map(function(a){var id=ids.find(function(i){return isInvest(a.t,i);});return id?Object.assign(a,{tag:NTOPIC[id].label}):null;}).filter(Boolean).slice(0,15);}).catch(function(){newsFail.inv=1;});
   // GDELT allows one request every 5 seconds from each visitor, so the India tax query waits its turn.
   var pIn=new Promise(function(res){setTimeout(res,5500);}).then(function(){return getJSON(gdeltURL(['CBDT','"income tax"','"Income-tax Act"','RBI','SEBI'],'NRI sourcecountry:india','14d',10));}).then(function(j){out.india=cleanArts(j);}).catch(function(){newsFail.india=1;});
   pUK.then(function(){if(out.uk){S.news=Object.assign({},S.news,{uk:out.uk,ukAt:Date.now()});refreshRail();}});
@@ -999,9 +999,9 @@ function newsItem(a,tag){return '<li><a href="'+esc(a.u)+'" target="_blank" rel=
 function newsBody(){
   loadNews(false);var N=S.news||{},ids=newsTopics();
   var h='<section class="card rc ncard"><div class="row-b"><h3>News on your investments</h3><button class="link small" data-newsrefresh aria-label="Refresh news">↻</button></div><div class="ntopics">'+ids.map(function(i){return '<a class="chip nchip" href="'+gnews(NTOPIC[i].q[0].replace(/"/g,''))+'" target="_blank" rel="noopener noreferrer">'+esc(NTOPIC[i].label)+' ↗</a>';}).join('')+'</div>';
-  if(!(N.inv&&N.inv.length)&&newsBusy)h+='<ul class="nlist sk" aria-hidden="true">'+[1,2,3,4,5].map(function(){return '<li><i></i><i class="s"></i></li>';}).join('')+'</ul><p class="small soft" style="margin:4px 0">Loading the latest headlines…</p>';
+  if(!(N.inv&&N.inv.length)&&newsBusy&&!newsFileFailed)h+='<ul class="nlist sk" aria-hidden="true">'+[1,2,3,4,5].map(function(){return '<li><i></i><i class="s"></i></li>';}).join('')+'</ul><p class="small soft" style="margin:4px 0">Loading the latest headlines…</p>';
   else if(N.inv&&N.inv.length)h+='<ul class="nlist">'+N.inv.filter(function(a){return ids.some(function(i){return isInvest(a.t,i);});}).slice(0,12).map(function(a){return newsItem(a,a.tag||tagOf(a.t,ids));}).join('')+'</ul>';
-  else h+='<p class="small soft nempty">'+(newsFail.inv?'Live headlines aren’t available right now. Tap a topic above to read the latest news.':newsBusy?'Loading the latest headlines…':'Live headlines appear on your hosted site. Tap a topic above for the latest news.')+'</p>';
+  else h+='<p class="small soft nempty">'+(newsFileFailed?'Today’s headlines are still being prepared. Tap a topic above to read the latest news now.':newsFail.inv?'Live headlines aren’t available right now. Tap a topic above to read the latest news.':'Live headlines appear on your hosted site. Tap a topic above for the latest news.')+'</p>';
   h+='<p class="rfoot">'+(N.src==='file'?'Headlines from Google News, refreshed every 3 hours'+(N.gen?' (last '+agoGd(N.gen)+')':'')+'.':'Headlines from GDELT, a free global news index.')+' Setu doesn’t check or endorse them.</p></section>';
   h+='<section class="card rc ncard"><div class="row-b"><h3>Tax and policy</h3><span class="small soft">UK and India</span></div><div class="nlistwrap">';
   h+='<div class="nsub"><span class="flag uk">UK</span>Latest from HMRC and the Treasury</div>';
