@@ -253,7 +253,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .btn.sm{padding:8px 16px;font-size:13px}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
-.sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow:auto;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
 .grab{width:44px;height:5px;border-radius:3px;background:var(--rule);margin:4px auto 10px;cursor:grab}
 .sheet .sh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;touch-action:none}
 .sheet h2{font-size:21px}
@@ -533,7 +533,7 @@ function pageHead(){var p=S.profile;
   return ({home:[greet()+(p.name?', '+p.name:''),whenTxt()],check:['Your first 90 days','Things to sort out in India and the UK'],spend:['Spending',mLabel(viewMonth||mKey())],goals:['Goals','Your home and retirement in India']})[tab];}
 var lastTab=null,lastTicked=null,countFrom={};
 function render(){
-  var app=document.getElementById('app'),anim=sheetAnim;sheetAnim=false;
+  var app=document.getElementById('app'),anim=sheetAnim;sheetAnim=false;var sh0=document.querySelector('.sheet'),shTop=sh0&&sheetFn?sh0.scrollTop:0;
   if(!S.profile||wz){app.innerHTML='<div class="wzshell"><div class="wzcard">'+vWizard()+'</div></div>'+(sheetFn?sheetHTML(anim):'');bindWizard();bindSheet();return;}
   var V={home:vHome,check:vCheck,spend:vSpend,goals:vGoals};if(!V[tab])tab='home';
   var enter=lastTab!==tab,m=document.getElementById('main'),keep=(!enter&&m)?m.scrollTop:0;lastTab=tab;
@@ -546,7 +546,7 @@ function render(){
     '<main id="main" class="v-'+tab+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+V[tab]()+'</main>'+
     '<nav class="tabbar" role="tablist" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'tb');}).join('')+'</nav></div></div>'+(sheetFn?sheetHTML(anim):'');
   var m2=document.getElementById('main');if(m2)m2.scrollTop=keep;
-  afterRender(enter);lastTicked=null;bindSheet();
+  afterRender(enter);lastTicked=null;bindSheet();var sh1=document.querySelector('.sheet');if(sh1&&shTop)sh1.scrollTop=shTop;
 }
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function fitOptional(){var m=document.getElementById('main');if(!m)return;var o=[].slice.call(m.querySelectorAll('.opt'));o.forEach(function(e){e.style.display='';});
@@ -564,7 +564,7 @@ function afterRender(enter){fitOptional();
   else bars.forEach(function(b){b.style.width=b.dataset.w+'%';});
   var rv=document.querySelector('.ring .rv');if(rv){var off=rv.dataset.off;if(enter&&!reduce){rv.style.strokeDashoffset=rv.dataset.len;requestAnimationFrame(function(){requestAnimationFrame(function(){rv.style.strokeDashoffset=off;});});}else rv.style.strokeDashoffset=off;}
 }
-function sheetHTML(anim){var s=sheetFn();return '<div class="sheet-bg'+(anim?' anim':'')+'" data-bg><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(s.title)+'"><div class="grab" aria-hidden="true"></div><div class="sh"><h2>'+esc(s.title)+'</h2><button class="x" data-close aria-label="Close">×</button></div>'+s.body+'</div></div>';}
+function sheetHTML(anim){var s=sheetFn();return '<div class="sheet-bg'+(anim?' anim':'')+'" data-bg><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(s.title)+'"><div class="grab" aria-hidden="true"></div><div class="sh"><h2>'+esc(s.title)+'</h2><button class="x" data-close aria-label="Close">×</button></div><div class="sbody">'+s.body+'</div></div></div>';}
 function bindSheet(){
   var sh=document.querySelector('.sheet');if(!sh)return;var h=sh.querySelector('.grab'),hd=sh.querySelector('.sh'),y0=null,dy=0;
   function down(e){if(e.target.closest('button'))return;y0=e.clientY;dy=0;sh.style.transition='none';try{e.target.setPointerCapture(e.pointerId);}catch(err){}}
@@ -574,6 +574,8 @@ function bindSheet(){
 }
 var sheetAnim=false;function openSheet(fn){sheetFn=fn;sheetAnim=true;render();var f=document.querySelector('.sheet input');if(f)f.focus();}
 function closeSheet(){sheetFn=null;render();}
+function refreshSheet(){var el=document.querySelector('.sheet');if(!sheetFn||!el)return;var top=el.scrollTop,s0=sheetFn();
+  var body=el.querySelector('.sbody');if(body){body.innerHTML=s0.body;el.scrollTop=top;}else render();}
 var toastT;function toast(msg){var old=document.querySelector('.toast');if(old)old.remove();var d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=msg;document.body.appendChild(d);clearTimeout(toastT);toastT=setTimeout(function(){d.remove();},2300);}
 function buzz(){try{if(navigator.vibrate)navigator.vibrate(12);}catch(e){}}
 function confetti(){if(reduce)return;var cols=['#FFB020','#EE3F86','#4B3BE0','#12B5A6','#1FB98F'];for(var i=0;i<34;i++){var d=document.createElement('div');d.className='cf';d.style.left=(10+Math.random()*80)+'%';d.style.background=cols[i%cols.length];d.style.setProperty('--dx',(Math.random()*160-80)+'px');d.style.setProperty('--r',(Math.random()*720-360)+'deg');d.style.animationDelay=(Math.random()*.25)+'s';document.body.appendChild(d);setTimeout(function(x){return function(){x.remove();};}(d),1600);}}
@@ -685,7 +687,7 @@ var FUNDS={
  fd:{name:'NRE fixed deposit',desc:'A fixed rate you know in advance. Interest is tax-free in India.',risk:1,plan:6.4,fixed:'6.25–6.45%',fixedNote:'SBI NRE rates for 1–10 years, Sept 2026',cost:'No fees'}
 };
 var GOALFUNDS={retire:[['n50',7],['nn50',7],['mid',8],['small',10],['us',7],['baf',5]],home:[['fd',0],['liquid',0],['short',1],['baf',3],['n50',5]]};
-S.mf=S.mf||{};var mfBusy={};
+S.mf=S.mf||{};var mfBusy={},mfTried={};
 function mfMetrics(data){
   var pts=data.map(function(d){var a=d.date.split('-');return [new Date(+a[2],+a[1]-1,+a[0]).getTime(),+d.nav];}).filter(function(x){return x[1]>0;}).sort(function(a,b){return a[0]-b[0];});
   if(pts.length<30)return null;var last=pts[pts.length-1];
@@ -698,13 +700,13 @@ function mfMetrics(data){
   return {r1:cagr(1),r3:cagr(3),r5:cagr(5),dd:dd,ddYear:ddYear,vol:vol,since:new Date(pts[0][0]).getFullYear(),spark:mon.slice(-60),asOf:new Date(last[0]).toISOString().slice(0,10)};
 }
 function loadFund(id){
-  var f=FUNDS[id],t=today();if(!f||f.fixed||mfBusy[id]||(S.mf[id]&&S.mf[id].at===t))return;
-  mfBusy[id]=true;
+  var f=FUNDS[id],t=today();if(!f||f.fixed||mfBusy[id]||mfTried[id]||(S.mf[id]&&S.mf[id].at===t))return;
+  mfBusy[id]=true;mfTried[id]=true;
   fetch('https://api.mfapi.in/mf/search?q='+encodeURIComponent(f.q)).then(function(r){return r.json();}).then(function(list){
     var pick=(list||[]).filter(function(x){var n=x.schemeName||'';return /direct/i.test(n)&&/growth/i.test(n)&&!/idcw|dividend|bonus/i.test(n);})[0]||(list||[])[0];
     if(!pick)throw 0;return fetch('https://api.mfapi.in/mf/'+pick.schemeCode).then(function(r){return r.json();});
   }).then(function(j){var m=mfMetrics(j.data||[]);if(!m)throw 0;m.at=t;m.src=(j.meta&&j.meta.scheme_name)||'';S.mf[id]=m;save();})
-  .catch(function(){S.mf[id]=S.mf[id]||{fail:true,at:null};}).then(function(){mfBusy[id]=false;if(sheetFn)render();});
+  .catch(function(){if(!S.mf[id]||S.mf[id].fail)S.mf[id]={fail:true,at:null};}).then(function(){mfBusy[id]=false;refreshSheet();});
 }
 function pctTxt(v){return v==null?'–':(v>=0?'+':'')+v.toFixed(1)+'%';}
 function riskDots(n){var h='';for(var i=1;i<=5;i++)h+='<i class="'+(i<=n?'on':'')+'"></i>';return '<span class="rdots" aria-label="Ups and downs: '+n+' of 5">'+h+'</span>';}
