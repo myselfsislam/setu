@@ -17,6 +17,7 @@
 - **Checklist:** first 90 days in the UK and India, with dates from your move
 - **Goals:** retirement and a home in India, with fund types and their past performance
 - **Live markets:** pound vs rupee, dollar and euro; Indian index moves; key UK and India rates
+- **News:** headlines about your chosen investments, plus UK and India tax and policy changes (wide screens)
 - **Transfer cost checker:** see the hidden exchange-rate cost of sending money home
 - **Installable app (PWA):** add to home screen, works offline, and keeps data safer on iPhone
 - **Backups:** download a backup file and restore it on another device
