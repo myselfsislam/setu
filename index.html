@@ -238,6 +238,19 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
   .rt .tip{display:none}
 }
 @media (min-width:880px){.v-home .plan{grid-row:span 2}.v-home .market{grid-column:2;align-self:start}.v-goals .rates,.v-goals .market{grid-column:auto;align-self:start}}
+.fundpick{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;border:0;border-radius:14px;background:var(--bg);padding:9px 12px;text-align:left;cursor:pointer}
+.fundpick b{display:block;font-size:14px}.fundpick .small{display:block}
+.fund{border-radius:18px;padding:13px 14px;margin-bottom:10px;box-shadow:inset 0 0 0 1.5px var(--rule)}
+.fund.sel{box-shadow:inset 0 0 0 2.5px var(--indigo);background:var(--t-indigo)}
+.fn{font-size:15.5px;font-family:"Bricolage Grotesque",sans-serif}
+.fd{font-size:13px;color:var(--soft);margin:3px 0 8px!important}
+.fit{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}.fit.ok{background:var(--t-mint);color:#0D7A5E}.fit.no{background:var(--t-rani);color:#B21E5F}
+.fm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.fm div{background:var(--card);border-radius:10px;padding:6px 8px;display:flex;flex-direction:column}.fund.sel .fm div{background:var(--card)}
+.fm span{font-size:10.5px;color:var(--soft);line-height:1.2}.fm b{font-family:"Bricolage Grotesque",sans-serif;font-size:15px}
+.fsp{margin-top:6px}.fsp .spark{height:42px}
+.fbot{margin-top:8px}.rdots{display:inline-flex;gap:3px;vertical-align:-1px;margin-left:4px}.rdots i{width:8px;height:8px;border-radius:50%;background:var(--rule)}.rdots i.on{background:var(--rani)}
+.chosen{font-weight:800;color:var(--indigo);font-size:13.5px}
+.btn.sm{padding:8px 16px;font-size:13px}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow:auto;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -278,9 +291,9 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
   @keyframes bob{50%{transform:translateY(-2px)}}
 }
 @media (max-height:800px){.hero .sub,.nudge em{display:none}.v-home .step{padding:6px 0}}
-@media (max-height:760px){main{gap:9px}.mhd{min-height:52px;padding:8px 16px 6px}.hero{padding:13px 16px 11px}.hero .sub,.nudge em{display:none}.hero .jar{width:66px;height:66px}.flow{margin:10px 0 7px}.v-home .step{padding:6px 0}.nudge{padding:11px 13px}.sd{display:none}.step{padding:7px 0}.num{width:28px;height:28px}.nudge .ic{width:32px;height:32px}.ph3{margin-bottom:2px}.v-home .fine{display:none}}
+@media (max-height:760px){.v-goals .fine{display:none}.v-goals .acts .btn{padding:10px}.fundpick{padding:7px 11px;margin-top:6px}.goal .kick{margin-top:6px}.gp{margin-top:6px}main{gap:9px}.mhd{min-height:52px;padding:8px 16px 6px}.hero{padding:13px 16px 11px}.hero .sub,.nudge em{display:none}.hero .jar{width:66px;height:66px}.flow{margin:10px 0 7px}.v-home .step{padding:6px 0}.nudge{padding:11px 13px}.sd{display:none}.step{padding:7px 0}.num{width:28px;height:28px}.nudge .ic{width:32px;height:32px}.ph3{margin-bottom:2px}.v-home .fine{display:none}}
 @media (max-height:820px){.emptyline{display:none}}
-@media (max-height:680px){.mhd{min-height:50px;padding:6px 16px 4px}main{gap:8px}.ph3 .soft{display:none}.v-home .step{padding:4px 0!important}.v-home .num{width:24px;height:24px;font-size:12.5px}.amt{font-size:16px}.amt small{font-size:10.5px}.nudge{min-height:0;padding:9px 12px!important}.nudge .grow>span{-webkit-line-clamp:1}.key b{font-size:12px}.key small{font-size:9.5px}.nudge .ic{width:28px;height:28px}.hero .big{font-size:38px!important}.hero .inr{font-size:15px}.ph3{font-size:15px}.hero .jar{width:54px!important;height:54px!important}.mhd .ava{width:34px;height:34px}.hi b{font-size:17px}.v-home{gap:6px!important}.tabbar{padding:4px}.nudge em,.hero .sub{display:none}.hero{padding:10px 14px 8px!important}.flow{margin:8px 0 6px!important}.key b{font-size:12px}.card.plan{padding:9px 14px}.step{padding:6px 0!important}.nudge{padding:10px 12px}.chips{margin-bottom:8px}.ring{width:64px;height:64px}.ring b{font-size:15px}.tile{padding:7px 9px 6px}.hero{padding:12px 16px 10px}.hero .big{font-size:42px}.hero .jar{width:64px;height:64px}.flow{margin:10px 0 7px}.nudge{min-height:86px;padding:11px 12px}.card{padding:11px 14px}.step{padding:7px 0}.item{padding:5px 0}.wz h1{font-size:25px}.introhero h1{font-size:26px}.fields{gap:9px}input,select{padding:9px 12px}.ring{width:72px;height:72px}.tile{padding:8px 11px}.emptyline{display:none}.tabbar{margin-bottom:6px}.goal .ill{width:56px;height:50px}.gp{font-size:13px}.journey svg{width:96px;height:50px}.big2{font-size:25px}.goal .kick{margin-top:6px}.mid{font-size:25px}}
+@media (max-height:680px){.mhd{min-height:50px;padding:6px 16px 4px}main{gap:8px}.ph3 .soft{display:none}.v-home .step{padding:4px 0!important}.v-home .num{width:24px;height:24px;font-size:12.5px}.amt{font-size:16px}.amt small{font-size:10.5px}.nudge{min-height:0;padding:9px 12px!important}.nudge .grow>span{-webkit-line-clamp:1}.key b{font-size:12px}.key small{font-size:9.5px}.nudge .ic{width:28px;height:28px}.hero .big{font-size:38px!important}.hero .inr{font-size:15px}.ph3{font-size:15px}.hero .jar{width:54px!important;height:54px!important}.mhd .ava{width:34px;height:34px}.hi b{font-size:17px}.v-home{gap:6px!important}.tabbar{padding:4px}.v-goals{gap:6px!important}.goal h3{font-size:15px}.goal .mid{font-size:22px}.goal .kick{font-size:12px;margin-top:4px}.gp{font-size:12.5px;line-height:1.35}.fundpick b{font-size:13px}.fundpick .small{display:none}.v-goals .card{padding:9px 13px}.goal .ill{width:48px;height:44px}.nudge em,.hero .sub{display:none}.hero{padding:10px 14px 8px!important}.flow{margin:8px 0 6px!important}.key b{font-size:12px}.card.plan{padding:9px 14px}.step{padding:6px 0!important}.nudge{padding:10px 12px}.chips{margin-bottom:8px}.ring{width:64px;height:64px}.ring b{font-size:15px}.tile{padding:7px 9px 6px}.hero{padding:12px 16px 10px}.hero .big{font-size:42px}.hero .jar{width:64px;height:64px}.flow{margin:10px 0 7px}.nudge{min-height:86px;padding:11px 12px}.card{padding:11px 14px}.step{padding:7px 0}.item{padding:5px 0}.wz h1{font-size:25px}.introhero h1{font-size:26px}.fields{gap:9px}input,select{padding:9px 12px}.ring{width:72px;height:72px}.tile{padding:8px 11px}.emptyline{display:none}.tabbar{margin-bottom:6px}.goal .ill{width:56px;height:50px}.gp{font-size:13px}.journey svg{width:96px;height:50px}.big2{font-size:25px}.goal .kick{margin-top:6px}.mid{font-size:25px}}
 
 /* desktop */
 @media (min-width:880px){
@@ -419,7 +432,7 @@ function month(){
 }
 function homeCalc(){
   var p=S.profile,yrs=Math.max(0,(+p.homeYear||0)-new Date().getFullYear());
-  var cost=(+p.homeCost||0)*Math.pow(1.06,yrs),mr=Math.pow(1.08,1/12)-1,n=yrs*12,saved=+p.homeSaved||0;
+  var cost=(+p.homeCost||0)*Math.pow(1.06,yrs),mr=Math.pow(1+(+p.homeRet||8)/100,1/12)-1,n=yrs*12,saved=+p.homeSaved||0;
   var fv=saved*Math.pow(1+mr,n),gap=Math.max(0,cost-fv),need=n?gap/((Math.pow(1+mr,n)-1)/mr):gap;
   return {yrs:yrs,cost:cost,fv:fv,need:need};
 }
@@ -647,15 +660,73 @@ function vGoals(){
   var p=S.profile,fx=+p.fx||129,plan=split(),lt=(plan.find(function(x){return x.title==='Long-term investing';})||{amt:0}).amt,h='';
   if(+p.retireAge&&+p.retireSpend){var r=retire(lt),ok=r.ready!==null&&r.ready<=r.target,pp=pct(r.atT,r.needT);
     h+='<section class="card goal">'+ILL.chai+'<h3>Retire in India at '+r.target+'</h3><div class="kick">Saving '+gbp(lt)+' a month, you could retire</div><div class="mid '+(ok?'ok':'bad')+'">'+(r.ready===null?'after 80':'at '+Math.ceil(r.ready))+'</div>'+
-      '<div class="bar" style="--cc:var(--mint)"><div data-w="'+pp.toFixed(1)+'" style="width:'+pp.toFixed(1)+'%"></div></div><p class="gp">'+(ok?'You’re on track. Keep going.':'Save about <b>'+gbp(r.extra)+' more a month</b> to retire at '+r.target+'.')+' You’ll need about '+inr(r.needT)+' to live on '+inr(p.retireSpend)+' a month (in today’s prices).</p></section>';}
+      '<div class="bar" style="--cc:var(--mint)"><div data-w="'+pp.toFixed(1)+'" style="width:'+pp.toFixed(1)+'%"></div></div><p class="gp">'+(ok?'You’re on track. Keep going.':'Save about <b>'+gbp(r.extra)+' more a month</b> to retire at '+r.target+'.')+' <span class="soft">Goal: '+inr(r.needT)+tip('need','Enough to live on '+inr(p.retireSpend)+' a month in today’s prices, taking out '+(p.wd||3.5)+'% a year.',true)+'</span></p>'+fundRow('retire')+'</section>';}
   if(p.homeOn&&+p.homeCost){var hc=homeCalc(),hp=pct(hc.fv,hc.cost);
     h+='<section class="card goal">'+ILL.house+'<h3>Your home in India, '+p.homeYear+'</h3><div class="kick">Likely price by then</div><div class="mid">'+inr(hc.cost)+'</div>'+
-      '<div class="bar" style="--cc:var(--marigold)"><div data-w="'+hp.toFixed(1)+'" style="width:'+hp.toFixed(1)+'%"></div></div><p class="gp">'+(hc.need>0?'Save about <b>'+gbp(hc.need/fx)+' a month</b> for it. Taking a home loan for part, or buying later, makes this smaller.':'You’re on track for your home.')+' You’re '+Math.round(hp)+'% of the way.</p></section>';}
+      '<div class="bar" style="--cc:var(--marigold)"><div data-w="'+hp.toFixed(1)+'" style="width:'+hp.toFixed(1)+'%"></div></div><p class="gp">'+(hc.need>0?'Save about <b>'+gbp(hc.need/fx)+' a month</b> for it.'+tip('hl','A home loan for part of it, or buying a bit later, makes this smaller.',true):'You’re on track for your home.')+' <span class="soft">'+Math.round(hp)+'% of the way</span></p>'+fundRow('home')+'</section>';}
   if(!h)h='<section class="card goal">'+ILL.house+'<h3>What are you saving for?</h3><p class="gp soft" style="padding-right:70px">Add when you’d like to retire, or a home in India. Setu will show how much to save each month.</p></section>';
   h+=ratesCard()+marketCard().replace('data-prio="2"','data-prio="0"');
-  h+='<div class="acts"><button class="btn go" data-sheet="goals">Change goals</button></div><p class="fine">We assume prices in India rise 6% a year and investments grow 10% a year. You can change this in Settings.</p>';
+  h+='<div class="acts"><button class="btn go" data-sheet="goals">Change goals</button></div><p class="fine">We assume prices in India rise 6% a year. Growth depends on the fund type you choose.</p>';
   return h;
 }
+
+/* ---------- Fund choices ----------
+   These are fund TYPES, not recommendations of a product. Live history comes from the daily
+   prices of one index or category fund per type (via mfapi.in), just to show how that type behaved. */
+var FUNDS={
+ n50:{name:'Nifty 50 index fund',desc:'India’s 50 biggest companies in one simple, low-cost fund.',risk:3,plan:10,q:'UTI Nifty 50 Index Fund Direct Growth',cost:'About 0.2% a year'},
+ nn50:{name:'Nifty Next 50 index fund',desc:'The next 50 big companies. More growth, but bigger swings.',risk:4,plan:10.5,q:'UTI Nifty Next 50 Index Fund Direct Growth',cost:'About 0.3% a year'},
+ mid:{name:'Midcap 150 index fund',desc:'Medium-sized Indian companies. Can grow faster and fall harder.',risk:4,plan:11,q:'Motilal Oswal Nifty Midcap 150 Index Fund Direct Growth',cost:'About 0.3% a year'},
+ small:{name:'Smallcap 250 index fund',desc:'Small Indian companies. The biggest ups and downs.',risk:5,plan:11.5,q:'Motilal Oswal Nifty Smallcap 250 Index Fund Direct Growth',cost:'About 0.4% a year'},
+ us:{name:'US shares (S&P 500) index fund',desc:'America’s 500 largest companies, shown in rupees. Adds spread beyond India.',risk:3,plan:10,q:'Motilal Oswal S&P 500 Index Fund Direct Growth',cost:'About 0.6% a year'},
+ baf:{name:'Balanced advantage fund',desc:'Mixes shares and bonds, and moves between them. A smoother ride.',risk:2,plan:9,q:'ICICI Prudential Balanced Advantage Fund Direct Growth',cost:'About 0.9% a year'},
+ short:{name:'Short-term debt fund',desc:'Lends to banks and companies for 1–3 years. Small, steady growth.',risk:2,plan:7,q:'HDFC Short Term Debt Fund Direct Growth',cost:'About 0.4% a year'},
+ liquid:{name:'Liquid fund',desc:'Very short-term lending. Your money is easy to take out any time.',risk:1,plan:6.5,q:'HDFC Liquid Fund Direct Growth',cost:'About 0.2% a year'},
+ fd:{name:'NRE fixed deposit',desc:'A fixed rate you know in advance. Interest is tax-free in India.',risk:1,plan:6.4,fixed:'6.25–6.45%',fixedNote:'SBI NRE rates for 1–10 years, Sept 2026',cost:'No fees'}
+};
+var GOALFUNDS={retire:[['n50',7],['nn50',7],['mid',8],['small',10],['us',7],['baf',5]],home:[['fd',0],['liquid',0],['short',1],['baf',3],['n50',5]]};
+S.mf=S.mf||{};var mfBusy={};
+function mfMetrics(data){
+  var pts=data.map(function(d){var a=d.date.split('-');return [new Date(+a[2],+a[1]-1,+a[0]).getTime(),+d.nav];}).filter(function(x){return x[1]>0;}).sort(function(a,b){return a[0]-b[0];});
+  if(pts.length<30)return null;var last=pts[pts.length-1];
+  function at(y){var t=last[0]-y*365.25*864e5;if(pts[0][0]>t+20*864e5)return null;var lo=0,hi=pts.length-1;while(lo<hi){var md=(lo+hi+1)>>1;if(pts[md][0]<=t)lo=md;else hi=md-1;}return pts[lo][1];}
+  function cagr(y){var v=at(y);return v?(Math.pow(last[1]/v,1/y)-1)*100:null;}
+  var from=last[0]-10*365.25*864e5,peak=0,dd=0,ddYear=null;pts.forEach(function(x){if(x[0]<from)return;if(x[1]>peak)peak=x[1];var d=(x[1]/peak-1)*100;if(d<dd){dd=d;ddYear=new Date(x[0]).getFullYear();}});
+  var mon=[],lastM=-1;pts.forEach(function(x){var m=new Date(x[0]);var k=m.getFullYear()*12+m.getMonth();if(k!==lastM){mon.push(x[1]);lastM=k;}else mon[mon.length-1]=x[1];});
+  var rets=[];for(var i=1;i<mon.length;i++)rets.push(mon[i]/mon[i-1]-1);rets=rets.slice(-60);var mu=rets.reduce(function(a,b){return a+b;},0)/Math.max(1,rets.length);
+  var vol=Math.sqrt(rets.reduce(function(a,b){return a+(b-mu)*(b-mu);},0)/Math.max(1,rets.length-1))*Math.sqrt(12)*100;
+  return {r1:cagr(1),r3:cagr(3),r5:cagr(5),dd:dd,ddYear:ddYear,vol:vol,since:new Date(pts[0][0]).getFullYear(),spark:mon.slice(-60),asOf:new Date(last[0]).toISOString().slice(0,10)};
+}
+function loadFund(id){
+  var f=FUNDS[id],t=today();if(!f||f.fixed||mfBusy[id]||(S.mf[id]&&S.mf[id].at===t))return;
+  mfBusy[id]=true;
+  fetch('https://api.mfapi.in/mf/search?q='+encodeURIComponent(f.q)).then(function(r){return r.json();}).then(function(list){
+    var pick=(list||[]).filter(function(x){var n=x.schemeName||'';return /direct/i.test(n)&&/growth/i.test(n)&&!/idcw|dividend|bonus/i.test(n);})[0]||(list||[])[0];
+    if(!pick)throw 0;return fetch('https://api.mfapi.in/mf/'+pick.schemeCode).then(function(r){return r.json();});
+  }).then(function(j){var m=mfMetrics(j.data||[]);if(!m)throw 0;m.at=t;m.src=(j.meta&&j.meta.scheme_name)||'';S.mf[id]=m;save();})
+  .catch(function(){S.mf[id]=S.mf[id]||{fail:true,at:null};}).then(function(){mfBusy[id]=false;if(sheetFn)render();});
+}
+function pctTxt(v){return v==null?'–':(v>=0?'+':'')+v.toFixed(1)+'%';}
+function riskDots(n){var h='';for(var i=1;i<=5;i++)h+='<i class="'+(i<=n?'on':'')+'"></i>';return '<span class="rdots" aria-label="Ups and downs: '+n+' of 5">'+h+'</span>';}
+function goalYears(g){var p=S.profile;return g==='retire'?Math.max(0,(+p.retireAge||0)-(+p.age||0)):Math.max(0,(+p.homeYear||0)-new Date().getFullYear());}
+function fundCard(g,pair){
+  var id=pair[0],minY=pair[1],f=FUNDS[id],m=S.mf[id],p=S.profile,sel=(g==='retire'?p.retFund:p.homeFund)===id,yrs=goalYears(g),fit=yrs>=minY;
+  var metrics;
+  if(f.fixed)metrics='<div class="fm"><div><span>Interest</span><b>'+f.fixed+'</b></div><div><span>Worst fall</span><b>None</b></div><div><span>Ups and downs</span><b>None</b></div></div><p class="small soft" style="margin:4px 0 0">'+esc(f.fixedNote)+'</p>';
+  else if(m&&!m.fail)metrics='<div class="fm"><div><span>1 year</span><b class="'+(m.r1>=0?'ok':'bad')+'">'+pctTxt(m.r1)+'</b></div><div><span>3 yrs a year</span><b>'+pctTxt(m.r3)+'</b></div><div><span>5 yrs a year</span><b>'+pctTxt(m.r5)+'</b></div><div><span>Worst fall'+(m.ddYear&&m.dd<=-1?' ('+m.ddYear+')':'')+'</span><b class="'+(m.dd>-1?'ok':'bad')+'">'+(m.dd>-1?'Under 1%':m.dd.toFixed(0)+'%')+'</b></div></div>'+
+    (m.spark&&m.spark.length>2?'<div class="fsp">'+spark(m.spark,300,42)+'<span class="small soft">Last '+Math.round(m.spark.length/12)+' years, prices up to '+new Date(m.asOf).toLocaleDateString('en-GB',{day:'numeric',month:'short'})+'</span></div>':'');
+  else metrics='<p class="small soft" style="margin:6px 0 0">'+(m&&m.fail?'Past figures couldn’t load here. They show on your hosted site.':'Loading past figures…')+'</p>';
+  return '<div class="fund'+(sel?' sel':'')+'"><div class="row-b"><b class="fn">'+esc(f.name)+'</b><span class="fit '+(fit?'ok':'no')+'">'+(fit?'Suits '+yrs+' years':'Needs '+minY+'+ years')+'</span></div><p class="fd">'+esc(f.desc)+'</p>'+metrics+
+    '<div class="row-b fbot"><span class="small soft">Ups and downs '+riskDots(f.risk)+'</span><span class="small soft">'+esc(f.cost)+'</span></div>'+
+    '<div class="row-b fbot"><span class="small">We’d plan with <b>'+f.plan+'% a year</b></span>'+(sel?'<span class="chosen">✓ Chosen</span>':'<button class="btn go sm" data-choose="'+g+':'+id+'">Choose</button>')+'</div></div>';
+}
+function sheetFunds(g){
+  var list=GOALFUNDS[g]||[];list.forEach(function(x){loadFund(x[0]);});
+  return {title:g==='retire'?'How to invest for retirement':'How to invest for your home',body:'<p class="small soft">Pick a type of fund to see how your plan changes. Past returns are real, but they don’t guarantee the future. These are fund types, not advice to buy a specific product.</p>'+list.map(function(x){return fundCard(g,x);}).join('')+
+    '<p class="fine">Past figures come from the daily prices of one fund of each type (mfapi.in). If you live in the UK, gains on Indian funds may be taxed in the UK too. For long-term UK-tax-free investing, look at an ISA.</p>'};
+}
+function fundRow(g){var p=S.profile,id=g==='retire'?p.retFund:p.homeFund,f=FUNDS[id];
+  return '<button class="fundpick" data-funds="'+g+'"><span class="grow"><span class="small soft">'+(f?'Investing in':'How will you invest?')+'</span><b>'+(f?esc(f.name):'Compare fund types')+'</b></span><span class="dadd">'+(f?'Change':'Choose')+' ›</span></button>';}
 
 /* ---------- Wizard ---------- */
 var HH={single:{bills:300,everyday:450},couple:{bills:400,everyday:800},family:{bills:500,everyday:1100}};
@@ -719,6 +790,8 @@ document.addEventListener('click',function(e){
   if(t.hasAttribute('data-bg')){if(e.target===t)closeSheet();return;}
   if(t.hasAttribute('data-close')){closeSheet();return;}
   var d=t.dataset;
+  if(d.funds){var g0=d.funds;openSheet(function(){return sheetFunds(g0);});return;}
+  if(d.choose){var cc2=d.choose.split(':'),F0=FUNDS[cc2[1]];if(cc2[0]==='retire'){S.profile.retFund=cc2[1];S.profile.ret=F0.plan;}else{S.profile.homeFund=cc2[1];S.profile.homeRet=F0.plan;}save();buzz();sheetFn=null;render();toast('Plan updated for '+F0.name);return;}
   if(d.wz){wizardAction(d.wz);return;}
   if(d.debt){var key=d.debt,meta=DEBTS.find(function(x){return x[0]===key;}),obj=wz.d.debts[key];
     var F=key==='card'?[{k:'bal',label:'How much you still owe on your cards (₹)'},{k:'emi',label:'How much you pay each month (₹)'}]:[{k:'bal',label:'How much is left to pay (₹)'},{k:'emi',label:'Monthly EMI (₹)'}];
