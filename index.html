@@ -221,6 +221,10 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .debt:active{transform:scale(.98)}
 @media (hover:hover){.debt:hover{box-shadow:inset 0 0 0 2px var(--dc)}}
 @media (max-height:680px){.debt{padding:8px 12px}.debt i{width:32px;height:32px}}
+.bigrow{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.hero .inr{font-size:18px;font-weight:700;color:var(--hero-soft)}
+.key small{font-size:10.5px;color:var(--hero-soft);font-weight:600;margin-top:1px;white-space:nowrap}
+.amt{text-align:right}.amt small{display:block;font-family:Figtree,sans-serif;font-size:11.5px;font-weight:600;color:var(--soft);line-height:1.1}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow:auto;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -260,9 +264,10 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
   .hero .jar .coin{animation:bob 3s ease-in-out infinite}
   @keyframes bob{50%{transform:translateY(-2px)}}
 }
-@media (max-height:760px){main{gap:10px}.sd{display:none}.step{padding:7px 0}.num{width:28px;height:28px}.nudge .ic{width:32px;height:32px}.ph3{margin-bottom:2px}.v-home .fine{display:none}}
+@media (max-height:800px){.hero .sub,.nudge em{display:none}.v-home .step{padding:6px 0}}
+@media (max-height:760px){main{gap:9px}.mhd{min-height:52px;padding:8px 16px 6px}.hero{padding:13px 16px 11px}.hero .sub,.nudge em{display:none}.hero .jar{width:66px;height:66px}.flow{margin:10px 0 7px}.v-home .step{padding:6px 0}.nudge{padding:11px 13px}.sd{display:none}.step{padding:7px 0}.num{width:28px;height:28px}.nudge .ic{width:32px;height:32px}.ph3{margin-bottom:2px}.v-home .fine{display:none}}
 @media (max-height:820px){.emptyline{display:none}}
-@media (max-height:680px){.mhd{min-height:50px;padding:6px 16px 4px}main{gap:8px}.nudge em,.hero .sub{display:none}.hero{padding:10px 14px 8px!important}.flow{margin:8px 0 6px!important}.key b{font-size:12px}.card.plan{padding:9px 14px}.step{padding:6px 0!important}.nudge{padding:10px 12px}.chips{margin-bottom:8px}.ring{width:64px;height:64px}.ring b{font-size:15px}.tile{padding:7px 9px 6px}.hero{padding:12px 16px 10px}.hero .big{font-size:42px}.hero .jar{width:64px;height:64px}.flow{margin:10px 0 7px}.nudge{min-height:86px;padding:11px 12px}.card{padding:11px 14px}.step{padding:7px 0}.item{padding:5px 0}.wz h1{font-size:25px}.introhero h1{font-size:26px}.fields{gap:9px}input,select{padding:9px 12px}.ring{width:72px;height:72px}.tile{padding:8px 11px}.emptyline{display:none}.tabbar{margin-bottom:6px}.goal .ill{width:56px;height:50px}.gp{font-size:13px}.journey svg{width:96px;height:50px}.big2{font-size:25px}.goal .kick{margin-top:6px}.mid{font-size:25px}}
+@media (max-height:680px){.mhd{min-height:50px;padding:6px 16px 4px}main{gap:8px}.ph3 .soft{display:none}.v-home .step{padding:4px 0!important}.v-home .num{width:24px;height:24px;font-size:12.5px}.amt{font-size:16px}.amt small{font-size:10.5px}.nudge{min-height:0;padding:9px 12px!important}.nudge .grow>span{-webkit-line-clamp:1}.key b{font-size:12px}.key small{font-size:9.5px}.nudge .ic{width:28px;height:28px}.hero .big{font-size:38px!important}.hero .inr{font-size:15px}.ph3{font-size:15px}.hero .jar{width:54px!important;height:54px!important}.mhd .ava{width:34px;height:34px}.hi b{font-size:17px}.v-home{gap:6px!important}.tabbar{padding:4px}.nudge em,.hero .sub{display:none}.hero{padding:10px 14px 8px!important}.flow{margin:8px 0 6px!important}.key b{font-size:12px}.card.plan{padding:9px 14px}.step{padding:6px 0!important}.nudge{padding:10px 12px}.chips{margin-bottom:8px}.ring{width:64px;height:64px}.ring b{font-size:15px}.tile{padding:7px 9px 6px}.hero{padding:12px 16px 10px}.hero .big{font-size:42px}.hero .jar{width:64px;height:64px}.flow{margin:10px 0 7px}.nudge{min-height:86px;padding:11px 12px}.card{padding:11px 14px}.step{padding:7px 0}.item{padding:5px 0}.wz h1{font-size:25px}.introhero h1{font-size:26px}.fields{gap:9px}input,select{padding:9px 12px}.ring{width:72px;height:72px}.tile{padding:8px 11px}.emptyline{display:none}.tabbar{margin-bottom:6px}.goal .ill{width:56px;height:50px}.gp{font-size:13px}.journey svg{width:96px;height:50px}.big2{font-size:25px}.goal .kick{margin-top:6px}.mid{font-size:25px}}
 
 /* desktop */
 @media (min-width:880px){
@@ -534,15 +539,17 @@ function nudges(){
 
 /* ---------- Home ---------- */
 function vHome(){
-  var p=S.profile,m=month(),plan=split(),take=m.th.month||1;
-  var h='<section class="hero">'+ILL.jar+'<div class="lbl">Left to save each month</div><div class="big f" data-count="'+Math.round(m.left)+'" data-key="left">'+gbp(m.left)+'</div><div class="sub">from your '+gbp(m.th.month)+' monthly pay, after all costs</div>'+
+  var p=S.profile,m=month(),plan=split(),take=m.th.month||1,fx=fxNow();function rs(g){return inr(Math.max(0,g)*fx);}
+  var h='<section class="hero">'+ILL.jar+'<div class="lbl">Left to save each month</div><div class="bigrow"><div class="big f" data-count="'+Math.round(m.left)+'" data-key="left">'+gbp(m.left)+'</div><div class="inr f">≈ '+rs(m.left)+'</div></div><div class="sub">from your '+gbp(m.th.month)+' (≈ '+rs(m.th.month)+') monthly pay, after all costs</div>'+
     '<div class="flow">'+m.parts.concat([['Left',Math.max(0,m.left),'--s-left']]).map(function(x){return '<div data-w="'+pct(x[1],take).toFixed(1)+'" style="width:'+pct(x[1],take).toFixed(1)+'%;background:var('+x[2]+')"></div>';}).join('')+'</div>'+
-    '<div class="key">'+m.parts.concat([['Left',m.left,'--s-left']]).map(function(x){return '<span style="--c:var('+x[2]+')">'+x[0]+'<b>'+gbp(x[1])+'</b></span>';}).join('')+'</div></section>';
+    '<div class="key">'+m.parts.concat([['Left',m.left,'--s-left']]).map(function(x){return '<span style="--c:var('+x[2]+')">'+x[0]+'<b>'+gbp(x[1])+'</b><small>'+rs(x[1])+'</small></span>';}).join('')+'</div></section>';
   var N=nudges();
   if(N.length)h+='<div class="nudges" role="list" aria-label="Tips for you">'+N.map(function(n){return '<button class="nudge" role="listitem" data-go="'+n.go+'" style="--tint:var(--t-'+n.tone+');--tone:var(--'+n.tone+')"><span class="ic">'+gl(n.ic)+'</span><span class="grow"><b>'+esc(n.t)+'</b><span>'+esc(n.x)+'</span><em>'+esc(n.cta)+'</em></span></button>';}).join('')+'</div>';
-  h+='<section class="card plan"><h3 class="ph3">What to do with your '+gbp(Math.max(0,m.left))+'</h3>';
+  h+='<section class="card plan"><h3 class="ph3">What to do with your '+gbp(Math.max(0,m.left))+' <span class="soft small" style="font-family:Figtree,sans-serif;font-weight:600">(≈ '+rs(m.left)+')</span></h3>';
   if(m.left<=0)h+='<p class="soft" style="margin:4px 0">You’re spending more than you earn. Check your rent and India payments in Settings.</p>';
-  plan.forEach(function(x,i){h+='<button class="step" data-plan="'+i+'"><span class="num" style="background:'+x.col+'">'+(i+1)+'</span><span class="grow"><span class="st">'+esc(x.title)+'</span><span class="sd">'+esc(x.where)+'</span></span><span class="amt">'+gbp(x.amt)+'</span><span class="chev">›</span></button>';});
+  var rows=[],dg=null;plan.forEach(function(x,i){var debt=x.title==='Clear the credit card'||x.title==='Pay down personal loans';if(debt){if(!dg){dg={title:'Pay off expensive debt',where:'Credit card first, then personal loans',amt:0,col:'var(--rust)',key:'debt',n:0};rows.push(dg);}dg.amt+=x.amt;dg.n++;dg.first=dg.first==null?i:dg.first;}else rows.push(Object.assign({key:i},x));});
+  if(dg&&dg.n===1){var only=plan[dg.first];Object.assign(dg,only,{key:dg.first});}
+  rows.forEach(function(x,i){h+='<button class="step" data-plan="'+x.key+'"><span class="num" style="background:'+x.col+'">'+(i+1)+'</span><span class="grow"><span class="st">'+esc(x.title)+'</span><span class="sd">'+esc(x.where)+'</span></span><span class="amt">'+gbp(x.amt)+'<small>'+rs(x.amt)+'</small></span><span class="chev">›</span></button>';});
   h+='<p class="fine">General guidance only, not financial advice.</p></section>';
   var lt=(plan.find(function(x){return x.title==='Long-term investing';})||{amt:0}).amt,tiles=[];
   if(+p.retireAge&&+p.retireSpend){var r=retire(lt);tiles.push(['Retire at '+r.target,Math.round(pct(r.atT,r.needT))+'%','of the way there','var(--mint)']);}
@@ -646,7 +653,7 @@ function formSheet(title,fields,obj,onSave,extra){
 }
 var formSave=null,formDelete=null;
 var SHEETS={
-  plan:function(i){var x=split()[i];if(!x)return null;return {title:x.title,body:'<div class="mid f">'+gbp(x.amt)+' <span class="small soft" style="font-family:Figtree,sans-serif;font-weight:500">a month, about '+inr(x.amt*(+S.profile.fx||129))+'</span></div><p class="small soft" style="margin:14px 0 2px">Where</p><p>'+esc(x.where)+'</p><p class="small soft" style="margin:6px 0 2px">Why</p><p>'+esc(x.why)+'</p><p class="fine">This is general guidance, not financial advice. For advice on your own situation, talk to a qualified adviser.</p>'};},
+  plan:function(i){if(i==='debt'){var L=split().filter(function(x){return x.title==='Clear the credit card'||x.title==='Pay down personal loans';}),fx=+S.profile.fx||129,tot=sum(L.map(function(x){return x.amt;}));return {title:'Pay off expensive debt',body:'<div class="mid f">'+gbp(tot)+' <span class="small soft" style="font-family:Figtree,sans-serif;font-weight:500">a month, about '+inr(tot*fx)+'</span></div>'+L.map(function(x){return '<p class="small soft" style="margin:14px 0 2px">'+esc(x.title)+': '+gbp(x.amt)+' (≈ '+inr(x.amt*fx)+')</p><p style="margin:0 0 4px"><b>'+esc(x.where)+'.</b> '+esc(x.why)+'</p>';}).join('')+'<p class="fine">This is general guidance, not financial advice. For advice on your own situation, talk to a qualified adviser.</p>'};}var x=split()[i];if(!x)return null;return {title:x.title,body:'<div class="mid f">'+gbp(x.amt)+' <span class="small soft" style="font-family:Figtree,sans-serif;font-weight:500">a month, about '+inr(x.amt*(+S.profile.fx||129))+'</span></div><p class="small soft" style="margin:14px 0 2px">Where</p><p>'+esc(x.where)+'</p><p class="small soft" style="margin:6px 0 2px">Why</p><p>'+esc(x.why)+'</p><p class="fine">This is general guidance, not financial advice. For advice on your own situation, talk to a qualified adviser.</p>'};},
   task:function(id){var t=TASKS.find(function(x){return x.id===id;}),on=!!S.checks[id],dd=dueDate(t);return {title:t.title,body:(dd?'<p class="small soft">Try to finish by '+dLabel(dd)+'</p>':'')+'<p>'+esc(t.text)+'</p>'+(t.link?'<a class="official" href="'+t.link+'" target="_blank" rel="noopener">Read the official guidance</a>':'')+'<div class="acts" style="margin-top:16px"><button class="btn '+(on?'':'go')+'" data-tick="'+id+'" data-close-after>'+(on?'Mark as not done':'Mark as done')+'</button></div>'};},
   items:function(){var vm=viewMonth||mKey(),C=cats(),it=S.items.filter(function(x){return x.date.slice(0,7)===vm;}).sort(function(a,b){return a.date<b.date?1:-1;});
     return {title:'Spending in '+mLabel(vm),body:it.length?'<div class="list">'+it.map(function(x){var c=C.find(function(y){return y.k===x.cat;});return '<button class="li" data-item="'+x.id+'"><span class="grow"><b style="display:block;font-weight:600">'+esc(x.note||(c?c.label:'Spending'))+'</b><span class="small soft">'+esc(c?c.label:'')+', '+dLabel(new Date(x.date+'T12:00'))+'</span></span><span class="f" style="font-weight:700">'+gbp2(x.amt)+'</span></button>';}).join('')+'</div><p class="fine">Tap an item to edit or delete it.</p>':'<p class="soft">Nothing logged for '+mLabel(vm)+' yet. Add spending from the Spending tab.</p>'};},
@@ -669,7 +676,7 @@ document.addEventListener('click',function(e){
   if(d.seg){wz.d[d.seg]=d.v;render();return;}
   if(d.go){var g=d.go.split(':');if(g[0]==='tab'){tab=g[1];render();}else if(g[0]==='plan'){var pi=+g[1],pl=split(),ix=pl.findIndex(function(x){return x.title===(pi===0?'Emergency savings':'Clear the credit card');});if(ix<0)ix=0;openSheet(function(){return SHEETS.plan(ix);});}else if(g[0]==='task'){var tid=g[1];openSheet(function(){return SHEETS.task(tid);});}else if(g[0]==='set'&&g[1]==='setup'){startWizard();}return;}
   if(d.tab){tab=d.tab;try{sessionStorage.setItem('setu-tab',tab);}catch(err){}render();var m=document.getElementById('main');if(m)m.scrollTop=0;return;}
-  if(d.plan!=null){var i=+d.plan;openSheet(function(){return SHEETS.plan(i);});return;}
+  if(d.plan!=null){var i=d.plan==='debt'?'debt':+d.plan;openSheet(function(){return SHEETS.plan(i);});return;}
   if(d.phase){phase=d.phase;render();return;}
   if(d.task){var id=d.task;openSheet(function(){return SHEETS.task(id);});return;}
   if(d.tick){var k=d.tick;S.checks[k]=!S.checks[k];if(!S.checks[k])delete S.checks[k];save();var t0=TASKS.find(function(x){return x.id===k;});lastTicked=k;buzz();
