@@ -11,6 +11,16 @@
 - Tracks everyday spending against a monthly budget
 - Plans for retirement and a home back in India
 
+## Features
+- **Monthly money:** take-home pay (England, Wales, NI or Scotland, 2026/27 rates), costs, India payments and what's left, in pounds and rupees
+- **Spending:** quick logging, budgets by category, spending-pace warning, month-end forecast, repeating costs, search and filter, CSV export
+- **Checklist:** first 90 days in the UK and India, with dates from your move
+- **Goals:** retirement and a home in India, with fund types and their past performance
+- **Live markets:** pound vs rupee, dollar and euro; Indian index moves; key UK and India rates
+- **Transfer cost checker:** see the hidden exchange-rate cost of sending money home
+- **Installable app (PWA):** add to home screen, works offline, and keeps data safer on iPhone
+- **Backups:** download a backup file and restore it on another device
+
 ## Privacy
 Everything runs in the browser. Data is saved only on the visitor's own device (browser local storage) and is never sent anywhere.
 
