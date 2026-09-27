@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Setu: your money bridge from India to the UK</title>
+<meta name="description" content="A free, private money planner for Indians moving to the UK: monthly budget, first-90-days checklist, and goals back home.">
+<meta name="theme-color" content="#4B3BE0">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F2FB;--card:#FFFFFF;--ink:#1A1446;--soft:#6D6992;--rule:#E8E4F4;
+  --indigo:#4B3BE0;--indigo-2:#3A2CC0;--marigold:#FFB020;--rani:#EE3F86;--teal:#12B5A6;--mint:#1FB98F;--coral:#F2553F;
+  --t-indigo:#ECE9FF;--t-rani:#FFE5EF;--t-marigold:#FFF0D2;--t-mint:#DBF6EC;--t-teal:#D9F4F1;
+  --india:var(--marigold);--uk:var(--indigo);--sage:var(--mint);--rust:var(--coral);
+  --hero:var(--indigo);--hero-ink:#FFFFFF;--hero-soft:#D8D3FF;
+  --s-rent:#FF7FB0;--s-bills:#FFD580;--s-day:#7FE3D8;--s-india:#FFB020;--s-left:#FFFFFF;
+  --mist:var(--bg);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#7C6DFF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3A2E14;--t-mint:#143A31;--t-teal:#12363A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#7C6DFF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3A2E14;--t-mint:#143A31;--t-teal:#12363A;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:400 15px/1.45 Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+#app{height:100%}
+button{font:inherit;color:inherit}
+h1,h2,h3,.f,.brand{font-family:"Bricolage Grotesque",Figtree,system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.015em}
+h1,h2,h3{margin:0;font-weight:800}
+h3{font-size:17px}
+.soft{color:var(--soft)}.small{font-size:12.5px}
+.ok{color:var(--mint)}.bad{color:var(--coral)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--indigo);outline-offset:2px}
+.row-b{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.grow{min-width:0;flex:1}
+.chev{color:var(--soft);font-size:22px;line-height:1}
+
+/* shell */
+.app{height:100%;display:flex}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;height:100%;max-width:560px;margin:0 auto}
+.side{display:none}
+.mhd{display:flex;align-items:center;gap:10px;padding:10px 16px 8px;min-height:58px}
+.ava{width:38px;height:38px;border-radius:14px;background:var(--marigold);color:#3B2600;display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;flex-shrink:0}
+.hi{flex:1;min-width:0}.hi b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:19px;font-weight:800;line-height:1.1}.hi span{font-size:12.5px;color:var(--soft)}
+.ptitle{font-size:24px;flex:1}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:21px}
+.brand svg{width:30px;height:30px;flex-shrink:0;color:var(--ink)}
+.gear{border:0;background:var(--card);width:40px;height:40px;border-radius:14px;color:var(--ink);cursor:pointer;display:grid;place-items:center;box-shadow:0 1px 0 var(--rule)}
+.gear svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8}
+main{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 14px 16px;display:flex;flex-direction:column;gap:12px}
+main>*{flex-shrink:0}
+.phd{display:none}
+.tabbar{display:flex;margin:0 10px 8px;background:var(--card);border-radius:22px;padding:6px;box-shadow:0 8px 24px -12px rgba(40,24,140,.35);border:1px solid var(--rule)}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;color:var(--soft);font-weight:700;font-size:11px;padding:6px 0 5px;border-radius:16px;cursor:pointer;transition:background-color .2s ease,color .2s ease}
+.tb svg,.sn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tb[aria-selected="true"]{background:var(--t-indigo);color:var(--indigo)}
+
+/* cards */
+.card{background:var(--card);border-radius:22px;padding:14px 16px;border:1px solid var(--rule)}
+.hero{background:var(--hero);color:var(--hero-ink);border-radius:26px;padding:16px 18px 14px;position:relative;overflow:hidden;box-shadow:0 14px 30px -16px rgba(60,40,220,.65)}
+.hero .lbl{font-size:13.5px;color:var(--hero-soft);font-weight:600}
+.hero .big{font-size:clamp(42px,12vw,52px);font-weight:800;line-height:1;letter-spacing:-.035em;margin:4px 0 2px}
+.hero .sub{font-size:12.5px;color:var(--hero-soft)}
+.hero .jar{position:absolute;right:10px;top:8px;width:78px;height:78px}
+.flow{display:flex;gap:3px;height:10px;margin:12px 0 8px}
+.flow div{border-radius:5px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.key{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;font-size:11px;color:var(--hero-soft)}
+.key span{display:flex;flex-direction:column;min-width:0}
+.key span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c);margin-bottom:3px}
+.key b{color:#fff;font-weight:800;font-size:13px;font-family:"Bricolage Grotesque",sans-serif}
+
+/* insights */
+.nudges{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -14px;padding:2px 14px 4px}
+.nudges::-webkit-scrollbar{display:none}
+.nudge{scroll-snap-align:start;flex:0 0 78%;max-width:290px;display:flex;gap:11px;align-items:flex-start;text-align:left;border:0;border-radius:20px;padding:12px 14px;background:var(--tint);cursor:pointer;transition:transform .15s ease}
+.nudge .ic{width:36px;height:36px;border-radius:12px;background:var(--tone);display:grid;place-items:center;flex-shrink:0;color:#fff}
+.nudge .ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nudge b{display:block;font-size:14.5px;font-weight:800;font-family:"Bricolage Grotesque",sans-serif;line-height:1.2;margin-bottom:3px}
+.nudge .grow{display:block}.nudge .grow>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;color:var(--soft);line-height:1.35}
+.nudge em{display:block;font-style:normal;font-weight:800;font-size:12.5px;color:var(--tone);margin-top:3px}
+
+/* plan */
+.step{display:flex;align-items:center;gap:12px;width:100%;border:0;border-top:1px solid var(--rule);background:none;padding:10px 0;text-align:left;cursor:pointer;border-radius:0}
+.ch+.step,.ph3+.step{border-top:0}
+.ph3{margin-bottom:4px}
+.num{width:30px;height:30px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;font-family:"Bricolage Grotesque",sans-serif}
+.st{display:block;font-weight:700;font-size:15px}
+.sd{display:block;font-size:12.5px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.amt{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;flex-shrink:0}
+.fine{font-size:11.5px;color:var(--soft);margin:6px 0 0}
+.glance{display:none}
+
+/* checklist */
+.journey{display:flex;gap:12px;align-items:center;background:var(--t-marigold);border-color:transparent}
+.journey svg{width:118px;height:62px;flex-shrink:0}
+.big2{font-size:32px;font-weight:800;line-height:1.05;white-space:nowrap}.big2 small{font-size:16px;font-weight:700;margin-left:4px}
+.phases{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -14px;padding:0 14px}.phases::-webkit-scrollbar{display:none}
+.ph{flex-shrink:0;border:0;background:var(--card);padding:8px 13px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;display:flex;gap:6px;align-items:center;box-shadow:inset 0 0 0 1px var(--rule)}
+.ph small{font-weight:600;color:var(--soft);font-size:11.5px}
+.ph[aria-pressed="true"]{background:var(--ink);color:var(--card);box-shadow:none}
+.ph[aria-pressed="true"] small{color:var(--card);opacity:.75}
+.ph.full small{color:var(--mint)}
+.item{display:flex;align-items:center;gap:12px;border-top:1px solid var(--rule);padding:9px 0}
+.item:first-of-type{border-top:0}
+.tick{width:28px;height:28px;border-radius:10px;border:2px solid var(--rule);background:none;display:grid;place-items:center;cursor:pointer;flex-shrink:0;color:#fff;transition:background-color .15s ease,border-color .15s ease}
+.tick svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.tick[aria-checked="true"]{background:var(--mint);border-color:var(--mint)}
+.tick[aria-checked="true"] svg{opacity:1}
+.it{border:0;background:none;text-align:left;padding:0;cursor:pointer;min-width:0;flex:1}
+.it b{display:block;font-weight:700;font-size:14.5px}
+.it span{display:block;font-size:12px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.done b{color:var(--soft);text-decoration:line-through;text-decoration-color:var(--rule)}
+.tag{font-style:normal;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:7px;margin-left:4px;vertical-align:2px}
+.tag.in{background:var(--t-marigold);color:#A0650A}.tag.uk{background:var(--t-indigo);color:var(--indigo)}.tag.both{background:var(--t-teal);color:#0B7C72}
+.done .tag{opacity:.55}
+.alldone{display:flex;gap:12px;align-items:center}.alldone svg{width:72px;height:60px;flex-shrink:0}
+
+/* spending */
+.mhead{display:flex;justify-content:space-between;align-items:center;margin:-8px -8px 0}
+.navb{border:0;background:none;width:38px;height:34px;font-size:24px;color:var(--soft);cursor:pointer;border-radius:12px}
+.navb[disabled]{opacity:.3;cursor:default}
+.ringrow{display:flex;align-items:center;gap:14px}
+.ring{width:74px;height:74px;flex-shrink:0;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:10}
+.ring .rv{transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:17px}
+.mid{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:28px;line-height:1.05}
+.leftchip{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:999px;font-weight:700;font-size:12.5px;background:var(--t-mint);color:#0D7A5E}
+.leftchip.over{background:var(--t-rani);color:#B21E5F}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 10px;padding:0 16px}.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;display:flex;align-items:center;gap:6px;border:0;background:var(--bg);font-weight:700;font-size:13px;padding:7px 12px 7px 8px;border-radius:999px;cursor:pointer}
+.chip i{width:22px;height:22px;border-radius:8px;background:var(--cc);display:grid;place-items:center;color:#fff}
+.chip i svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.inrow{display:flex;gap:8px}.inrow input{flex:1;min-width:0}.inrow .a{flex:0 0 30%}
+input,select,textarea{font:600 16px Figtree,system-ui,sans-serif;padding:11px 13px;border:2px solid transparent;border-radius:14px;background:var(--bg);color:var(--ink);width:100%;transition:border-color .15s ease}
+input:focus,select:focus,textarea:focus{border-color:var(--indigo);outline:none}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.undo{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;font-size:12.5px;color:var(--soft)}
+.undo span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tile{border:0;background:var(--card);border-radius:16px;padding:9px 10px 8px;text-align:left;cursor:pointer;box-shadow:inset 0 0 0 1px var(--rule);min-width:0}
+.tile .row-b{font-size:12.5px;font-weight:700;gap:4px}.tile .row-b>span{display:flex;align-items:center;gap:7px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile i{width:22px;height:22px;border-radius:8px;background:var(--cc);display:grid;place-items:center;color:#fff;flex-shrink:0}
+.tile i svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tile .v{font-size:11.5px;color:var(--soft);flex-shrink:0;overflow:visible}.tile .v b{color:var(--ink);font-family:"Bricolage Grotesque",sans-serif;font-size:14px}
+.bar{height:8px;border-radius:4px;background:var(--rule);overflow:hidden;margin:6px 0 1px}
+.bar div{height:100%;border-radius:4px;background:var(--cc,var(--indigo));transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.bar.over div{background:var(--coral)}
+.emptyline{display:flex;gap:10px;align-items:center;font-size:12.5px;color:var(--soft);grid-column:1/-1;padding:2px 2px 0}.emptyline svg{width:40px;height:40px;flex-shrink:0}
+
+/* goals */
+.goal{position:relative;overflow:hidden}
+.goal .ill{position:absolute;right:10px;top:8px;width:74px;height:66px}
+.goal h3{padding-right:78px}
+.goal .kick{font-size:12.5px;color:var(--soft);margin-top:10px}
+.goal .mid{margin-top:2px}
+.gp{font-size:14px;margin:8px 0 0;line-height:1.45}
+
+/* buttons */
+.btn{border:0;background:var(--card);color:var(--ink);font-weight:800;font-size:14.5px;padding:13px 18px;border-radius:999px;cursor:pointer;white-space:nowrap;box-shadow:inset 0 0 0 1.5px var(--rule);transition:transform .1s ease,filter .15s ease}
+.btn.go{background:var(--indigo);color:#fff;box-shadow:0 10px 20px -12px rgba(75,59,224,.9)}
+.btn.warn{color:var(--coral)}
+.btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
+.btn:active:not([disabled]),.nudge:active,.tile:active,.chip:active,.tb:active{transform:scale(.96)}
+.link{border:0;background:none;padding:6px 0;color:var(--indigo);font-weight:800;font-size:13.5px;cursor:pointer}
+.link.bad{color:var(--coral)}
+.acts{display:flex;gap:8px}.acts .btn{flex:1}
+
+/* wizard */
+.wzshell{height:100%;display:flex;justify-content:center;overflow-y:auto}
+.wzcard{width:100%;max-width:520px;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column}
+.wz{display:flex;flex-direction:column;flex:1;gap:14px}
+.wz .top{display:flex;align-items:center;gap:10px}
+.dots{display:flex;gap:6px;flex:1}.dots i{height:6px;flex:1;border-radius:3px;background:var(--rule);transition:background-color .3s ease}.dots i.on{background:var(--indigo)}
+.wz h1{font-size:30px;line-height:1.1}
+.wz .lead{color:var(--soft);margin:6px 0 0}
+.field{display:block}.field>span{display:block;font-size:13px;color:var(--soft);margin-bottom:5px;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fields{display:flex;flex-direction:column;gap:12px}
+.hintline{display:inline-block;font-size:13px;color:#0D7A5E;background:var(--t-mint);font-weight:700;margin-top:8px;padding:4px 10px;border-radius:999px}
+.hintline:empty{display:none}
+.hintline.owe{color:#B21E5F;background:var(--t-rani)}
+.fields>.hintline{align-self:flex-start}
+.adorn{position:relative;display:block}
+.adorn i{position:absolute;top:50%;transform:translateY(-50%);left:13px;font-style:normal;color:var(--soft);font-weight:700;pointer-events:none}
+.adorn input{padding-left:30px}.adorn.suf i{left:auto;right:13px}.adorn.suf input{padding-left:13px;padding-right:30px}
+.seg{display:flex;background:var(--bg);border-radius:14px;padding:4px}
+.seg button{flex:1;border:0;background:none;padding:9px 4px;border-radius:11px;font-weight:700;font-size:13.5px;color:var(--soft);cursor:pointer;transition:background-color .2s ease,color .2s ease}
+.seg [aria-checked="true"]{background:var(--card);color:var(--indigo);box-shadow:0 2px 8px -4px rgba(40,24,140,.4)}
+.wz .foot{margin-top:auto;display:flex;gap:8px}.wz .foot .btn{flex:1}
+.foot.col2{flex-direction:column;align-items:stretch;gap:4px}.foot.col2 .link{align-self:center}
+.x{border:0;background:var(--bg);font-size:24px;line-height:1;color:var(--ink);width:38px;height:38px;border-radius:12px;cursor:pointer}
+.introhero{background:var(--hero);border-radius:28px;padding:10px 12px 20px;color:#fff;box-shadow:0 18px 34px -18px rgba(60,40,220,.7)}
+.introhero svg{width:100%;height:auto;display:block}
+.introhero h1{font-size:30px;line-height:1.08;color:#fff;padding:0 8px}
+.promise{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.promise li{display:flex;gap:12px;align-items:center;font-weight:600}
+.promise li i{width:32px;height:32px;border-radius:11px;background:var(--c);display:grid;place-items:center;color:#fff;flex-shrink:0}
+.promise li i svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.private{font-size:13px;color:var(--soft);margin:0}
+
+.tip{position:relative;display:inline-flex;vertical-align:1px;margin-left:5px}
+.tipb{width:17px;height:17px;border-radius:50%;border:0;padding:0;background:var(--t-indigo);color:var(--indigo);font:800 11px/17px Figtree,system-ui,sans-serif;font-style:italic;cursor:help}
+.tipt{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);background:var(--ink);color:var(--card);font-size:12.5px;font-weight:600;line-height:1.35;padding:8px 11px;border-radius:11px;width:max-content;max-width:210px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,transform .15s ease,visibility .15s;z-index:10;box-shadow:0 8px 20px -10px rgba(20,12,60,.6)}
+.tipt::after{content:"";position:absolute;top:100%;left:50%;margin-left:-5px;border:5px solid transparent;border-top-color:var(--ink)}
+.tip.r .tipt{left:auto;right:-8px;transform:translateY(4px)}.tip.r .tipt::after{left:auto;right:12px}
+.tip:hover .tipt,.tipb:focus+.tipt{opacity:1;visibility:visible;transform:translate(-50%,0)}
+.tip.r:hover .tipt,.tip.r .tipb:focus+.tipt{transform:none}
+@media (max-width:879px){.wz input,.wz select{background:var(--card);box-shadow:inset 0 0 0 1.5px var(--rule)}.wz input:focus{box-shadow:none}.wz .seg{background:var(--card);box-shadow:inset 0 0 0 1.5px var(--rule)}.wz .seg [aria-checked="true"]{background:var(--t-indigo);box-shadow:none}}
+/* sheets */
+.sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow:auto;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
+.grab{width:44px;height:5px;border-radius:3px;background:var(--rule);margin:4px auto 10px;cursor:grab}
+.sheet .sh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;touch-action:none}
+.sheet h2{font-size:21px}
+.sheet p{margin:0 0 10px}
+.sheet .fields{margin:6px 0 16px}
+.list .li{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;border:0;border-top:1px solid var(--rule);background:none;padding:12px 0;text-align:left;cursor:pointer}
+.list .li:first-child{border-top:0}
+.official{display:inline-block;margin-top:4px;color:var(--indigo);font-weight:800;text-decoration:none}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 16px;border-radius:999px;font-size:13.5px;font-weight:700;z-index:40;white-space:nowrap}
+.cf{position:fixed;top:-12px;width:9px;height:14px;border-radius:3px;z-index:50;pointer-events:none}
+
+@media (hover:hover){
+  .step:hover .st,.it:hover b{color:var(--indigo)}
+  .nudge:hover{transform:translateY(-2px)}
+  .tile:hover{box-shadow:inset 0 0 0 1.5px var(--indigo)}
+  .btn:hover:not([disabled]){filter:brightness(1.05)}
+  .sn:hover{background:var(--bg)}
+  .list .li:hover b{color:var(--indigo)}
+}
+@media (prefers-reduced-motion:no-preference){
+  main.enter>*{animation:rise .42s cubic-bezier(.2,.8,.2,1) both}
+  main.enter>*:nth-child(2){animation-delay:.04s}main.enter>*:nth-child(3){animation-delay:.08s}main.enter>*:nth-child(4){animation-delay:.12s}main.enter>*:nth-child(5){animation-delay:.16s}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}}
+  .sheet-bg.anim{animation:fadein .2s ease}
+  .sheet-bg.anim .sheet{animation:sheetup .34s cubic-bezier(.2,.9,.25,1.05)}
+  @keyframes fadein{from{opacity:0}}
+  @keyframes sheetup{from{transform:translateY(60%)}}
+  .tick.pop{animation:pop .38s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+  .toast{animation:toastin .3s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes toastin{from{opacity:0;transform:translate(-50%,12px)}}
+  .cf{animation:fall 1.1s cubic-bezier(.3,.6,.4,1) forwards}
+  @keyframes fall{to{transform:translate(var(--dx),105vh) rotate(var(--r));opacity:.9}}
+  .hero .jar .coin{animation:bob 3s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-2px)}}
+}
+@media (max-height:760px){main{gap:10px}.sd{display:none}.step{padding:7px 0}.num{width:28px;height:28px}.nudge .ic{width:32px;height:32px}.ph3{margin-bottom:2px}.v-home .fine{display:none}}
+@media (max-height:820px){.emptyline{display:none}}
+@media (max-height:680px){.mhd{min-height:50px;padding:6px 16px 4px}main{gap:8px}.nudge em,.hero .sub{display:none}.hero{padding:10px 14px 8px!important}.flow{margin:8px 0 6px!important}.key b{font-size:12px}.card.plan{padding:9px 14px}.step{padding:6px 0!important}.nudge{padding:10px 12px}.chips{margin-bottom:8px}.ring{width:64px;height:64px}.ring b{font-size:15px}.tile{padding:7px 9px 6px}.hero{padding:12px 16px 10px}.hero .big{font-size:42px}.hero .jar{width:64px;height:64px}.flow{margin:10px 0 7px}.nudge{min-height:86px;padding:11px 12px}.card{padding:11px 14px}.step{padding:7px 0}.item{padding:5px 0}.wz h1{font-size:25px}.introhero h1{font-size:26px}.fields{gap:9px}input,select{padding:9px 12px}.ring{width:72px;height:72px}.tile{padding:8px 11px}.emptyline{display:none}.tabbar{margin-bottom:6px}.goal .ill{width:56px;height:50px}.gp{font-size:13px}.journey svg{width:96px;height:50px}.big2{font-size:25px}.goal .kick{margin-top:6px}.mid{font-size:25px}}
+
+/* desktop */
+@media (min-width:880px){
+  .side{display:flex;flex-direction:column;width:248px;flex-shrink:0;padding:22px 14px 18px}
+  .side .brand{padding:0 10px 24px;font-size:24px}
+  .snav{display:flex;flex-direction:column;gap:4px}
+  .sn{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;padding:11px 14px;border-radius:16px;font-weight:700;font-size:14.5px;color:var(--soft);cursor:pointer;text-align:left}
+  .sn[aria-selected="true"]{background:var(--card);color:var(--indigo);box-shadow:0 8px 20px -14px rgba(40,24,140,.5)}
+  .sfoot{margin-top:auto}.sfoot p{font-size:12px;color:var(--soft);margin:10px 14px 0;line-height:1.5}
+  .col{max-width:none;margin:0}
+  .mhd,.tabbar{display:none}
+  main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-content:start;padding:24px 40px;max-width:1100px;width:100%}
+  main>*{grid-column:1/-1;min-height:max-content}
+  .phd{display:block}.phd h1{font-size:34px}.phd p{margin:4px 0 0;color:var(--soft)}
+  .v-home .hero{padding:20px 26px 18px}.v-home .hero .big{font-size:58px}.v-home .hero .jar{width:110px;height:110px;right:26px;top:10px}
+  .nudges{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible;margin:0;padding:0}
+  .nudge{flex:none;max-width:none}
+  .v-home .plan{grid-column:1}
+  .v-home .glance{display:flex;grid-column:2;align-self:start}
+  .v-spend>section:nth-of-type(1){grid-column:1}.v-spend>section:nth-of-type(2){grid-column:2}
+  .tiles{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .v-goals>section.goal{grid-column:auto}
+  .wzshell{align-items:center}
+  .wzcard{max-width:560px;background:var(--card);border-radius:32px;padding:28px 32px;max-height:calc(100% - 48px);overflow:auto;box-shadow:0 30px 60px -40px rgba(40,24,140,.5)}
+  .wzcard .wz{min-height:580px}
+  .toast{bottom:32px}
+}
+@media (min-width:880px) and (max-height:860px){.v-home .sd,.v-home .fine{display:none}.v-home .step{padding:8px 0}.phd h1{font-size:30px}}
+@media (min-width:640px){.sheet-bg{align-items:center}.sheet{border-radius:28px}}
+.glance{align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer}
+.gl{flex:1;display:flex;flex-direction:column;min-width:0}.gl .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.gv{font-weight:800;font-size:26px;line-height:1.2}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+'use strict';
+var KEY='setu-v1',storageOK=true;
+function load(){try{var v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.v===1)return v;}catch(e){storageOK=false;}return {v:1,profile:null,checks:{},items:[],cats:null};}
+function migrate(p){if(!p||p.emi!=null)return p;
+  p.emi=0;p.sip=0;p.indiaOther=+p.india||0;p.cardBal=p.debt==='card'?(+p.debtINR||0):0;p.plBal=p.debt==='loan'?(+p.debtINR||0):0;p.otherLoanBal=0;return p;}
+function indiaMonthly(p){return (+p.emi||0)+(+p.sip||0)+(+p.indiaOther||0);}
+var S=load();S.profile=migrate(S.profile);
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));storageOK=true;}catch(e){storageOK=false;}}
+var tab='home',phase=null,addCat='groceries',viewMonth=null,sheetFn=null,wz=null;
+try{tab=sessionStorage.getItem('setu-tab')||'home';}catch(e){}
+
+/* ---------- helpers ---------- */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function sum(a){return a.reduce(function(x,y){return x+(+y||0);},0);}
+function gbp(n){return (n<0?'−':'')+'£'+Math.round(Math.abs(n)).toLocaleString('en-GB');}
+function gbp2(n){return '£'+(+n||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function inr(n){var a=Math.abs(n),s=n<0?'−':'';if(a>=1e7)return s+'₹'+(a/1e7).toFixed(2)+' Cr';if(a>=1e5)return s+'₹'+(a/1e5).toFixed(1)+' L';return s+'₹'+Math.round(a).toLocaleString('en-IN');}
+function pct(a,b){return b>0?Math.max(0,Math.min(100,a/b*100)):0;}
+function uid(){return 'x'+Math.random().toString(36).slice(2,9);}
+function today(){return new Date().toISOString().slice(0,10);}
+function mKey(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function mLabel(k){var p=k.split('-');return new Date(+p[0],+p[1]-1,1).toLocaleString('en-GB',{month:'long',year:'numeric'});}
+function addDays(iso,n){var d=new Date(iso+'T12:00');d.setDate(d.getDate()+n);return d;}
+function dLabel(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+function daysSince(iso){return Math.floor((Date.now()-new Date(iso+'T00:00').getTime())/864e5);}
+
+/* UK take-home, England/Wales/NI rates for 2026/27 (thresholds frozen) */
+function takeHome(g,penPct){
+  g=+g||0;var pa=12570;if(g>100000)pa=Math.max(0,12570-(g-100000)/2);
+  var pen=Math.max(0,Math.min(g,50270)-6240)*(+penPct||0)/100;
+  var ti=Math.max(0,g-pen-pa);
+  var tax=0.2*Math.min(ti,37700)+0.4*Math.max(0,Math.min(ti,125140)-37700)+0.45*Math.max(0,ti-125140);
+  var ni=0.08*Math.max(0,Math.min(g,50270)-12570)+0.02*Math.max(0,g-50270);
+  return {month:(g-tax-ni-pen)/12,tax:tax/12,ni:ni/12,pen:pen/12};
+}
+
+/* ---------- money model ---------- */
+function month(){
+  var p=S.profile,th=takeHome(p.salary,p.pension),india=indiaMonthly(p)/(+p.fx||129);
+  var parts=[['Rent',+p.rent||0,'--s-rent'],['Bills',+p.bills||0,'--s-bills'],['Everyday',+p.everyday||0,'--s-day'],['India',india,'--s-india']];
+  var left=th.month-sum(parts.map(function(x){return x[1];}));
+  return {th:th,india:india,parts:parts,left:left,ukCosts:(+p.rent||0)+(+p.bills||0)+(+p.everyday||0)};
+}
+function homeCalc(){
+  var p=S.profile,yrs=Math.max(0,(+p.homeYear||0)-new Date().getFullYear());
+  var cost=(+p.homeCost||0)*Math.pow(1.06,yrs),mr=Math.pow(1.08,1/12)-1,n=yrs*12,saved=+p.homeSaved||0;
+  var fv=saved*Math.pow(1+mr,n),gap=Math.max(0,cost-fv),need=n?gap/((Math.pow(1+mr,n)-1)/mr):gap;
+  return {yrs:yrs,cost:cost,fv:fv,need:need};
+}
+function split(){
+  var p=S.profile,m=month(),fx=+p.fx||129,L=Math.max(0,m.left),out=[];
+  function add(a,title,where,why,col){a=Math.max(0,Math.min(L,Math.round(a)));if(a<5)return;out.push({amt:a,title:title,where:where,why:why,col:col});L-=a;}
+  var efT=m.ukCosts*(+p.efMonths||4),have=+p.savedUK||0,gap=Math.max(0,efT-have);
+  if(gap>0)add(Math.min(gap,L*(have<m.ukCosts?0.6:0.4)),'Emergency savings','A UK savings account you can take money out of any time','Your goal is '+gbp(efT)+', which covers '+(p.efMonths||4)+' months of UK costs. You have '+gbp(have)+' so far. On a work visa, losing your job can be stressful, so this safety net comes first.','var(--uk)');
+  if((+p.cardBal||0)>0)add(Math.min(p.cardBal/fx,L*0.5),'Clear the credit card','Pay much more than the minimum each month','Indian credit cards can charge 36–45% interest a year. Paying it off saves more than any investment would earn.','var(--rust)');
+  if((+p.plBal||0)>0)add(Math.min(p.plBal/fx,L*0.35),'Pay down the personal loan','Save up, then pay it off early when your bank allows','Personal loans usually cost 11–16% interest a year. That is more than safe savings earn, so paying early saves you money.','#C8266C');
+  if(p.homeOn&&(+p.homeCost||0)>0){var h=homeCalc();if(h.need>0)add(Math.min(h.need/fx,L*0.5),'Home in India','Safe options like fixed deposits, through your NRE account','Saving about '+gbp(h.need/fx)+' a month gets you to '+inr(h.cost)+' by '+p.homeYear+'. Money you need in a few years is safer away from the share market.','var(--india)');}
+  add(L,'Long-term investing','Your work pension first, then an ISA','This is money you won’t touch for 10 years or more. Simple, low-cost funds that follow the whole market are a common choice. An ISA keeps it free from UK tax.','var(--sage)');
+  return out;
+}
+function retire(monthlyGBP){
+  var p=S.profile,fx=+p.fx||129;monthlyGBP=(+monthlyGBP||0)+(+p.sip||0)/fx;var age=+p.age||30,target=+p.retireAge||50,r=(+p.ret||10)/100,inf=(+p.inf||6)/100,wd=(+p.wd||3.5)/100;
+  var mr=Math.pow(1+r,1/12)-1,c=+p.invested||0,k=monthlyGBP*fx,tM=Math.max(0,Math.round((target-age)*12)),atT=c,readyM=null;
+  function need(m){return (+p.retireSpend||0)*12*Math.pow(1+inf,m/12)/wd;}
+  for(var m=0;m<=720;m++){if(m===tM)atT=c;if(readyM===null&&c>=need(m))readyM=m;if(readyM!==null&&m>=tM)break;c=c*(1+mr)+k;}
+  var needT=need(tM),af=tM>0?(Math.pow(1+mr,tM)-1)/mr:1,extra=Math.max(0,needT-atT)/af/fx;
+  return {ready:readyM===null?null:age+readyM/12,needT:needT,atT:atT,extra:extra,target:target};
+}
+
+/* ---------- checklist content ---------- */
+var PHASES=[
+ {k:'india',label:'In India',due:30},
+ {k:'w2',label:'Weeks 1–2',due:14},
+ {k:'m1',label:'Month 1',due:31},
+ {k:'d90',label:'By day 90',due:90},
+ {k:'yr',label:'Each year',due:null}];
+var TASKS=[
+ ['india','nro','Switch your bank account to NRO','Your bank must know you now live abroad. Ask them to change your normal savings account into an NRO account (the account for money earned in India). The account number usually stays the same, so your EMIs keep going.',null],
+ ['india','nre','Open an NRE account','Use it for money you send from the UK. Interest on it is tax-free in India, and you can move the money back out whenever you like.',null],
+ ['india','kyc','Update your funds and shares','Tell each fund house and your broker that you now live abroad. They will update your records and link your new NRO or NRE account.',null],
+ ['india','lenders','Tell your lenders','Let them know you now live abroad and which account to take payments from. This stops any payment from bouncing.',null],
+ ['india','sim','Keep your Indian phone number','Your bank OTPs, UPI and Aadhaar all need it. A cheap plan is enough to keep it active.',null],
+ ['w2','evisa','Set up your eVisa','Your UK visa is online now. You share it with employers and landlords using a code from the government website.','https://www.gov.uk/evisa'],
+ ['w2','bank','Open a UK bank account','You need one to get paid. Many app-based banks only need your passport and UK address.',null],
+ ['w2','ni','Get your National Insurance number','Your employer needs it to pay you correctly. You may already have one, so check before you apply.','https://www.gov.uk/apply-national-insurance-number'],
+ ['w2','gp','Register with a doctor (GP)','It is free, and your visa fee already covers NHS care.','https://www.nhs.uk/nhs-services/gps/how-to-register-with-a-gp-surgery/'],
+ ['w2','ctax','Set up council tax','This is a monthly local tax for your home. If you live alone, you can usually get 25% off.','https://www.gov.uk/council-tax'],
+ ['m1','payslip','Check your first payslip','Look for the tax code 1257L. If you see 0T, W1 or M1, you may be paying too much tax for now.','https://www.gov.uk/tax-codes'],
+ ['m1','buffer','Keep one month of costs ready','Before you invest anything, keep one month of rent and bills in your UK account.',null],
+ ['m1','transfer','Choose how to send money home','Compare rates before you choose. A small difference adds up over many months.',null],
+ ['m1','arrival','Keep proof of your arrival date','Keep your boarding pass or passport stamp. Your arrival date affects your tax in both countries.','https://www.gov.uk/tax-foreign-income/residence'],
+ ['d90','ef','Build an emergency fund','Save 3 to 6 months of UK costs in an easy-access account. On a work visa, this safety net matters a lot.',null],
+ ['d90','pension','Look at your workplace pension','Your employer puts money into it for you. If you earn over £50,270, paying more into it can save a lot of tax, but you can only take it out from age 57.','https://www.gov.uk/workplace-pensions'],
+ ['d90','isa','Learn about ISAs','An ISA lets you save or invest up to £20,000 a year with no UK tax on it. For people living in the UK, it is often better than new Indian funds.','https://www.gov.uk/individual-savings-accounts'],
+ ['d90','fig','Check UK tax on Indian income','The UK may tax money you earn in India, like interest or fund gains. New arrivals can often avoid this for 4 years, but you must claim it. Get advice if you have large Indian investments.','https://www.gov.uk/tax-foreign-income'],
+ ['d90','itr','Plan your Indian tax return','If you spent less than 182 days in India in the year you left, you usually file as an NRI.','https://www.incometax.gov.in'],
+ ['yr','days','Count your days in India','Stay under 182 days in India between April and March to keep NRI status. The limit can be lower if you earn a lot in India.',null],
+ ['yr','isaapr','New ISA allowance on 6 April','You get a fresh £20,000 each April. Unused allowance does not carry over.','https://www.gov.uk/individual-savings-accounts'],
+ ['yr','itrjul','Indian tax return by 31 July','You need to if you earn anything taxable in India, like interest, rent or investment gains.','https://www.incometax.gov.in'],
+ ['yr','sa','UK tax return by 31 January','You may need one if you have income from India or claim the 4-year relief. It is called Self Assessment.','https://www.gov.uk/self-assessment-tax-returns'],
+ ['yr','review','Review your budget and goals','Once a year, update your salary, rupee rate and goals.',null]
+].map(function(t){return {ph:t[0],id:t[1],title:t[2],text:t[3],link:t[4]};});
+function ctry(t){if(t.id==='review'||t.id==='transfer')return 'both';if(t.ph==='india'||['itr','days','itrjul'].indexOf(t.id)>=0)return 'in';return 'uk';}
+function dueDate(t){var P=PHASES.find(function(x){return x.k===t.ph;});return P.due&&S.profile?addDays(S.profile.moved,P.due):null;}
+function doneCount(list){return list.filter(function(t){return S.checks[t.id];}).length;}
+function nextTask(){return TASKS.find(function(t){return !S.checks[t.id]&&t.ph!=='yr';})||TASKS.find(function(t){return !S.checks[t.id];});}
+
+/* ---------- the bridge (checklist progress) ---------- */
+function bridgeSVG(p,big){
+  p=Math.max(0,Math.min(1,p));var id='jc'+Math.round(p*1000)+(big?'b':'s');
+  var P='M20 84 C20 30 180 72 180 20',t=p,u=1-t;
+  var mx=u*u*u*20+3*u*u*t*20+3*u*t*t*180+t*t*t*180,my=u*u*u*84+3*u*u*t*30+3*u*t*t*72+t*t*t*20;
+  var sw=big?6:9,gap=big?13:17;
+  return '<svg viewBox="0 0 200 104" role="img" aria-label="'+Math.round(p*100)+'% of the way from India to the UK"><defs><clipPath id="'+id+'"><rect x="0" y="0" width="'+(20+160*p).toFixed(1)+'" height="104"/></clipPath></defs>'+
+    '<path d="'+P+'" fill="none" stroke="var(--rule)" stroke-width="'+sw+'" stroke-linecap="round" stroke-dasharray="0.1 '+gap+'"/>'+
+    '<path d="'+P+'" fill="none" stroke="var(--ink)" stroke-width="'+sw+'" stroke-linecap="round" stroke-dasharray="0.1 '+gap+'" clip-path="url(#'+id+')"/>'+
+    '<circle cx="20" cy="84" r="'+(big?13:16)+'" fill="var(--india)"/><circle cx="180" cy="20" r="'+(big?13:16)+'" fill="var(--uk)"/>'+
+    (p>0.04&&p<0.96?'<circle cx="'+mx.toFixed(1)+'" cy="'+my.toFixed(1)+'" r="'+(big?6.5:9)+'" fill="var(--card)" stroke="var(--ink)" stroke-width="'+(big?3:4)+'"/>':'')+
+    (big?'<text x="20" y="104" text-anchor="middle" font-size="10" fill="var(--soft)" font-family="Figtree,sans-serif">India</text><text x="160" y="16" text-anchor="end" font-size="10" fill="var(--soft)" font-family="Figtree,sans-serif">UK</text>':'')+'</svg>';
+}
+var LOGO='<svg viewBox="0 0 40 40" role="img" aria-label="Setu logo"><path d="M9.5 30.5 C9.5 19 30.5 21 30.5 9.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.1 6.4"/><circle cx="9.5" cy="30.5" r="7" fill="var(--india)"/><circle cx="30.5" cy="9.5" r="7" fill="var(--uk)"/></svg>';
+
+/* ---------- render ---------- */
+var ICON={home:'<path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/>',check:'<circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><path d="M5 16.5C5 11 19 13 19 7.5" stroke-dasharray="0.1 3.4" stroke-width="2.4"/>',spend:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/>',goals:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>'};
+var TABS=[['home','Home'],['check','Checklist'],['spend','Spending'],['goals','Goals']];
+var GEAR='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+var GL={home:'<path d="M4 11l8-6 8 6v8H4z"/><path d="M10 19v-5h4v5"/>',shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',chart:'<path d="M5 19V11M12 19V5M19 19v-6"/>',spark:'<path d="M12 3v5M12 16v5M3 12h5M16 12h5M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3"/>',card:'<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10h18"/>',rupee:'<path d="M7 5h10M7 9h10M9 5c4 0 6 1.5 6 4s-2 4-6 4l6 6"/>',basket:'<path d="M4 10h16l-1.5 9h-13z"/><path d="M8 10l3-5M16 10l-3-5"/>',bus:'<rect x="5" y="3.5" width="14" height="14" rx="3"/><path d="M5 11h14M8 21v-3M16 21v-3"/>',fork:'<path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M16 3c-2 1-2.5 4-2.5 7h2.5v11"/>',bag:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',dots:'<circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/>',list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/>'};
+function gl(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+GL[k]+'</svg>';}
+var CATC={groceries:['var(--mint)','basket'],transport:['var(--indigo)','bus'],eating:['var(--rani)','fork'],shopping:['var(--marigold)','bag'],other:['var(--teal)','dots']};
+
+/* original flat illustrations */
+var ILL={
+ jar:'<svg class="jar" viewBox="0 0 80 80" aria-hidden="true"><ellipse cx="40" cy="74" rx="22" ry="3.5" fill="rgba(0,0,0,.18)"/><g class="coin"><circle cx="31" cy="60" r="9" fill="#FFB020"/><circle cx="31" cy="60" r="5.5" fill="none" stroke="#E08E00" stroke-width="1.6"/><circle cx="48" cy="62" r="9" fill="#FFD580"/><circle cx="48" cy="62" r="5.5" fill="none" stroke="#E0A63A" stroke-width="1.6"/><circle cx="40" cy="45" r="9" fill="#FFB020"/><text x="40" y="49" text-anchor="middle" font-size="11" font-weight="800" fill="#8A5500" font-family="Bricolage Grotesque,sans-serif">£</text></g><rect x="17" y="24" width="46" height="50" rx="13" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.7)" stroke-width="2.5"/><rect x="21" y="15" width="38" height="10" rx="4" fill="#EE3F86"/><path d="M26 32v14" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"/><path d="M68 10l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#FFFFFF"/></svg>',
+ trip:'<svg viewBox="0 0 320 170" aria-hidden="true"><circle cx="58" cy="52" r="24" fill="#FFB020"/><g stroke="#FFB020" stroke-width="3.5" stroke-linecap="round"><path d="M58 16v-6M58 94v-6M22 52h-6M100 52h-6M33 27l-4-4M83 77l4 4M33 77l-4 4M83 27l4-4"/></g><g fill="#FFFFFF"><ellipse cx="258" cy="46" rx="30" ry="15"/><ellipse cx="238" cy="50" rx="18" ry="12"/><ellipse cx="278" cy="52" rx="16" ry="10"/></g><g stroke="#7FE3D8" stroke-width="3" stroke-linecap="round"><path d="M244 70l-3 8M258 70l-3 8M272 70l-3 8"/></g><path d="M20 150 C80 150 110 108 160 112 S250 126 300 96" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.1 12"/><g transform="translate(118 78)"><path d="M30 12v-9h24v9" fill="none" stroke="#1A1446" stroke-width="5" stroke-linejoin="round"/><rect x="0" y="12" width="84" height="58" rx="12" fill="#EE3F86"/><rect x="0" y="32" width="84" height="9" fill="#C8266C"/><circle cx="22" cy="54" r="10" fill="#FFB020"/><text x="22" y="58" text-anchor="middle" font-size="10" font-weight="800" fill="#6B3E00" font-family="Bricolage Grotesque,sans-serif">IN</text><rect x="52" y="46" width="22" height="16" rx="4" fill="#FFFFFF"/><text x="63" y="58" text-anchor="middle" font-size="10" font-weight="800" fill="#4B3BE0" font-family="Bricolage Grotesque,sans-serif">UK</text><circle cx="16" cy="74" r="5" fill="#1A1446"/><circle cx="68" cy="74" r="5" fill="#1A1446"/></g></svg>',
+ bag:'<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 22h36l-3 34H17z" fill="#12B5A6"/><path d="M24 22a8 8 0 0 1 16 0" fill="none" stroke="#1A1446" stroke-width="3.5" stroke-linecap="round"/><path d="M14 22h36l-.6 7H14.6z" fill="#0E948A"/><path d="M52 8l1.6 4 4 1.6-4 1.6L52 19l-1.6-3.8-4-1.6 4-1.6z" fill="#EE3F86"/></svg>',
+ house:'<svg class="ill" viewBox="0 0 80 72" aria-hidden="true"><ellipse cx="40" cy="68" rx="30" ry="3.5" fill="rgba(26,20,70,.1)"/><rect x="16" y="32" width="46" height="34" rx="4" fill="#ECE9FF"/><path d="M10 34L39 10l30 24" fill="#FFB020" stroke="#FFB020" stroke-width="4" stroke-linejoin="round"/><g fill="#EE3F86"><circle cx="22" cy="38" r="2.2"/><circle cx="30" cy="39.5" r="2.2"/><circle cx="39" cy="40" r="2.2"/><circle cx="48" cy="39.5" r="2.2"/><circle cx="56" cy="38" r="2.2"/></g><rect x="33" y="47" width="12" height="19" rx="3" fill="#4B3BE0"/><rect x="20" y="46" width="9" height="9" rx="2" fill="#12B5A6"/><rect x="49" y="46" width="9" height="9" rx="2" fill="#12B5A6"/><path d="M70 66c0-8 3-12 6-14-5 0-8 4-8 9" fill="#1FB98F"/></svg>',
+ chai:'<svg class="ill" viewBox="0 0 80 72" aria-hidden="true"><circle cx="54" cy="22" r="15" fill="#FFB020"/><path d="M14 36h40v8a20 20 0 0 1-40 0z" fill="#EE3F86"/><path d="M54 40h5a6 6 0 0 1 0 12h-6" fill="none" stroke="#EE3F86" stroke-width="4"/><ellipse cx="34" cy="65" rx="26" ry="4.5" fill="#4B3BE0"/><path d="M26 30c-3-4 3-6 0-10M36 30c-3-4 3-6 0-10" fill="none" stroke="#9C92FF" stroke-width="3" stroke-linecap="round"/></svg>',
+ party:'<svg viewBox="0 0 80 66" aria-hidden="true"><path d="M10 60L26 18l24 24z" fill="#FFB020"/><path d="M14 50l6-16M20 58l10-26" stroke="#EE3F86" stroke-width="3"/><circle cx="52" cy="14" r="4" fill="#4B3BE0"/><circle cx="66" cy="30" r="3" fill="#EE3F86"/><rect x="58" y="44" width="7" height="7" rx="2" fill="#12B5A6" transform="rotate(20 61 47)"/><path d="M40 8l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#1FB98F"/></svg>'
+};
+
+function greet(){var h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening';}
+function whenTxt(){var d=daysSince(S.profile.moved);return d<0?'You move in '+(-d)+' day'+(d===-1?'':'s'):'Day '+(d+1)+' in the UK';}
+function pageHead(){var p=S.profile;
+  return ({home:[greet()+(p.name?', '+p.name:''),whenTxt()],check:['Your first 90 days','Things to sort out in India and the UK'],spend:['Spending',mLabel(viewMonth||mKey())],goals:['Goals','Your home and retirement in India']})[tab];}
+var lastTab=null,lastTicked=null,countFrom={};
+function render(){
+  var app=document.getElementById('app'),anim=sheetAnim;sheetAnim=false;
+  if(!S.profile||wz){app.innerHTML='<div class="wzshell"><div class="wzcard">'+vWizard()+'</div></div>'+(sheetFn?sheetHTML(anim):'');bindWizard();bindSheet();return;}
+  var V={home:vHome,check:vCheck,spend:vSpend,goals:vGoals};if(!V[tab])tab='home';
+  var enter=lastTab!==tab,m=document.getElementById('main'),keep=(!enter&&m)?m.scrollTop:0;lastTab=tab;
+  var ph=pageHead(),p=S.profile,navBtn=function(t,cls){return '<button role="tab" class="'+cls+'" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+ICON[t[0]]+'</svg><span>'+t[1]+'</span></button>';};
+  var mh=tab==='home'?'<div class="ava" aria-hidden="true">'+esc((p.name||'S').charAt(0).toUpperCase())+'</div><div class="hi"><b>'+esc(p.name?'Hey '+p.name:greet())+'</b><span>'+esc(whenTxt())+'</span></div>':'<h1 class="ptitle">'+esc(ph[0])+'</h1>';
+  app.innerHTML='<div class="app">'+
+    '<aside class="side"><div class="brand">'+LOGO+'Setu</div><nav class="snav" role="tablist" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'sn');}).join('')+'</nav>'+
+      '<div class="sfoot"><button class="sn" data-sheet="settings">'+GEAR+'<span>Settings</span></button><p>Free and private. Everything stays on this device. General guidance, not financial advice.</p></div></aside>'+
+    '<div class="col"><header class="mhd">'+mh+'<button class="gear" data-sheet="settings" aria-label="Settings">'+GEAR+'</button></header>'+
+    '<main id="main" class="v-'+tab+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+V[tab]()+'</main>'+
+    '<nav class="tabbar" role="tablist" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'tb');}).join('')+'</nav></div></div>'+(sheetFn?sheetHTML(anim):'');
+  var m2=document.getElementById('main');if(m2)m2.scrollTop=keep;
+  afterRender(enter);lastTicked=null;bindSheet();
+}
+var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function afterRender(enter){
+  document.querySelectorAll('[data-count]').forEach(function(el){
+    var to=+el.dataset.count,key=el.dataset.key||'',fmt=el.dataset.fmt,from=enter?0:(countFrom[key]!=null?countFrom[key]:to);countFrom[key]=to;
+    var f=function(v){return fmt==='pct'?Math.round(v)+'%':fmt==='inr'?inr(v):gbp(v);};
+    if(reduce||from===to){el.textContent=f(to);return;}
+    var t0=performance.now(),D=750;(function step(now){var k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);el.textContent=f(from+(to-from)*e);if(k<1)requestAnimationFrame(step);})(t0);
+  });
+  var bars=document.querySelectorAll('[data-w]');
+  if(enter&&!reduce){bars.forEach(function(b){b.style.width='0%';});requestAnimationFrame(function(){requestAnimationFrame(function(){bars.forEach(function(b){b.style.width=b.dataset.w+'%';});});});}
+  else bars.forEach(function(b){b.style.width=b.dataset.w+'%';});
+  var rv=document.querySelector('.ring .rv');if(rv){var off=rv.dataset.off;if(enter&&!reduce){rv.style.strokeDashoffset=rv.dataset.len;requestAnimationFrame(function(){requestAnimationFrame(function(){rv.style.strokeDashoffset=off;});});}else rv.style.strokeDashoffset=off;}
+}
+function sheetHTML(anim){var s=sheetFn();return '<div class="sheet-bg'+(anim?' anim':'')+'" data-bg><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(s.title)+'"><div class="grab" aria-hidden="true"></div><div class="sh"><h2>'+esc(s.title)+'</h2><button class="x" data-close aria-label="Close">×</button></div>'+s.body+'</div></div>';}
+function bindSheet(){
+  var sh=document.querySelector('.sheet');if(!sh)return;var h=sh.querySelector('.grab'),hd=sh.querySelector('.sh'),y0=null,dy=0;
+  function down(e){if(e.target.closest('button'))return;y0=e.clientY;dy=0;sh.style.transition='none';try{e.target.setPointerCapture(e.pointerId);}catch(err){}}
+  function move(e){if(y0===null)return;dy=Math.max(0,e.clientY-y0);sh.style.transform='translateY('+dy+'px)';}
+  function up(){if(y0===null)return;y0=null;sh.style.transition='transform .25s ease';if(dy>90){sh.style.transform='translateY(100%)';setTimeout(closeSheet,200);}else sh.style.transform='';}
+  [h,hd].forEach(function(el){el.addEventListener('pointerdown',down);el.addEventListener('pointermove',move);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);});
+}
+var sheetAnim=false;function openSheet(fn){sheetFn=fn;sheetAnim=true;render();var f=document.querySelector('.sheet input');if(f)f.focus();}
+function closeSheet(){sheetFn=null;render();}
+var toastT;function toast(msg){var old=document.querySelector('.toast');if(old)old.remove();var d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=msg;document.body.appendChild(d);clearTimeout(toastT);toastT=setTimeout(function(){d.remove();},2300);}
+function buzz(){try{if(navigator.vibrate)navigator.vibrate(12);}catch(e){}}
+function confetti(){if(reduce)return;var cols=['#FFB020','#EE3F86','#4B3BE0','#12B5A6','#1FB98F'];for(var i=0;i<34;i++){var d=document.createElement('div');d.className='cf';d.style.left=(10+Math.random()*80)+'%';d.style.background=cols[i%cols.length];d.style.setProperty('--dx',(Math.random()*160-80)+'px');d.style.setProperty('--r',(Math.random()*720-360)+'deg');d.style.animationDelay=(Math.random()*.25)+'s';document.body.appendChild(d);setTimeout(function(x){return function(){x.remove();};}(d),1600);}}
+
+/* ---------- friendly nudges ---------- */
+function nudges(){
+  var p=S.profile,m=month(),out=[],fx=+p.fx||129,now=new Date();
+  var due=TASKS.filter(function(t){var d=dueDate(t);return !S.checks[t.id]&&d&&(d-now)<7*864e5;});
+  var late=due.filter(function(t){return dueDate(t)<now;});
+  if(due.length)out.push({tone:'rani',ic:'clock',t:late.length?late.length+' checklist step'+(late.length>1?'s are':' is')+' overdue':due.length+' step'+(due.length>1?'s':'')+' due this week',x:'Start with: '+(late[0]||due[0]).title+'.',cta:'Open checklist',go:'tab:check'});
+  var efT=m.ukCosts*(+p.efMonths||4),have=+p.savedUK||0;
+  if(have<efT)out.push({tone:'indigo',ic:'shield',t:'Your savings last '+Math.round(have/Math.max(1,m.ukCosts)*4.3)+' weeks',x:'Try to build this up to '+(p.efMonths||4)+' months of costs ('+gbp(efT)+'). It’s step 1 of your plan.',cta:'See why',go:'plan:0'});
+  if(+p.cardBal>0)out.push({tone:'rani',ic:'card',t:'Pay off the credit card first',x:'Card interest in India can be 36–45% a year. Clearing it saves you the most money.',cta:'See plan',go:'plan:1'});
+  var cats0=cats(),bud=sum(cats0.map(function(c){return c.budget;})),spent=sum(S.items.filter(function(x){return x.date.slice(0,7)===mKey();}).map(function(x){return x.amt;}));
+  var frac=now.getDate()/new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  if(!spent)out.push({tone:'teal',ic:'list',t:'Log your first spend',x:'Track for one month to see where your money really goes.',cta:'Add spending',go:'tab:spend'});
+  else if(bud&&spent/bud>frac+0.15)out.push({tone:'marigold',ic:'chart',t:'You’re spending a bit fast',x:'You’ve used '+Math.round(spent/bud*100)+'% of your budget, and '+Math.round((1-frac)*100)+'% of the month is still left.',cta:'See spending',go:'tab:spend'});
+  else out.push({tone:'mint',ic:'chart',t:'Your spending is on track',x:'You’ve used '+Math.round(spent/bud*100)+'% of this month’s budget so far.',cta:'See spending',go:'tab:spend'});
+  var rs=(+p.rent||0)/Math.max(1,m.th.month);
+  out.push(rs>0.4?{tone:'marigold',ic:'home',t:'Rent is '+Math.round(rs*100)+'% of your pay',x:'A common aim is about a third of your pay. Worth checking before your next rent renewal.',cta:'Edit setup',go:'set:setup'}:{tone:'mint',ic:'home',t:'Rent is '+Math.round(rs*100)+'% of your pay',x:'That’s within the usual third of your pay. Nice.',cta:'Edit setup',go:'set:setup'});
+  var mo=now.getMonth();if(mo===2||mo===3)out.push({tone:'indigo',ic:'sun',t:'New ISA allowance on 6 April',x:'You can save another £20,000 tax-free from 6 April.',cta:'Learn more',go:'task:isa'});
+  var ish=m.india/Math.max(1,m.th.month);if(ish>0.2)out.push({tone:'marigold',ic:'rupee',t:'India takes '+Math.round(ish*100)+'% of your pay',x:'When an EMI ends, put that money into your plan instead.',cta:'Edit setup',go:'set:setup'});
+  return out.slice(0,4);
+}
+
+/* ---------- Home ---------- */
+function vHome(){
+  var p=S.profile,m=month(),plan=split(),take=m.th.month||1;
+  var h='<section class="hero">'+ILL.jar+'<div class="lbl">Left to save each month</div><div class="big f" data-count="'+Math.round(m.left)+'" data-key="left">'+gbp(m.left)+'</div><div class="sub">from your '+gbp(m.th.month)+' monthly pay, after all costs</div>'+
+    '<div class="flow">'+m.parts.concat([['Left',Math.max(0,m.left),'--s-left']]).map(function(x){return '<div data-w="'+pct(x[1],take).toFixed(1)+'" style="width:'+pct(x[1],take).toFixed(1)+'%;background:var('+x[2]+')"></div>';}).join('')+'</div>'+
+    '<div class="key">'+m.parts.concat([['Left',m.left,'--s-left']]).map(function(x){return '<span style="--c:var('+x[2]+')">'+x[0]+'<b>'+gbp(x[1])+'</b></span>';}).join('')+'</div></section>';
+  var N=nudges();
+  if(N.length)h+='<div class="nudges" role="list" aria-label="Tips for you">'+N.map(function(n){return '<button class="nudge" role="listitem" data-go="'+n.go+'" style="--tint:var(--t-'+n.tone+');--tone:var(--'+n.tone+')"><span class="ic">'+gl(n.ic)+'</span><span class="grow"><b>'+esc(n.t)+'</b><span>'+esc(n.x)+'</span><em>'+esc(n.cta)+'</em></span></button>';}).join('')+'</div>';
+  h+='<section class="card plan"><h3 class="ph3">What to do with your '+gbp(Math.max(0,m.left))+'</h3>';
+  if(m.left<=0)h+='<p class="soft" style="margin:4px 0">You’re spending more than you earn. Check your rent and India payments in Settings.</p>';
+  plan.forEach(function(x,i){h+='<button class="step" data-plan="'+i+'"><span class="num" style="background:'+x.col+'">'+(i+1)+'</span><span class="grow"><span class="st">'+esc(x.title)+'</span><span class="sd">'+esc(x.where)+'</span></span><span class="amt">'+gbp(x.amt)+'</span><span class="chev">›</span></button>';});
+  h+='<p class="fine">General guidance only, not financial advice.</p></section>';
+  var lt=(plan.find(function(x){return x.title==='Long-term investing';})||{amt:0}).amt,tiles=[];
+  if(+p.retireAge&&+p.retireSpend){var r=retire(lt);tiles.push(['Retire at '+r.target,Math.round(pct(r.atT,r.needT))+'%','of the way there','var(--mint)']);}
+  if(p.homeOn&&+p.homeCost){var hc=homeCalc();tiles.push(['Home in '+p.homeYear,Math.round(pct(hc.fv,hc.cost))+'%','saved by then','var(--marigold)']);}
+  if(tiles.length)h+='<button class="card glance" data-tab="goals">'+tiles.map(function(t){return '<span class="gl"><span class="small soft"><i class="dot" style="background:'+t[3]+'"></i>'+esc(t[0])+'</span><span class="f gv">'+t[1]+'</span><span class="small soft">'+t[2]+'</span></span>';}).join('')+'<span class="chev">›</span></button>';
+  return h;
+}
+
+/* ---------- Checklist ---------- */
+function vCheck(){
+  if(!phase){var f=PHASES.find(function(P){return TASKS.some(function(t){return t.ph===P.k&&!S.checks[t.id];});});phase=(f||PHASES[0]).k;}
+  var done=doneCount(TASKS),nt=nextTask(),pc=Math.round(done/TASKS.length*100);
+  var h='<section class="card journey">'+bridgeSVG(done/TASKS.length,true)+'<div><div class="big2 f"><span data-count="'+pc+'" data-fmt="pct" data-key="jr">'+pc+'%</span><small> of the way</small></div><div class="small soft">'+done+' of '+TASKS.length+' steps done</div>'+(nt?'<div class="small" style="margin-top:4px;font-weight:600">Next: '+esc(nt.title)+'</div>':'<div class="small ok" style="margin-top:4px;font-weight:700">All done. You’re settled in.</div>')+'</div></section>';
+  h+='<div class="phases" role="tablist">'+PHASES.map(function(P){var ts=TASKS.filter(function(t){return t.ph===P.k;}),dn=doneCount(ts);return '<button class="ph'+(dn===ts.length?' full':'')+'" data-phase="'+P.k+'" aria-pressed="'+(phase===P.k)+'">'+P.label+'<small>'+(dn===ts.length?'✓':dn+'/'+ts.length)+'</small></button>';}).join('')+'</div>';
+  var P=PHASES.find(function(x){return x.k===phase;}),ts=TASKS.filter(function(t){return t.ph===phase;}),dd=P.due?addDays(S.profile.moved,P.due):null;
+  h+='<section class="card"><div class="small soft" style="margin-bottom:4px;font-weight:600">'+(dd?'Aim to finish by '+dLabel(dd):'Do these once a year')+'</div>';
+  ts.forEach(function(t){var on=!!S.checks[t.id];h+='<div class="item'+(on?' done':'')+'"><button class="tick'+(t.id===lastTicked&&on?' pop':'')+'" role="checkbox" aria-checked="'+on+'" aria-label="'+esc(t.title)+'" data-tick="'+t.id+'"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button><button class="it" data-task="'+t.id+'"><b>'+esc(t.title)+' <em class="tag '+ctry(t)+'">'+({in:'India',uk:'UK',both:'Both'})[ctry(t)]+'</em></b><span>'+esc(t.text.split('. ')[0].replace(/\.$/,''))+'.</span></button></div>';});
+  return h+'</section>';
+}
+
+/* ---------- Spending ---------- */
+function cats(){if(!S.cats){var e=+S.profile.everyday||600;S.cats=[['groceries','Groceries',.4],['transport','Transport',.2],['eating','Eating out',.15],['shopping','Shopping',.15],['other','Other',.1]].map(function(c){return {k:c[0],label:c[1],budget:Math.round(e*c[2])};});}return S.cats;}
+function shiftMonth(k,d){var p=k.split('-');return mKey(new Date(+p[0],+p[1]-1+d,1));}
+function lastAdded(){var b=null;S.items.forEach(function(x){if(x.created&&Date.now()-x.created<864e5&&(!b||x.created>b.created))b=x;});return b;}
+function cc(k){return CATC[k]||['var(--teal)','dots'];}
+function vSpend(){
+  var C=cats(),cur=mKey(),vm=viewMonth||cur,items=S.items.filter(function(x){return x.date.slice(0,7)===vm;}),tot=sum(items.map(function(x){return x.amt;})),bud=sum(C.map(function(c){return c.budget;})),left=bud-tot,used=pct(tot,bud);
+  var R=38,L=2*Math.PI*R,off=(L*(1-used/100)).toFixed(1);
+  var h='<section class="card"><div class="mhead"><button class="navb" data-month="'+shiftMonth(vm,-1)+'" aria-label="Previous month">‹</button><div class="small soft" style="font-weight:700">'+mLabel(vm)+'</div><button class="navb" data-month="'+shiftMonth(vm,1)+'" aria-label="Next month"'+(vm>=cur?' disabled':'')+'>›</button></div>'+
+    '<div class="ringrow"><div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="'+R+'" stroke="var(--rule)"/><circle class="rv" cx="50" cy="50" r="'+R+'" stroke="'+(left<0?'var(--coral)':'var(--indigo)')+'" stroke-linecap="round" stroke-dasharray="'+L.toFixed(1)+'" data-len="'+L.toFixed(1)+'" data-off="'+off+'" style="stroke-dashoffset:'+off+'"/></svg><b data-count="'+Math.round(used)+'" data-fmt="pct" data-key="ring'+vm+'">'+Math.round(used)+'%</b></div>'+
+    '<div><div class="small soft">Spent so far</div><div class="mid" data-count="'+Math.round(tot)+'" data-key="spent'+vm+'">'+gbp(tot)+'</div><span class="leftchip'+(left<0?' over':'')+'">'+(left<0?gbp(-left)+' over budget':gbp(left)+' left to spend')+'</span></div></div></section>';
+  h+='<section class="card"><div class="chips">'+C.map(function(c){var k=cc(c.k);return '<button class="chip" data-cat="'+c.k+'" aria-pressed="'+(addCat===c.k)+'" style="--cc:'+k[0]+'"><i>'+gl(k[1])+'</i>'+esc(c.label)+'</button>';}).join('')+'</div>'+
+    '<div class="inrow"><input id="amt" class="a" type="number" inputmode="decimal" step="any" placeholder="£ 0.00" aria-label="Amount in pounds"><input id="note" placeholder="What was it?" aria-label="What was it"><button class="btn go" data-add style="padding:12px 18px">Add</button></div>';
+  var la=lastAdded();if(la){var lc=C.find(function(c){return c.k===la.cat;});h+='<div class="undo"><span>Added '+esc(la.note||(lc?lc.label:'spending'))+' '+gbp2(la.amt)+'</span><button class="link bad" data-undo="'+la.id+'">Undo</button></div>';}
+  h+='</section><section class="tiles">';
+  C.forEach(function(c){var v=sum(items.filter(function(x){return x.cat===c.k;}).map(function(x){return x.amt;})),pcc=c.budget?v/c.budget*100:(v?100:0),k=cc(c.k);
+    h+='<button class="tile" data-cat-edit="'+c.k+'" style="--cc:'+k[0]+'"><div class="row-b"><span><i>'+gl(k[1])+'</i>'+esc(c.label)+'</span><span class="v"><b>'+gbp(v)+'</b>/'+gbp(c.budget)+'</span></div><div class="bar'+(pcc>100?' over':'')+'"><div data-w="'+Math.min(100,pcc).toFixed(1)+'" style="width:'+Math.min(100,pcc).toFixed(1)+'%"></div></div></button>';});
+  if(!items.length)h+='<div class="emptyline">'+ILL.bag+'<span>Nothing added yet. Add what you spend above. Tap a category to change its budget.</span></div>';
+  h+='</section><div class="acts"><button class="btn" data-sheet="items">All spending this month ('+items.length+')</button></div>';
+  return h;
+}
+
+/* ---------- Goals ---------- */
+function vGoals(){
+  var p=S.profile,fx=+p.fx||129,plan=split(),lt=(plan.find(function(x){return x.title==='Long-term investing';})||{amt:0}).amt,h='';
+  if(+p.retireAge&&+p.retireSpend){var r=retire(lt),ok=r.ready!==null&&r.ready<=r.target,pp=pct(r.atT,r.needT);
+    h+='<section class="card goal">'+ILL.chai+'<h3>Retire in India at '+r.target+'</h3><div class="kick">Saving '+gbp(lt)+' a month, you could retire</div><div class="mid '+(ok?'ok':'bad')+'">'+(r.ready===null?'after 80':'at '+Math.ceil(r.ready))+'</div>'+
+      '<div class="bar" style="--cc:var(--mint)"><div data-w="'+pp.toFixed(1)+'" style="width:'+pp.toFixed(1)+'%"></div></div><p class="gp">'+(ok?'You’re on track. Keep going.':'Save about <b>'+gbp(r.extra)+' more a month</b> to retire at '+r.target+'.')+' You’ll need about '+inr(r.needT)+' to live on '+inr(p.retireSpend)+' a month (in today’s prices).</p></section>';}
+  if(p.homeOn&&+p.homeCost){var hc=homeCalc(),hp=pct(hc.fv,hc.cost);
+    h+='<section class="card goal">'+ILL.house+'<h3>Your home in India, '+p.homeYear+'</h3><div class="kick">Likely price by then</div><div class="mid">'+inr(hc.cost)+'</div>'+
+      '<div class="bar" style="--cc:var(--marigold)"><div data-w="'+hp.toFixed(1)+'" style="width:'+hp.toFixed(1)+'%"></div></div><p class="gp">'+(hc.need>0?'Save about <b>'+gbp(hc.need/fx)+' a month</b> for it. Taking a home loan for part, or buying later, makes this smaller.':'You’re on track for your home.')+' You’re '+Math.round(hp)+'% of the way.</p></section>';}
+  if(!h)h='<section class="card goal">'+ILL.house+'<h3>What are you saving for?</h3><p class="gp soft" style="padding-right:70px">Add when you’d like to retire, or a home in India. Setu will show how much to save each month.</p></section>';
+  h+='<div class="acts"><button class="btn go" data-sheet="goals">Change goals</button></div><p class="fine">We assume prices in India rise 6% a year and investments grow 10% a year. You can change this in Settings.</p>';
+  return h;
+}
+
+/* ---------- Wizard ---------- */
+var HH={single:{bills:300,everyday:450},couple:{bills:400,everyday:800},family:{bills:500,everyday:1100}};
+function startWizard(){var p=S.profile;wz={step:p?1:0,d:Object.assign({name:'',age:30,moved:today(),household:'single',salary:'',pension:5,rent:'',bills:300,everyday:450,indiaOther:0,fx:129,emi:0,cardBal:0,plBal:0,otherLoanBal:0,invested:0,sip:0,savedUK:0,efMonths:4,retireAge:'',retireSpend:75000,homeOn:false,homeCost:'',homeYear:new Date().getFullYear()+5,homeSaved:0,inf:6,ret:10,wd:3.5},p||{})};render();}
+function fld(k,label,type,extra,pre,suf){var v=wz.d[k];var inp='<input data-k="'+k+'" type="'+(type||'number')+'"'+(type==='text'||type==='date'?'':' inputmode="decimal" step="any"')+' value="'+esc(v)+'"'+(extra||'')+'>';return '<label class="field"><span>'+label+'</span>'+(pre||suf?'<span class="adorn'+(suf?' suf':'')+'">'+(pre?'<i>'+pre+'</i>':'')+inp+(suf?'<i>'+suf+'</i>':'')+'</span>':inp)+'</label>';}
+function tip(id,text,right){return '<span class="tip'+(right?' r':'')+'"><button type="button" class="tipb" aria-label="More info" aria-describedby="tip-'+id+'">i</button><span role="tooltip" id="tip-'+id+'" class="tipt">'+text+'</span></span>';}
+function seg(k,opts){return '<div class="seg" role="radiogroup">'+opts.map(function(o){return '<button role="radio" data-seg="'+k+'" data-v="'+o[0]+'" aria-checked="'+(String(wz.d[k])===String(o[0]))+'">'+o[1]+'</button>';}).join('')+'</div>';}
+function vWizard(){
+  var s=wz?wz.step:0;if(!wz)startWizard();s=wz.step;var d=wz.d;
+  if(s===0)return '<div class="wz"><div class="brand">'+LOGO+'Setu</div><div class="introhero">'+ILL.trip+'<h1>Your money bridge from India to the UK</h1></div><ul class="promise"><li style="--c:var(--indigo)"><i>'+gl('chart')+'</i>See how much money you have left each month</li><li style="--c:var(--rani)"><i>'+gl('list')+'</i>Follow a simple checklist for your first 90 days</li><li style="--c:var(--marigold)"><i>'+gl('home')+'</i>Plan for a home and retirement in India</li></ul><p class="private">It’s free and takes 3 minutes. Your answers stay on this device.</p><div class="foot col2"><button class="btn go" data-wz="next">Let’s go</button><button class="link" data-sheet="backup">Restore from a backup</button></div></div>';
+  var top='<div class="top">'+(s>1||S.profile?'<button class="x" data-wz="'+(s>1?'back':'cancel')+'" aria-label="'+(s>1?'Back':'Close')+'">'+(s>1?'‹':'×')+'</button>':'')+'<div class="dots">'+[1,2,3,4,5].map(function(i){return '<i class="'+(i<=s?'on':'')+'"></i>';}).join('')+'</div><span class="small soft">'+s+' of 5</span></div>';
+  var body='';
+  if(s===1)body='<div><h1>About you</h1><p class="lead">This helps us set dates on your checklist.</p></div><div class="fields">'+fld('name','First name (optional)','text')+'<div class="grid2">'+fld('age','Your age')+fld('moved','Date you moved','date')+'</div><div class="field"><span>Who lives with you in the UK?</span>'+seg('household',[['single','Just me'],['couple','Partner'],['family','Family']])+'</div>'+fld('fx','Rupees per £1'+tip('fx','How many rupees you get for £1. You can change it any time in Settings.'),'','','₹')+'</div>';
+  if(s===2)body='<div><h1>Your money each month</h1><p class="lead">Rough numbers are fine. You can change them later.</p></div><div class="fields"><div>'+fld('salary','Yearly salary (before tax)','','','£')+'<div class="hintline" id="th"></div></div><div class="grid2">'+fld('rent','Rent per month','','','£')+fld('pension','Pension you pay'+tip('pen','The % of your salary that goes into your work pension. 5% is common.',true),'','','','%')+fld('bills','Bills per month'+tip('bills','Council tax, gas, electricity, water, internet and phone'),'','','£')+fld('everyday','Everyday spending'+tip('day','Food, travel, eating out and shopping',true),'','','£')+'</div>'+fld('indiaOther','Money for family and insurance in India, per month'+tip('io','Money you send home and insurance you pay. Don’t add loans or SIPs here, they come next.'),'','','₹')+'</div>';
+  if(s===3)body='<div><h1>What you owe</h1><p class="lead">Only loans and credit cards. Your savings come next.</p></div><div class="fields">'+fld('emi','Total EMIs you pay each month'+tip('emi','Add up all your loan EMIs: car, personal, education or home'),'','','₹')+'<div class="grid2">'+fld('cardBal','Credit card balance'+tip('cb','How much you still owe on your cards. Put 0 if you pay the full bill every month.'),'','','₹')+fld('plBal','Personal loan still to pay'+tip('pl','The total amount left, not the monthly EMI',true),'','','₹')+'</div>'+fld('otherLoanBal','Other loans still to pay'+tip('ol','The total left on car, education or home loans'),'','','₹')+'<div class="hintline owe" id="owe"></div></div>';
+  if(s===4)body='<div><h1>What you have</h1><p class="lead">Only savings and investments. Don’t add loans here.</p></div><div class="fields">'+fld('savedUK','Savings in the UK'+tip('su','Money in your UK bank that you could use in an emergency'),'','','£')+fld('invested','Invested in India'+tip('inv','Total value of your mutual funds, shares, EPF, PPF and fixed deposits'),'','','₹')+fld('sip','SIPs you pay each month'+tip('sip','Money you invest every month in India. We count it towards your retirement.'),'','','₹')+'<div class="hintline" id="have"></div></div>';
+  if(s===5)body='<div><h1>What are you saving for?</h1><p class="lead">You can skip this and add it later.</p></div><div class="fields"><div class="grid2">'+fld('retireAge','Age you want to retire')+fld('retireSpend','Money you’d need each month'+tip('rs','How much you’d spend each month in India, in today’s prices',true),'','','₹')+'</div><div class="field"><span>Do you want to buy a home in India?</span>'+seg('homeOn',[['false','Not now'],['true','Yes']])+'</div>'+(String(d.homeOn)==='true'?'<div class="grid2">'+fld('homeCost','Price today','','','₹')+fld('homeYear','Buy in year')+'</div>'+fld('homeSaved','Saved for it so far','','','₹'):'')+'</div>';
+  var ok=s!==2||(+d.salary>0&&d.rent!=='');
+  return '<div class="wz">'+top+body+'<div class="foot">'+(s===5?'<button class="btn" data-wz="finish">Skip for now</button>':'')+'<button class="btn go" data-wz="'+(s===5?'finish':'next')+'"'+(ok?'':' disabled')+'>'+(s===5?'See my plan':'Continue')+'</button></div></div>';
+}
+function bindWizard(){
+  var th=document.getElementById('th'),ow=document.getElementById('owe'),hv=document.getElementById('have');
+  function upd(){var d=wz.d,fx=+d.fx||129;
+    if(th){var g=+d.salary;th.textContent=g>0?'≈ '+gbp(takeHome(g,d.pension).month)+' a month in your bank after tax':'';}
+    if(ow){var o=(+d.cardBal||0)+(+d.plBal||0)+(+d.otherLoanBal||0);ow.textContent=o>0?'You owe '+inr(o)+' in total':(+d.emi>0?'Now add how much is left on each loan':'');}
+    if(hv){var h=(+d.savedUK||0)*fx+(+d.invested||0);hv.textContent=h>0?'You have about '+inr(h)+' ('+gbp(h/fx)+')':'';}
+    var b=document.querySelector('[data-wz="next"]');if(b&&wz.step===2)b.disabled=!(+d.salary>0&&d.rent!=='');}
+  document.querySelectorAll('[data-k]').forEach(function(el){el.addEventListener('input',function(){var k=el.dataset.k;wz.d[k]=el.type==='number'?(el.value===''?'':parseFloat(el.value)):el.value;upd();});});
+  upd();
+}
+function wizardAction(a){
+  if(a==='next'){wz.step++;render();var f=document.querySelector('.wz input');if(f)f.focus();return;}
+  if(a==='back'){wz.step=Math.max(1,wz.step-1);render();return;}
+  if(a==='cancel'){wz=null;render();return;}
+  if(a==='finish'){var d=wz.d;d.homeOn=String(d.homeOn)==='true';['age','salary','pension','rent','bills','everyday','indiaOther','fx','emi','cardBal','plBal','otherLoanBal','invested','sip','savedUK','retireAge','retireSpend','homeCost','homeYear','homeSaved'].forEach(function(k){d[k]=d[k]===''?0:+d[k];});if(!d.fx)d.fx=129;if(!d.moved)d.moved=today();delete d.india;delete d.debt;delete d.debtINR;
+    var first=!S.profile;S.profile=d;wz=null;tab='home';lastTab=null;save();render();toast(first?'Your plan is ready':'Setup saved');if(first)setTimeout(confetti,250);}
+}
+
+/* ---------- sheets ---------- */
+function formSheet(title,fields,obj,onSave,extra){
+  openSheet(function(){return {title:title,body:'<div class="fields">'+fields.map(function(f){var v=obj[f.k];
+    return '<label class="field"><span>'+esc(f.label)+'</span>'+(f.options?'<select data-f="'+f.k+'">'+f.options.map(function(o){return '<option value="'+esc(o[0])+'"'+(String(v)===String(o[0])?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>':'<input data-f="'+f.k+'" '+(f.text?'type="'+(f.date?'date':'text')+'"':'type="number" inputmode="decimal" step="any"')+' value="'+esc(v)+'">')+'</label>';}).join('')+'</div><div class="acts"><button class="btn go" data-form="save">Save</button>'+(extra?extra:'')+'</div>'};});
+  formSave=function(){var o={};fields.forEach(function(f){var el=document.querySelector('[data-f="'+f.k+'"]');o[f.k]=f.text||f.options?el.value:(parseFloat(el.value)||0);});onSave(o);save();closeSheet();};
+}
+var formSave=null,formDelete=null;
+var SHEETS={
+  plan:function(i){var x=split()[i];if(!x)return null;return {title:x.title,body:'<div class="mid f">'+gbp(x.amt)+' <span class="small soft" style="font-family:Figtree,sans-serif;font-weight:500">a month, about '+inr(x.amt*(+S.profile.fx||129))+'</span></div><p class="small soft" style="margin:14px 0 2px">Where</p><p>'+esc(x.where)+'</p><p class="small soft" style="margin:6px 0 2px">Why</p><p>'+esc(x.why)+'</p><p class="fine">This is general guidance, not financial advice. For advice on your own situation, talk to a qualified adviser.</p>'};},
+  task:function(id){var t=TASKS.find(function(x){return x.id===id;}),on=!!S.checks[id],dd=dueDate(t);return {title:t.title,body:(dd?'<p class="small soft">Try to finish by '+dLabel(dd)+'</p>':'')+'<p>'+esc(t.text)+'</p>'+(t.link?'<a class="official" href="'+t.link+'" target="_blank" rel="noopener">Read the official guidance</a>':'')+'<div class="acts" style="margin-top:16px"><button class="btn '+(on?'':'go')+'" data-tick="'+id+'" data-close-after>'+(on?'Mark as not done':'Mark as done')+'</button></div>'};},
+  items:function(){var vm=viewMonth||mKey(),C=cats(),it=S.items.filter(function(x){return x.date.slice(0,7)===vm;}).sort(function(a,b){return a.date<b.date?1:-1;});
+    return {title:'Spending in '+mLabel(vm),body:it.length?'<div class="list">'+it.map(function(x){var c=C.find(function(y){return y.k===x.cat;});return '<button class="li" data-item="'+x.id+'"><span class="grow"><b style="display:block;font-weight:600">'+esc(x.note||(c?c.label:'Spending'))+'</b><span class="small soft">'+esc(c?c.label:'')+', '+dLabel(new Date(x.date+'T12:00'))+'</span></span><span class="f" style="font-weight:700">'+gbp2(x.amt)+'</span></button>';}).join('')+'</div><p class="fine">Tap an item to edit or delete it.</p>':'<p class="soft">Nothing logged for '+mLabel(vm)+' yet. Add spending from the Spending tab.</p>'};},
+  settings:function(){var p=S.profile;if(!p)return SHEETS.about();return {title:'Settings',body:'<div class="list">'+[['setup','Edit my setup','Pay, rent, loans and savings'],['fx','Rupee rate','₹'+p.fx+' per £'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['backup','Back up your data','Move your data to another phone or computer'],['about','About Setu','What Setu is, and what it isn’t']].map(function(r){return '<button class="li" data-set="'+r[0]+'"><span class="grow"><b style="display:block;font-weight:600">'+r[1]+'</b><span class="small soft">'+esc(r[2])+'</span></span><span class="chev">›</span></button>';}).join('')+'<button class="li" data-set="reset"><span class="grow"><b style="display:block;font-weight:600;color:var(--rust)">Start over</b><span class="small soft">Delete everything on this device</span></span></button></div>'+(storageOK?'':'<p class="small bad">This browser is blocking storage, so your data will be lost when you close the page.</p>')};},
+  backup:function(){return {title:'Back up your data',body:'<p class="small soft">Copy this text and keep it somewhere safe. On a new phone or computer, paste it here and tap Restore.</p><textarea id="bk" rows="6">'+esc(JSON.stringify(S))+'</textarea><div class="acts" style="margin-top:12px"><button class="btn" data-restore>Restore from text</button></div>'};},
+  about:function(){return {title:'About Setu',body:'<p>Setu helps people who move from India to the UK. It shows how much money you have left each month, gives you a checklist for both countries, and helps you plan for a home and retirement in India.</p><p>It gives general guidance only. It is not financial, tax or immigration advice, and rules can change. Check the official websites, and talk to a qualified adviser before big decisions.</p><p class="small soft">Pay after tax uses 2026/27 tax rates for England, Wales and Northern Ireland. Scotland’s rates are a little different. Everything you enter stays on this device and is never sent anywhere.</p>'};}
+};
+
+/* ---------- events ---------- */
+document.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('button,[data-bg]');if(!t)return;
+  if(t.hasAttribute('data-bg')){if(e.target===t)closeSheet();return;}
+  if(t.hasAttribute('data-close')){closeSheet();return;}
+  var d=t.dataset;
+  if(d.wz){wizardAction(d.wz);return;}
+  if(d.seg){wz.d[d.seg]=d.v;render();return;}
+  if(d.go){var g=d.go.split(':');if(g[0]==='tab'){tab=g[1];render();}else if(g[0]==='plan'){var pi=+g[1],pl=split(),ix=pl.findIndex(function(x){return x.title===(pi===0?'Emergency savings':'Clear the credit card');});if(ix<0)ix=0;openSheet(function(){return SHEETS.plan(ix);});}else if(g[0]==='task'){var tid=g[1];openSheet(function(){return SHEETS.task(tid);});}else if(g[0]==='set'&&g[1]==='setup'){startWizard();}return;}
+  if(d.tab){tab=d.tab;try{sessionStorage.setItem('setu-tab',tab);}catch(err){}render();var m=document.getElementById('main');if(m)m.scrollTop=0;return;}
+  if(d.plan!=null){var i=+d.plan;openSheet(function(){return SHEETS.plan(i);});return;}
+  if(d.phase){phase=d.phase;render();return;}
+  if(d.task){var id=d.task;openSheet(function(){return SHEETS.task(id);});return;}
+  if(d.tick){var k=d.tick;S.checks[k]=!S.checks[k];if(!S.checks[k])delete S.checks[k];save();var t0=TASKS.find(function(x){return x.id===k;});lastTicked=k;buzz();
+    if(S.checks[k]){var phT=TASKS.filter(function(x){return x.ph===t0.ph;});if(doneCount(phT)===phT.length||doneCount(TASKS)===TASKS.length)setTimeout(confetti,120);}
+    if(t.hasAttribute('data-close-after'))sheetFn=null;render();if(S.checks[k])toast(doneCount(TASKS)===TASKS.length?'All done. You’re settled in!':'Done: '+t0.title);return;}
+  if(d.sheet){var n=d.sheet;if(n==='goals'){goalsSheet();return;}openSheet(function(){return SHEETS[n]();});return;}
+  if(d.set){var s=d.set;
+    if(s==='setup'){sheetFn=null;startWizard();return;}
+    if(s==='fx'){formSheet('Rupee rate',[{k:'fx',label:'How many rupees for £1'}],S.profile,function(o){S.profile.fx=o.fx||S.profile.fx;});return;}
+    if(s==='assume'){formSheet('How we do the maths',[{k:'inf',label:'How fast prices rise in India, % a year'},{k:'ret',label:'How fast investments grow, % a year'},{k:'wd',label:'How much of your savings you’d spend each year after retiring, % (3–3.5 is safe)'},{k:'efMonths',label:'How many months of costs to keep as emergency savings'}],S.profile,function(o){Object.assign(S.profile,o);});return;}
+    if(s==='reset'){if(confirm('Delete everything you’ve added to Setu on this device? You can’t undo this.')){try{localStorage.removeItem(KEY);}catch(err){}S={v:1,profile:null,checks:{},items:[],cats:null};sheetFn=null;wz=null;phase=null;startWizard();}return;}
+    openSheet(function(){return SHEETS[s]();});return;}
+  if(d.form==='save'&&formSave){formSave();return;}
+  if(d.form==='delete'&&formDelete){formDelete();save();closeSheet();return;}
+  if(d.cat){addCat=d.cat;var a=document.getElementById('amt').value,nn=document.getElementById('note').value;render();document.getElementById('amt').value=a;document.getElementById('note').value=nn;return;}
+  if(d.month){if(t.disabled)return;viewMonth=d.month;render();return;}
+  if(t.hasAttribute('data-add')){var am=parseFloat(document.getElementById('amt').value);if(!(am>0)){document.getElementById('amt').focus();return;}
+    var vm=viewMonth||mKey(),dt=vm===mKey()?today():vm+'-15';
+    S.items.push({id:uid(),date:dt,cat:addCat,amt:Math.round(am*100)/100,note:document.getElementById('note').value.trim(),created:Date.now()});save();buzz();render();toast('Added '+gbp2(am));return;}
+  if(d.undo){var u=d.undo;S.items=S.items.filter(function(x){return x.id!==u;});save();render();toast('Removed');return;}
+  if(d.catEdit){var c=cats().find(function(x){return x.k===d.catEdit;});formSheet('Budget for '+c.label,[{k:'budget',label:'Budget each month (£)'}],c,function(o){c.budget=o.budget;});return;}
+  if(d.item){var X=S.items.find(function(x){return x.id===d.item;});formDelete=function(){S.items=S.items.filter(function(y){return y!==X;});};
+    formSheet('Edit spending',[{k:'note',label:'What was it?',text:true},{k:'cat',label:'Category',options:cats().map(function(c){return [c.k,c.label];})},{k:'amt',label:'Amount (£)'},{k:'date',label:'Date',text:true,date:true}],X,function(o){if(!/^\d{4}-\d{2}-\d{2}$/.test(o.date))o.date=X.date;Object.assign(X,o);},'<button class="btn warn" data-form="delete">Delete</button>');return;}
+  if(t.hasAttribute('data-restore')){try{var o=JSON.parse(document.getElementById('bk').value);if(!o||o.v!==1||!o.profile)throw 0;S=o;save();sheetFn=null;wz=null;render();toast('Data restored');}catch(err){alert('That text isn’t a Setu backup. Copy the whole backup text and try again.');}return;}
+});
+function goalsSheet(){
+  var p=S.profile;
+  formSheet('Your goals',[{k:'retireAge',label:'Age you want to retire in India (0 to skip)'},{k:'retireSpend',label:'Money you’d need each month in India, in today’s ₹'},{k:'invested',label:'Invested for retirement so far (₹)'},{k:'homeOn',label:'Do you want to buy a home in India?',options:[['false','Not now'],['true','Yes']]},{k:'homeCost',label:'Home price today (₹)'},{k:'homeYear',label:'Buy in year'},{k:'homeSaved',label:'Saved for the home so far (₹)'}],Object.assign({},p,{homeOn:String(!!p.homeOn)}),function(o){o.homeOn=o.homeOn==='true';Object.assign(S.profile,o);});
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&sheetFn){closeSheet();return;}
+  if(e.key==='Enter'&&e.target&&(e.target.id==='amt'||e.target.id==='note')){e.preventDefault();var b=document.querySelector('[data-add]');if(b)b.click();}
+});
+render();
+})();
+</script>
+</body>
+</html>

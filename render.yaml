@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: setu
+    runtime: static
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
