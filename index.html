@@ -251,6 +251,14 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .fbot{margin-top:8px}.rdots{display:inline-flex;gap:3px;vertical-align:-1px;margin-left:4px}.rdots i{width:8px;height:8px;border-radius:50%;background:var(--rule)}.rdots i.on{background:var(--rani)}
 .chosen{font-weight:800;color:var(--indigo);font-size:13.5px}
 .btn.sm{padding:8px 16px;font-size:13px}
+.moneyin{display:flex;justify-content:space-between;gap:10px;width:100%;border:0;border-top:1px solid var(--rule);background:none;margin-top:10px;padding:9px 0 0;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.moneyin>span{display:flex;flex-direction:column;min-width:0}.moneyin .r{text-align:right;align-items:flex-end}
+.moneyin b{font-size:19px;font-weight:800;line-height:1.2}.moneyin .small{font-size:11.5px}.addlink{color:var(--indigo);font-weight:800}
+@media (max-height:680px){.moneyin{margin-top:6px;padding-top:6px}.moneyin b{font-size:16px}.moneyin .r>.small:last-child{display:none}}
+.seeall{margin-left:6px;font-size:12.5px;padding:2px 0}
+@media (max-height:800px){.v-spend .ring{width:64px;height:64px}.v-spend .ring b{font-size:15px}.v-spend .mid{font-size:24px}.v-spend .mhead{margin:-8px -8px -4px}.moneyin{margin-top:8px;padding-top:7px}.moneyin b{font-size:17px}.v-spend .tile{padding:7px 10px 6px}.v-spend .tiles{gap:5px}.v-spend .chips{margin-bottom:8px}.v-spend .undo{margin-top:6px}}
+@media (max-height:720px){.moneyin .small:last-child{display:none}.v-spend .leftchip{margin-top:3px;padding:2px 8px}.v-spend .card{padding:9px 13px}.v-spend .inrow input{padding:9px 11px}.v-spend .inrow .btn{padding:9px 14px!important}.v-spend{gap:7px!important}.v-spend .bar{margin:4px 0 0}}
+@media (max-height:640px){.moneyin .small:first-child{display:none}.v-spend .mhead{display:none}.v-spend .undo{display:none}}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -424,11 +432,12 @@ function takeHome(g,penPct){penPct=penPctOf(penPct);
 }
 
 /* ---------- money model ---------- */
+function moneyIn(k){var x=(S.months||{})[k]||{};return {salary:+x.salary||0,carry:+x.carry||0};}
 function month(){
-  var p=S.profile,th=takeHome(p.salary,p.pension),india=indiaMonthly(p)/(+p.fx||129);
+  var p=S.profile,th=takeHome(p.salary,p.pension),mi=moneyIn(mKey());if(mi.salary>0)th=Object.assign({},th,{month:mi.salary,actual:true});var india=indiaMonthly(p)/(+p.fx||129);
   var parts=[['Rent',+p.rent||0,'--s-rent'],['Bills',+p.bills||0,'--s-bills'],['Personal',+p.everyday||0,'--s-day'],['India',india,'--s-india']];
   var left=th.month-sum(parts.map(function(x){return x[1];}));
-  return {th:th,india:india,parts:parts,left:left,ukCosts:(+p.rent||0)+(+p.bills||0)+(+p.everyday||0)};
+  return {carry:mi.carry,th:th,india:india,parts:parts,left:left,ukCosts:(+p.rent||0)+(+p.bills||0)+(+p.everyday||0)};
 }
 function homeCalc(){
   var p=S.profile,yrs=Math.max(0,(+p.homeYear||0)-new Date().getFullYear());
@@ -437,7 +446,7 @@ function homeCalc(){
   return {yrs:yrs,cost:cost,fv:fv,need:need};
 }
 function split(){
-  var p=S.profile,m=month(),fx=+p.fx||129,L=Math.max(0,m.left),out=[];
+  var p=S.profile,m=month(),fx=+p.fx||129,L=Math.max(0,m.left+(m.carry||0)),out=[];
   function add(a,title,where,why,col){a=Math.max(0,Math.min(L,Math.round(a)));if(a<5)return;out.push({amt:a,title:title,where:where,why:why,col:col});L-=a;}
   var efT=m.ukCosts*(+p.efMonths||4),have=+p.savedUK||0,gap=Math.max(0,efT-have);
   if(gap>0)add(Math.min(gap,L*(have<m.ukCosts?0.6:0.4)),'Emergency savings','A UK savings account you can take money out of any time','Your goal is '+gbp(efT)+', which covers '+(p.efMonths||4)+' months of UK costs. You have '+gbp(have)+' so far. On a work visa, losing your job can be stressful, so this safety net comes first.','var(--uk)');
@@ -604,12 +613,12 @@ function nudges(){
 /* ---------- Home ---------- */
 function vHome(){
   var p=S.profile,m=month(),plan=split(),take=m.th.month||1,fx=fxNow();function rs(g){return inr(Math.max(0,g)*fx);}
-  var h='<section class="hero">'+ILL.jar+'<div class="lbl">Left to save each month</div><div class="bigrow"><div class="big f" data-count="'+Math.round(m.left)+'" data-key="left">'+gbp(m.left)+'</div><div class="inr f">≈ '+rs(m.left)+'</div></div><div class="sub">from your '+gbp(m.th.month)+' (≈ '+rs(m.th.month)+') monthly pay, after all costs</div>'+
+  var h='<section class="hero">'+ILL.jar+'<div class="lbl">'+(m.carry>0||m.th.actual?'Left to save this month':'Left to save each month')+'</div><div class="bigrow"><div class="big f" data-count="'+Math.round(m.left)+'" data-key="left">'+gbp(m.left)+'</div><div class="inr f">≈ '+rs(m.left)+'</div></div><div class="sub">from your '+gbp(m.th.month)+' (≈ '+rs(m.th.month)+') '+(m.th.actual?'salary this month':'monthly pay')+', after all costs'+(m.carry>0?', plus '+gbp(m.carry)+' from last month':'')+'</div>'+
     '<div class="flow">'+m.parts.concat([['Left',Math.max(0,m.left),'--s-left']]).map(function(x){return '<div data-w="'+pct(x[1],take).toFixed(1)+'" style="width:'+pct(x[1],take).toFixed(1)+'%;background:var('+x[2]+')"></div>';}).join('')+'</div>'+
     '<div class="key">'+m.parts.concat([['Left',m.left,'--s-left']]).map(function(x){return '<span style="--c:var('+x[2]+')">'+x[0]+'<b>'+gbp(x[1])+'</b><small>'+rs(x[1])+'</small></span>';}).join('')+'</div></section>';
   var N=nudges();
   if(N.length)h+='<div class="nudges" role="list" aria-label="Tips for you">'+N.map(function(n){return '<button class="nudge" role="listitem" data-go="'+n.go+'" style="--tint:var(--t-'+n.tone+');--tone:var(--'+n.tone+')"><span class="ic">'+gl(n.ic)+'</span><span class="grow"><b>'+esc(n.t)+'</b><span>'+esc(n.x)+'</span><em>'+esc(n.cta)+'</em></span></button>';}).join('')+'</div>';
-  h+='<section class="card plan"><h3 class="ph3">What to do with your '+gbp(Math.max(0,m.left))+' <span class="soft small" style="font-family:Figtree,sans-serif;font-weight:600">(≈ '+rs(m.left)+')</span></h3>';
+  h+='<section class="card plan"><h3 class="ph3">What to do with your '+gbp(Math.max(0,m.left+(m.carry||0)))+' <span class="soft small" style="font-family:Figtree,sans-serif;font-weight:600">(≈ '+rs(m.left+(m.carry||0))+')</span></h3>';
   if(m.left<=0)h+='<p class="soft" style="margin:4px 0">You’re spending more than you earn. Check your rent and India payments in Settings.</p>';
   var rows=[],dg=null;plan.forEach(function(x,i){var debt=x.title==='Clear the credit card'||x.title==='Pay down personal loans';if(debt){if(!dg){dg={title:'Pay off expensive debt',where:'Credit card first, then personal loans',amt:0,col:'var(--rust)',key:'debt',n:0};rows.push(dg);}dg.amt+=x.amt;dg.n++;dg.first=dg.first==null?i:dg.first;}else rows.push(Object.assign({key:i},x));});
   if(dg&&dg.n===1){var only=plan[dg.first];Object.assign(dg,only,{key:dg.first});}
@@ -640,12 +649,18 @@ function cats(){if(!S.cats){var e=+S.profile.everyday||600;S.cats=[['groceries',
 function shiftMonth(k,d){var p=k.split('-');return mKey(new Date(+p[0],+p[1]-1+d,1));}
 function lastAdded(){var b=null;S.items.forEach(function(x){if(x.created&&Date.now()-x.created<864e5&&(!b||x.created>b.created))b=x;});return b;}
 function cc(k){return CATC[k]||['var(--teal)','dots'];}
+function moneyInRow(vm,spent){
+  var p=S.profile,mi=moneyIn(vm),exp=takeHome(p.salary,p.pension).month,sal=mi.salary||exp,inAmt=sal+mi.carry;
+  var costs=(+p.rent||0)+(+p.bills||0)+indiaMonthly(p)/(+p.fx||129),cash=inAmt-costs-spent;
+  return '<div class="moneyin" role="button" tabindex="0" data-monthin="'+vm+'"><span><span class="small soft">Money in</span><b class="f">'+gbp(inAmt)+'</b><span class="small '+(mi.salary?'soft':'addlink')+'">'+(mi.salary?'Salary'+(mi.carry?' + '+gbp(mi.carry)+' carried':''):'+ Add salary & last month')+'</span></span>'+
+    '<span class="r"><span class="small soft">Cash left now'+tip('cl','Money in, minus rent, bills, India payments and what you’ve spent this month.',true)+'</span><b class="f '+(cash<0?'bad':'')+'">'+gbp(cash)+'</b><span class="small soft">after all costs so far</span></span></div>';
+}
 function vSpend(){
   var C=cats(),cur=mKey(),vm=viewMonth||cur,items=S.items.filter(function(x){return x.date.slice(0,7)===vm;}),tot=sum(items.map(function(x){return x.amt;})),bud=sum(C.map(function(c){return c.budget;})),left=bud-tot,used=pct(tot,bud);
   var R=38,L=2*Math.PI*R,off=(L*(1-used/100)).toFixed(1);
   var h='<section class="card"><div class="mhead"><button class="navb" data-month="'+shiftMonth(vm,-1)+'" aria-label="Previous month">‹</button><div class="small soft" style="font-weight:700">'+mLabel(vm)+'</div><button class="navb" data-month="'+shiftMonth(vm,1)+'" aria-label="Next month"'+(vm>=cur?' disabled':'')+'>›</button></div>'+
     '<div class="ringrow"><div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="'+R+'" stroke="var(--rule)"/><circle class="rv" cx="50" cy="50" r="'+R+'" stroke="'+(left<0?'var(--coral)':'var(--indigo)')+'" stroke-linecap="round" stroke-dasharray="'+L.toFixed(1)+'" data-len="'+L.toFixed(1)+'" data-off="'+off+'" style="stroke-dashoffset:'+off+'"/></svg><b data-count="'+Math.round(used)+'" data-fmt="pct" data-key="ring'+vm+'">'+Math.round(used)+'%</b></div>'+
-    '<div><div class="small soft">Spent so far</div><div class="mid" data-count="'+Math.round(tot)+'" data-key="spent'+vm+'">'+gbp(tot)+'</div><span class="leftchip'+(left<0?' over':'')+'">'+(left<0?gbp(-left)+' over budget':gbp(left)+' left to spend')+'</span></div></div></section>';
+    '<div><div class="small soft">Spent so far</div><div class="mid" data-count="'+Math.round(tot)+'" data-key="spent'+vm+'">'+gbp(tot)+'</div><span class="leftchip'+(left<0?' over':'')+'">'+(left<0?gbp(-left)+' over budget':gbp(left)+' left to spend')+'</span> <button class="link seeall" data-sheet="items">See all ('+items.length+') ›</button></div></div>'+moneyInRow(vm,tot)+'</section>';
   h+='<section class="card"><div class="chips">'+C.map(function(c){var k=cc(c.k);return '<button class="chip" data-cat="'+c.k+'" aria-pressed="'+(addCat===c.k)+'" style="--cc:'+k[0]+'"><i>'+gl(k[1])+'</i>'+esc(c.label)+'</button>';}).join('')+'</div>'+
     '<div class="inrow"><input id="amt" class="a" type="number" inputmode="decimal" step="any" placeholder="£ 0.00" aria-label="Amount in pounds"><input id="note" placeholder="What was it?" aria-label="What was it"><button class="btn go" data-add style="padding:12px 18px">Add</button></div>';
   var la=lastAdded();if(la){var lc=C.find(function(c){return c.k===la.cat;});h+='<div class="undo"><span>Added '+esc(la.note||(lc?lc.label:'spending'))+' '+gbp2(la.amt)+'</span><button class="link bad" data-undo="'+la.id+'">Undo</button></div>';}
@@ -653,7 +668,7 @@ function vSpend(){
   C.forEach(function(c){var v=sum(items.filter(function(x){return x.cat===c.k;}).map(function(x){return x.amt;})),pcc=c.budget?v/c.budget*100:(v?100:0),k=cc(c.k);
     h+='<button class="tile" data-cat-edit="'+c.k+'" style="--cc:'+k[0]+'"><div class="row-b"><span><i>'+gl(k[1])+'</i>'+esc(c.label)+'</span><span class="v"><b>'+gbp(v)+'</b>/'+gbp(c.budget)+'</span></div><div class="bar'+(pcc>100?' over':'')+'"><div data-w="'+Math.min(100,pcc).toFixed(1)+'" style="width:'+Math.min(100,pcc).toFixed(1)+'%"></div></div></button>';});
   if(!items.length)h+='<div class="emptyline">'+ILL.bag+'<span>Nothing added yet. Add what you spend above. Tap a category to change its budget.</span></div>';
-  h+='</section><div class="acts"><button class="btn" data-sheet="items">All spending this month ('+items.length+')</button></div>';
+  h+='</section>';
   return h;
 }
 
@@ -788,12 +803,14 @@ var SHEETS={
 
 /* ---------- events ---------- */
 document.addEventListener('click',function(e){
-  var t=e.target.closest&&e.target.closest('button,[data-bg]');if(!t)return;
+  var t=e.target.closest&&e.target.closest('button,[data-bg],[data-monthin]');if(!t)return;
   if(t.hasAttribute('data-bg')){if(e.target===t)closeSheet();return;}
   if(t.hasAttribute('data-close')){closeSheet();return;}
   var d=t.dataset;
   if(d.funds){var g0=d.funds;openSheet(function(){return sheetFunds(g0);});return;}
   if(d.choose){var cc2=d.choose.split(':'),F0=FUNDS[cc2[1]];if(cc2[0]==='retire'){S.profile.retFund=cc2[1];S.profile.ret=F0.plan;}else{S.profile.homeFund=cc2[1];S.profile.homeRet=F0.plan;}save();buzz();sheetFn=null;render();toast('Plan updated for '+F0.name);return;}
+  if(d.monthin){var mk=d.monthin;S.months=S.months||{};var cur0=S.months[mk]||{},exp0=takeHome(S.profile.salary,S.profile.pension).month;
+    formSheet('Money in, '+mLabel(mk),[{k:'salary',label:'Salary credited this month (£). Leave empty to use your usual '+gbp(exp0)},{k:'carry',label:'Funds from previous month (£)'}],{salary:cur0.salary||'',carry:cur0.carry||''},function(o){S.months[mk]={salary:o.salary||0,carry:o.carry||0};});return;}
   if(d.wz){wizardAction(d.wz);return;}
   if(d.debt){var key=d.debt,meta=DEBTS.find(function(x){return x[0]===key;}),obj=wz.d.debts[key];
     var F=key==='card'?[{k:'bal',label:'How much you still owe on your cards (₹)'},{k:'emi',label:'How much you pay each month (₹)'}]:[{k:'bal',label:'How much is left to pay (₹)'},{k:'emi',label:'Monthly EMI (₹)'}];
@@ -834,6 +851,7 @@ function goalsSheet(){
 }
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&sheetFn){closeSheet();return;}
+  if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.dataset&&e.target.dataset.monthin){e.preventDefault();e.target.click();return;}
   if(e.key==='Enter'&&e.target&&(e.target.id==='amt'||e.target.id==='note')){e.preventDefault();var b=document.querySelector('[data-add]');if(b)b.click();}
 });
 render();
