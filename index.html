@@ -349,6 +349,8 @@ main :focus-visible{scroll-margin:80px}
 .flag{font-style:normal;font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px;margin-right:6px}.flag.uk{background:var(--t-indigo);color:var(--indigo)}.flag.in{background:var(--t-marigold);color:#A0650A}
 .nsub .flag{margin-right:0}.nempty{margin:6px 0}.nempty a{color:var(--indigo);font-weight:700}
 @media (hover:hover){.nlist a:hover b{color:var(--indigo);text-decoration:underline}}
+.nlist.sk li{padding:10px 2px;display:flex;flex-direction:column;gap:6px}.nlist.sk i{display:block;height:11px;border-radius:6px;background:var(--rule)}.nlist.sk i.s{width:55%;height:9px}
+@media (prefers-reduced-motion:no-preference){.nlist.sk i{background:linear-gradient(90deg,var(--rule) 25%,var(--bg) 50%,var(--rule) 75%);background-size:200% 100%;animation:shimmer 1.2s linear infinite}@keyframes shimmer{to{background-position:-200% 0}}}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -949,12 +951,13 @@ var NTOPIC={
  mf:{label:'Mutual funds',q:['"mutual fund" India SIP'],k:['mutual fund','sip','amfi']}};
 function newsTopics(){var p=S.profile||{},ids=[];[p.retFund,p.homeFund].forEach(function(x){if(x&&NTOPIC[x]&&ids.indexOf(x)<0)ids.push(x);});
   if(!ids.length&&((+p.sip||0)>0||(+p.invested||0)>0))ids.push('mf');if(!ids.length)ids.push('n50');ids.push('fx');return ids;}
-S.news=S.news||{};var newsBusy=false,newsFail={},newsTriedAt=0,newsFileTried=false,newsFileFailed=false;
+S.news=S.news||{};var newsPrefetched=false,newsBusy=false,newsFail={},newsTriedAt=0,newsFileTried=false,newsFileFailed=false;
 function gdeltURL(terms,extra,span,n){return 'https://api.gdeltproject.org/api/v2/doc/doc?query='+encodeURIComponent('('+terms.join(' OR ')+') sourcelang:english'+(extra?' '+extra:''))+'&mode=artlist&maxrecords='+(n||20)+'&sort=datedesc&timespan='+(span||'3d')+'&format=json';}
-function getJSON(url){return fetch(url,{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.text();}).then(function(t){return JSON.parse(t);});}
+function fetchT(url,ms,opt){var c=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(c)c.abort();},ms||8000);return fetch(url,Object.assign({signal:c?c.signal:undefined},opt||{})).then(function(r){clearTimeout(tm);return r;},function(e){clearTimeout(tm);throw e;});}
+function getJSON(url,ms){return fetchT(url,ms||9000,{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.text();}).then(function(t){return JSON.parse(t);});}
 function cleanArts(j){var seen={};return ((j&&j.articles)||[]).filter(function(a){var k=(a.title||'').toLowerCase().slice(0,60);if(!a.title||seen[k])return false;seen[k]=1;return true;}).map(function(a){return {t:a.title.replace(/\s+/g,' ').trim(),u:a.url,d:a.domain||'',at:a.seendate||''};});}
 var newsRaw=null;
-function loadNewsFile(){return fetch('news.json?h='+Math.floor(Date.now()/36e5),{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.json();}).then(function(j){if(!j||!j.topics)throw 0;newsRaw=j;deriveNews(j);return true;});}
+function loadNewsFile(){return fetchT('news.json?h='+Math.floor(Date.now()/36e5),4000).then(function(r){if(!r.ok)throw r.status;return r.json();}).then(function(j){if(!j||!j.topics)throw 0;newsRaw=j;deriveNews(j);return true;});}
 function deriveNews(j){var ids=newsTopics(),seen={},inv=[];
     ids.forEach(function(id){(j.topics[id]||[]).forEach(function(a){var k=(a.t||'').toLowerCase().slice(0,60);if(!a.t||seen[k])return;seen[k]=1;inv.push({t:a.t,u:a.u,d:a.d||'',at:a.at||'',tag:NTOPIC[id].label});});});
     inv.sort(function(a,b){return a.at<b.at?1:-1;});
@@ -971,7 +974,7 @@ function loadNews(force){
   var pUK=getJSON(uk).then(function(j){out.uk=(j.results||[]).filter(function(r){return r.title&&r.link;}).slice(0,6).map(function(r){return {t:r.title,u:'https://www.gov.uk'+r.link,at:r.public_timestamp||'',d:(r.content_store_document_type||'').replace(/_/g,' ')};});}).catch(function(){newsFail.uk=1;});
   var pInv=getJSON(gdeltURL(terms,'','3d',25)).then(function(j){out.inv=cleanArts(j);}).catch(function(){newsFail.inv=1;});
   // GDELT allows one request every 5 seconds from each visitor, so the India tax query waits its turn.
-  var pIn=pInv.then(function(){return new Promise(function(res){setTimeout(res,6000);});}).then(function(){return getJSON(gdeltURL(['CBDT','"income tax"','"Income-tax Act"','RBI','SEBI'],'NRI sourcecountry:india','14d',10));}).then(function(j){out.india=cleanArts(j);}).catch(function(){newsFail.india=1;});
+  var pIn=new Promise(function(res){setTimeout(res,5500);}).then(function(){return getJSON(gdeltURL(['CBDT','"income tax"','"Income-tax Act"','RBI','SEBI'],'NRI sourcecountry:india','14d',10));}).then(function(j){out.india=cleanArts(j);}).catch(function(){newsFail.india=1;});
   pUK.then(function(){if(out.uk){S.news=Object.assign({},S.news,{uk:out.uk,ukAt:Date.now()});refreshRail();}});
   pInv.then(function(){if(out.inv){S.news=Object.assign({},S.news,{inv:out.inv,at:out.at,key:out.key});save();}refreshRail();});
   Promise.all([pUK,pInv,pIn]).then(function(){if(out.india)S.news=Object.assign({},S.news,{india:out.india});if(!newsFail.inv)S.news.at=out.at;save();newsBusy=false;refreshRail();});
@@ -992,7 +995,8 @@ function newsItem(a,tag){return '<li><a href="'+esc(a.u)+'" target="_blank" rel=
 function newsBody(){
   loadNews(false);var N=S.news||{},ids=newsTopics();
   var h='<section class="card rc ncard"><div class="row-b"><h3>Your investments</h3><button class="link small" data-newsrefresh aria-label="Refresh news">↻</button></div><div class="ntopics">'+ids.map(function(i){return '<a class="chip nchip" href="'+gnews(NTOPIC[i].q[0].replace(/"/g,''))+'" target="_blank" rel="noopener noreferrer">'+esc(NTOPIC[i].label)+' ↗</a>';}).join('')+'</div>';
-  if(N.inv&&N.inv.length)h+='<ul class="nlist">'+N.inv.slice(0,12).map(function(a){return newsItem(a,a.tag||tagOf(a.t,ids));}).join('')+'</ul>';
+  if(!(N.inv&&N.inv.length)&&newsBusy)h+='<ul class="nlist sk" aria-hidden="true">'+[1,2,3,4,5].map(function(){return '<li><i></i><i class="s"></i></li>';}).join('')+'</ul><p class="small soft" style="margin:4px 0">Loading the latest headlines…</p>';
+  else if(N.inv&&N.inv.length)h+='<ul class="nlist">'+N.inv.slice(0,12).map(function(a){return newsItem(a,a.tag||tagOf(a.t,ids));}).join('')+'</ul>';
   else h+='<p class="small soft nempty">'+(newsFail.inv?'Live headlines aren’t available right now. Tap a topic above to read the latest news.':newsBusy?'Loading the latest headlines…':'Live headlines appear on your hosted site. Tap a topic above for the latest news.')+'</p>';
   h+='<p class="rfoot">'+(N.src==='file'?'Headlines from Google News, refreshed every 3 hours'+(N.gen?' (last '+agoGd(N.gen)+')':'')+'.':'Headlines from GDELT, a free global news index.')+' Setu doesn’t check or endorse them.</p></section>';
   h+='<section class="card rc ncard"><div class="row-b"><h3>Tax and policy</h3><span class="small soft">UK and India</span></div><div class="nlistwrap">';
@@ -1006,7 +1010,7 @@ function newsBody(){
   return h+'</div><p class="rfoot">General information, not tax advice. Key changes checked 27 Sept 2026.</p></section>';
 }
 function refreshRail(){var r=document.getElementById('rail');if(r&&isWide()){r.innerHTML=railBody();fitRail();}}
-function loadRail(){if(!isWide())return;RAILF.forEach(function(r){var m=S.mf[r[0]];if(m&&!m.fail&&m.d1===undefined){delete S.mf[r[0]];mfTried[r[0]]=false;}loadFund(r[0]);});fetchFxMulti();}
+function loadRail(){if(!isWide())return;if(!newsPrefetched&&S.profile){newsPrefetched=true;setTimeout(function(){loadNews(false);},300);}RAILF.forEach(function(r){var m=S.mf[r[0]];if(m&&!m.fail&&m.d1===undefined){delete S.mf[r[0]];mfTried[r[0]]=false;}loadFund(r[0]);});fetchFxMulti();}
 window.addEventListener('resize',function(){if(isWide()&&S.profile&&!wz){var r=document.getElementById('rail');if(r&&!r.innerHTML)r.innerHTML=railBody();loadRail();}});
 
 /* ---------- Wizard ---------- */
