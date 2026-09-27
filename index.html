@@ -349,7 +349,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
   .sfoot{margin-top:auto}.sfoot p{font-size:12px;color:var(--soft);margin:10px 14px 0;line-height:1.5}
   .col{max-width:none;margin:0}
   .mhd,.tabbar{display:none}
-  main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-content:start;padding:24px 40px;max-width:1100px;width:100%}
+  main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-content:start;grid-auto-rows:max-content;padding:24px 40px;max-width:1100px;width:100%}
   main>*{grid-column:1/-1;min-height:max-content}
   .phd{display:block}.phd h1{font-size:34px}.phd p{margin:4px 0 0;color:var(--soft)}
   .v-home .hero{padding:20px 26px 18px}.v-home .hero .big{font-size:58px}.v-home .hero .jar{width:110px;height:110px;right:26px;top:10px}
@@ -365,6 +365,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
   .wzcard .wz{min-height:580px}
   .toast{bottom:32px}
 }
+@media (min-width:880px) and (max-height:800px){main{padding-top:16px!important;gap:12px!important}.phd h1{font-size:26px!important}.phd p{margin-top:2px}.v-home .hero{padding:14px 22px 12px!important}.v-home .hero .big{font-size:46px!important}.v-home .hero .jar{width:84px!important;height:84px!important}.flow{margin:10px 0 7px}.nudge{padding:10px 12px;min-height:0}.nudge em{display:none}.v-home .step{padding:6px 0!important}}
 @media (min-width:880px) and (max-height:860px){.v-home .sd,.v-home .fine{display:none}.v-home .step{padding:8px 0}.phd h1{font-size:30px}}
 @media (min-width:640px){.sheet-bg{align-items:center}.sheet{border-radius:28px}}
 .glance{align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer}
