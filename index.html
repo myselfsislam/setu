@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.frankfurter.dev https://open.er-api.com https://api.mfapi.in https://api.gdeltproject.org https://www.gov.uk; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Setu: your money bridge from India to the UK</title>
 <meta name="description" content="A free, private money planner for Indians moving to the UK: monthly budget, first-90-days checklist, and goals back home.">
 <meta name="theme-color" content="#4B3BE0">
@@ -25,20 +27,22 @@
 <meta name="twitter:title" content="Setu: your money bridge from India to the UK">
 <meta name="twitter:description" content="Free and private money planner for Indians moving to the UK.">
 <meta name="twitter:image" content="https://myselfsislam.github.io/setu/og.png">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+@font-face{font-family:Figtree;src:url(fonts/figtree.woff2) format('woff2');font-weight:400 800;font-style:normal;font-display:swap}
+@font-face{font-family:'Bricolage Grotesque';src:url(fonts/bricolage.woff2) format('woff2');font-weight:600 800;font-style:normal;font-display:swap}
 :root{
-  --bg:#F4F2FB;--card:#FFFFFF;--ink:#1A1446;--soft:#6D6992;--rule:#E8E4F4;
+  --bg:#F4F2FB;--card:#FFFFFF;--ink:#1A1446;--soft:#625E88;--rule:#E8E4F4;
   --indigo:#4B3BE0;--indigo-2:#3A2CC0;--marigold:#FFB020;--rani:#EE3F86;--teal:#12B5A6;--mint:#1FB98F;--coral:#F2553F;
   --t-indigo:#ECE9FF;--t-rani:#FFE5EF;--t-marigold:#FFF0D2;--t-mint:#DBF6EC;--t-teal:#D9F4F1;
-  --india:var(--marigold);--uk:var(--indigo);--sage:var(--mint);--rust:var(--coral);
+  --india:var(--marigold);--uk:var(--indigo);--sage:var(--mint);--rust:#C73A26;
   --hero:var(--indigo);--hero-ink:#FFFFFF;--hero-soft:#D8D3FF;
   --s-rent:#FF7FB0;--s-bills:#FFD580;--s-day:#7FE3D8;--s-india:#FFB020;--s-left:#FFFFFF;
   --mist:var(--bg);
   box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#7C6DFF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3A2E14;--t-mint:#143A31;--t-teal:#12363A;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#7C6DFF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3A2E14;--t-mint:#143A31;--t-teal:#12363A;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#9184FF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3A2E14;--t-mint:#143A31;--t-teal:#12363A;--rust:#FF8A76;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#9184FF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3A2E14;--t-mint:#143A31;--t-teal:#12363A;--rust:#FF8A76;color-scheme:dark}
 *,*::before,*::after{box-sizing:inherit}
 html{height:100%;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
 body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:400 15px/1.45 Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
@@ -222,7 +226,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .private{font-size:13px;color:var(--soft);margin:0}
 
 .tip{position:relative;display:inline-flex;vertical-align:1px;margin-left:5px}
-.tipb{width:17px;height:17px;border-radius:50%;border:0;padding:0;background:var(--t-indigo);color:var(--indigo);font:800 11px/17px Figtree,system-ui,sans-serif;font-style:italic;cursor:help}
+.tipb{width:24px;height:24px;margin:-4px -3px;border-radius:50%;border:0;padding:0;background:radial-gradient(circle,var(--t-indigo) 0 8.5px,transparent 9px);color:var(--indigo);font:800 11px/24px Figtree,system-ui,sans-serif;font-style:italic;cursor:help}
 .tipt{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);background:var(--ink);color:var(--card);font-size:12.5px;font-weight:600;line-height:1.35;padding:8px 11px;border-radius:11px;width:max-content;max-width:210px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,transform .15s ease,visibility .15s;z-index:10;box-shadow:0 8px 20px -10px rgba(20,12,60,.6)}
 .tipt::after{content:"";position:absolute;top:100%;left:50%;margin-left:-5px;border:5px solid transparent;border-top-color:var(--ink)}
 .tip.r .tipt{left:auto;right:-8px;transform:translateY(4px)}.tip.r .tipt::after{left:auto;right:12px}
@@ -270,8 +274,9 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .fbot{margin-top:8px}.rdots{display:inline-flex;gap:3px;vertical-align:-1px;margin-left:4px}.rdots i{width:8px;height:8px;border-radius:50%;background:var(--rule)}.rdots i.on{background:var(--rani)}
 .chosen{font-weight:800;color:var(--indigo);font-size:13.5px}
 .btn.sm{padding:8px 16px;font-size:13px}
-.moneyin{display:flex;justify-content:space-between;gap:10px;width:100%;border:0;border-top:1px solid var(--rule);background:none;margin-top:10px;padding:9px 0 0;text-align:left;cursor:pointer;font:inherit;color:inherit}
-.moneyin>span{display:flex;flex-direction:column;min-width:0}.moneyin .r{text-align:right;align-items:flex-end}
+.moneyin{display:flex;justify-content:space-between;gap:10px;width:100%;border-top:1px solid var(--rule);margin-top:10px;padding:9px 0 0}
+.mileft{border:0;background:none;padding:0;margin:0;text-align:left;cursor:pointer;font:inherit;color:inherit;min-width:0}.milwrap{display:flex;flex-direction:column;min-width:0}
+.moneyin>span,.moneyin .milwrap{display:flex;flex-direction:column;min-width:0}.moneyin .milwrap>*{display:block}.moneyin .r{text-align:right;align-items:flex-end}
 .moneyin b{font-size:19px;font-weight:800;line-height:1.2}.moneyin .small{font-size:11.5px}.addlink{color:var(--indigo);font-weight:800}
 @media (max-height:680px){.moneyin{margin-top:6px;padding-top:6px}.moneyin b{font-size:16px}.moneyin .r>.small:last-child{display:none}}
 .seeall{margin-left:6px;font-size:12.5px;padding:2px 0}
@@ -351,6 +356,18 @@ main :focus-visible{scroll-margin:80px}
 @media (hover:hover){.nlist a:hover b{color:var(--indigo);text-decoration:underline}}
 .nlist.sk li{padding:10px 2px;display:flex;flex-direction:column;gap:6px}.nlist.sk i{display:block;height:11px;border-radius:6px;background:var(--rule)}.nlist.sk i.s{width:55%;height:9px}
 @media (prefers-reduced-motion:no-preference){.nlist.sk i{background:linear-gradient(90deg,var(--rule) 25%,var(--bg) 50%,var(--rule) 75%);background-size:200% 100%;animation:shimmer 1.2s linear infinite}@keyframes shimmer{to{background-position:-200% 0}}}
+.bdot{width:12px;height:12px;border-radius:4px;display:inline-block}
+:root:not([data-theme="light"]){--btn:var(--indigo)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--btn:#5A4BE6}
+  :root:not([data-theme="light"]) .leftchip,:root:not([data-theme="light"]) .hintline,:root:not([data-theme="light"]) .fit.ok{color:#6FE3BF}
+  :root:not([data-theme="light"]) .leftchip.over,:root:not([data-theme="light"]) .hintline.owe,:root:not([data-theme="light"]) .fit.no,:root:not([data-theme="light"]) .tfgrid .lost b{color:#FF8FB8}
+  :root:not([data-theme="light"]) .tag.in,:root:not([data-theme="light"]) .flag.in{color:#FFC766}
+  :root:not([data-theme="light"]) .tag.both{color:#6FE3D8}
+  :root:not([data-theme="light"]) .nudge em{color:var(--ink);text-decoration:underline;text-underline-offset:2px}}
+.btn.go{background:var(--btn,var(--indigo));border-color:var(--btn,var(--indigo))}
+.tag.in,.flag.in{color:#8A5200}.live{color:#096B51}.nudge em{color:var(--ink)!important;text-decoration:underline;text-underline-offset:2px}.nudge .grow>span{color:#4F4A75}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .live{color:#6FE3BF}:root:not([data-theme="light"]) .nudge .grow>span{color:var(--soft)}:root:not([data-theme="light"]) .tag.in,:root:not([data-theme="light"]) .flag.in{color:#FFC766}}
+.plist{margin:0 0 10px;padding-left:18px;font-size:13px;display:flex;flex-direction:column;gap:4px}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -755,7 +772,7 @@ function vCheck(){
   if(!phase){var f=PHASES.find(function(P){return TASKS.some(function(t){return t.ph===P.k&&!S.checks[t.id];});});phase=(f||PHASES[0]).k;}
   var done=doneCount(TASKS),nt=nextTask(),pc=Math.round(done/TASKS.length*100);
   var h='<section class="card journey">'+bridgeSVG(done/TASKS.length,true)+'<div><div class="big2 f"><span data-count="'+pc+'" data-fmt="pct" data-key="jr">'+pc+'%</span><small> of the way</small></div><div class="small soft">'+done+' of '+TASKS.length+' steps done</div>'+(nt?'<div class="small" style="margin-top:4px;font-weight:600">Next: '+esc(nt.title)+'</div>':'<div class="small ok" style="margin-top:4px;font-weight:700">All done. You’re settled in.</div>')+'</div></section>';
-  h+='<div class="phases" role="tablist">'+PHASES.map(function(P){var ts=TASKS.filter(function(t){return t.ph===P.k;}),dn=doneCount(ts);return '<button class="ph'+(dn===ts.length?' full':'')+'" data-phase="'+P.k+'" aria-pressed="'+(phase===P.k)+'">'+P.label+'<small>'+(dn===ts.length?'✓':dn+'/'+ts.length)+'</small></button>';}).join('')+'</div>';
+  h+='<div class="phases" aria-label="Checklist phases">'+PHASES.map(function(P){var ts=TASKS.filter(function(t){return t.ph===P.k;}),dn=doneCount(ts);return '<button class="ph'+(dn===ts.length?' full':'')+'" data-phase="'+P.k+'" aria-pressed="'+(phase===P.k)+'">'+P.label+'<small>'+(dn===ts.length?'✓':dn+'/'+ts.length)+'</small></button>';}).join('')+'</div>';
   var P=PHASES.find(function(x){return x.k===phase;}),ts=TASKS.filter(function(t){return t.ph===phase;}),dd=P.due?addDays(S.profile.moved,P.due):null;
   h+='<section class="card"><div class="small soft" style="margin-bottom:4px;font-weight:600">'+(dd?'Aim to finish by '+dLabel(dd):'Do these once a year')+'</div>';
   ts.forEach(function(t){var on=!!S.checks[t.id];h+='<div class="item'+(on?' done':'')+'"><button class="tick'+(t.id===lastTicked&&on?' pop':'')+'" role="checkbox" aria-checked="'+on+'" aria-label="'+esc(t.title)+'" data-tick="'+t.id+'"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button><button class="it" data-task="'+t.id+'"><b>'+esc(t.title)+' <em class="tag '+ctry(t)+'">'+({in:'India',uk:'UK',both:'Both'})[ctry(t)]+'</em></b><span>'+esc(t.text.split('. ')[0].replace(/\.$/,''))+'.</span></button></div>';});
@@ -780,7 +797,7 @@ function paceLine(vm,tot,bud){var pc=paceOf(vm,tot,bud);if(!pc)return '';if(pc.e
 function moneyInRow(vm,spent){
   var p=S.profile,mi=moneyIn(vm),exp=takeHome(p.salary,p.pension).month,sal=mi.salary||exp,inAmt=sal+mi.carry;
   var costs=(+p.rent||0)+(+p.bills||0)+indiaMonthly(p)/(+p.fx||129),cash=inAmt-costs-spent,pc=paceOf(vm,spent,sum(cats().map(function(c){return c.budget;}))),endM=pc&&!pc.early?inAmt-costs-Math.max(spent,pc.proj):null;
-  return '<div class="moneyin" role="button" tabindex="0" data-monthin="'+vm+'"><span><span class="small soft">Money in</span><b class="f">'+gbp(inAmt)+'</b><span class="small '+(mi.salary?'soft':'addlink')+'">'+(mi.salary?'Salary'+(mi.carry?' + '+gbp(mi.carry)+' carried':''):'+ Add salary & last month')+'</span></span>'+
+  return '<div class="moneyin"><button class="mileft" data-monthin="'+vm+'" aria-label="Edit money in for '+mLabel(vm)+'"><span class="milwrap"><span class="small soft">Money in</span><b class="f">'+gbp(inAmt)+'</b><span class="small '+(mi.salary?'soft':'addlink')+'">'+(mi.salary?'Salary'+(mi.carry?' + '+gbp(mi.carry)+' carried':''):'+ Add salary & last month')+'</span></span></button>'+
     '<span class="r"><span class="small soft">Cash left now'+tip('cl','Money in, minus rent, bills, India payments and what you’ve spent this month.',true)+'</span><b class="f '+(cash<0?'bad':'')+'">'+gbp(cash)+'</b><span class="small '+(endM!=null&&endM<0?'bad':'soft')+'">'+(endM!=null?'Month end ≈ '+gbp(endM):'after all costs so far')+'</span></span></div>';
 }
 var spendQ='',spendF='';
@@ -879,7 +896,7 @@ function loadFund(id){
   .catch(function(){if(!S.mf[id]||S.mf[id].fail)S.mf[id]={fail:true,at:null};}).then(function(){mfBusy[id]=false;refreshSheet();refreshRail();});
 }
 function pctTxt(v){return v==null?'–':(v>=0?'+':'')+v.toFixed(1)+'%';}
-function riskDots(n){var h='';for(var i=1;i<=5;i++)h+='<i class="'+(i<=n?'on':'')+'"></i>';return '<span class="rdots" aria-label="Ups and downs: '+n+' of 5">'+h+'</span>';}
+function riskDots(n){var h='';for(var i=1;i<=5;i++)h+='<i class="'+(i<=n?'on':'')+'"></i>';return '<span class="rdots" role="img" aria-label="Ups and downs: '+n+' of 5">'+h+'</span>';}
 function goalYears(g){var p=S.profile;return g==='retire'?Math.max(0,(+p.retireAge||0)-(+p.age||0)):Math.max(0,(+p.homeYear||0)-new Date().getFullYear());}
 function fundCard(g,pair){
   var id=pair[0],minY=pair[1],f=FUNDS[id],m=S.mf[id],p=S.profile,sel=(g==='retire'?p.retFund:p.homeFund)===id,yrs=goalYears(g),fit=yrs>=minY;
@@ -1027,7 +1044,7 @@ function tip(id,text,right){return '<span class="tip'+(right?' r':'')+'"><button
 function seg(k,opts){return '<div class="seg" role="radiogroup">'+opts.map(function(o){return '<button role="radio" data-seg="'+k+'" data-v="'+o[0]+'" aria-checked="'+(String(wz.d[k])===String(o[0]))+'">'+o[1]+'</button>';}).join('')+'</div>';}
 function vWizard(){
   var s=wz?wz.step:0;if(!wz)startWizard();s=wz.step;var d=wz.d;
-  if(s===0)return '<div class="wz"><div class="brand">'+LOGO+'Setu</div><div class="introhero">'+ILL.trip+'<h1>Your money bridge from India to the UK</h1></div><ul class="promise"><li style="--c:var(--indigo)"><i>'+gl('chart')+'</i>See how much money you have left each month</li><li style="--c:var(--rani)"><i>'+gl('list')+'</i>Follow a simple checklist for your first 90 days</li><li style="--c:var(--marigold)"><i>'+gl('home')+'</i>Plan for a home and retirement in India</li></ul><p class="private">It’s free and takes 3 minutes. Your answers stay on this device.</p><div class="foot col2"><button class="btn go" data-wz="next">Let’s go</button><button class="link" data-sheet="backup">Restore from a backup</button></div></div>';
+  if(s===0)return '<div class="wz"><div class="brand">'+LOGO+'Setu</div><div class="introhero">'+ILL.trip+'<h1>Your money bridge from India to the UK</h1></div><ul class="promise"><li style="--c:var(--indigo)"><i>'+gl('chart')+'</i>See how much money you have left each month</li><li style="--c:var(--rani)"><i>'+gl('list')+'</i>Follow a simple checklist for your first 90 days</li><li style="--c:var(--marigold)"><i>'+gl('home')+'</i>Plan for a home and retirement in India</li></ul><p class="private">It’s free and takes 3 minutes. Your answers stay on this device. <button class="link" data-sheet="privacy" style="font-size:13px;padding:0">Privacy</button></p><div class="foot col2"><button class="btn go" data-wz="next">Let’s go</button><button class="link" data-sheet="backup">Restore from a backup</button></div></div>';
   var top='<div class="top">'+(s>1||S.profile?'<button class="x" data-wz="'+(s>1?'back':'cancel')+'" aria-label="'+(s>1?'Back':'Close')+'">'+(s>1?'‹':'×')+'</button>':'')+'<div class="dots">'+[1,2,3,4,5].map(function(i){return '<i class="'+(i<=s?'on':'')+'"></i>';}).join('')+'</div><span class="small soft">'+s+' of 5</span></div>';
   var body='';
   if(s===1)body='<div><h1>About you</h1><p class="lead">This helps us set dates on your checklist.</p></div><div class="fields">'+fld('name','First name (optional)','text')+'<div class="grid2">'+fld('age','Your age')+fld('moved','Date you moved','date')+'</div><div class="field"><span>Who lives with you in the UK?</span>'+seg('household',[['single','Just me'],['couple','Partner'],['family','Family']])+'</div>'+'<div class="ratebox"><span>Today’s rupee rate</span><b>₹'+fxNow().toFixed(2)+' = £1</b><small>'+(FX.at?'Updated '+new Date(FX.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'. ':'')+'We keep this up to date for you.</small></div></div>';
@@ -1070,12 +1087,13 @@ var SHEETS={
   task:function(id){var t=TASKS.find(function(x){return x.id===id;}),on=!!S.checks[id],dd=dueDate(t);return {title:t.title,body:(dd?'<p class="small soft">Try to finish by '+dLabel(dd)+'</p>':'')+'<p>'+esc(t.text)+'</p>'+(t.link?'<a class="official" href="'+t.link+'" target="_blank" rel="noopener">Read the official guidance</a>':'')+'<div class="acts" style="margin-top:16px"><button class="btn '+(on?'':'go')+'" data-tick="'+id+'" data-close-after>'+(on?'Mark as not done':'Mark as done')+'</button></div>'};},
   items:function(){var vm=viewMonth||mKey(),C=cats(),it=S.items.filter(function(x){return x.date.slice(0,7)===vm;}).sort(function(a,b){return a.date<b.date?1:-1;});
     return {title:'Spending in '+mLabel(vm),body:it.length?'<div class="list">'+it.map(function(x){var c=C.find(function(y){return y.k===x.cat;});return '<button class="li" data-item="'+x.id+'"><span class="grow"><b style="display:block;font-weight:600">'+esc(x.note||(c?c.label:'Spending'))+'</b><span class="small soft">'+esc(c?c.label:'')+', '+dLabel(new Date(x.date+'T12:00'))+'</span></span><span class="f" style="font-weight:700">'+gbp2(x.amt)+'</span></button>';}).join('')+'</div><p class="fine">Tap an item to edit or delete it.</p>':'<p class="soft">Nothing logged for '+mLabel(vm)+' yet. Add spending from the Spending tab.</p>'};},
-  settings:function(){var p=S.profile;if(!p)return SHEETS.about();return {title:'Settings',body:'<div class="list">'+[['setup','Edit my setup','Pay, rent, loans and savings'],['fx','Rupee rate',fxLabel()+'. Tap to refresh.'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['backup','Back up your data',S.lastBackup?'Last backup '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago':'Not backed up yet'],['transfer','Check a money transfer','See what your bank really charges to send money home'],['csvall','Download all spending (CSV)','Open it in Excel or Google Sheets'],['recur','Repeating spending',S.recur.length+' set up']].concat(canInstall()?[['install','Install Setu as an app','Works offline and keeps your data safer']]:[]).concat([['about','About Setu','What Setu is, and what it isn’t']]).map(function(r){return '<button class="li" data-set="'+r[0]+'"><span class="grow"><b style="display:block;font-weight:600">'+r[1]+'</b><span class="small soft">'+esc(r[2])+'</span></span><span class="chev">›</span></button>';}).join('')+'<button class="li" data-set="reset"><span class="grow"><b style="display:block;font-weight:600;color:var(--rust)">Start over</b><span class="small soft">Delete everything on this device</span></span></button></div>'+(storageOK?'':'<p class="small bad">This browser is blocking storage, so your data will be lost when you close the page.</p>')};},
+  settings:function(){var p=S.profile;if(!p)return SHEETS.about();return {title:'Settings',body:'<div class="list">'+[['setup','Edit my setup','Pay, rent, loans and savings'],['fx','Rupee rate',fxLabel()+'. Tap to refresh.'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['backup','Back up your data',S.lastBackup?'Last backup '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago':'Not backed up yet'],['transfer','Check a money transfer','See what your bank really charges to send money home'],['csvall','Download all spending (CSV)','Open it in Excel or Google Sheets'],['budgets','Spending budgets',gbp(sum(cats().map(function(c){return c.budget;})))+' a month across '+cats().length+' categories'],['recur','Repeating spending',S.recur.length+' set up']].concat(canInstall()?[['install','Install Setu as an app','Works offline and keeps your data safer']]:[]).concat([['privacy','Privacy','No accounts, no tracking. Your data stays on this device'],['about','About Setu','What Setu is, and what it isn’t']]).map(function(r){return '<button class="li" data-set="'+r[0]+'"><span class="grow"><b style="display:block;font-weight:600">'+r[1]+'</b><span class="small soft">'+esc(r[2])+'</span></span><span class="chev">›</span></button>';}).join('')+'<button class="li" data-set="reset"><span class="grow"><b style="display:block;font-weight:600;color:var(--rust)">Start over</b><span class="small soft">Delete everything on this device</span></span></button></div>'+(storageOK?'':'<p class="small bad">This browser is blocking storage, so your data will be lost when you close the page.</p>')};},
   backup:function(){var since=S.lastBackup?Math.floor((Date.now()-S.lastBackup)/864e5):null;
     return {title:'Back up your data',body:'<p class="small soft">Setu keeps everything on this device only. Save a backup file somewhere safe, like email or cloud storage. To move to a new phone, open Setu there and restore the file.</p>'+
       '<div class="acts"><button class="btn go" data-bkfile>Download backup file</button><label class="btn filebtn">Restore from file<input type="file" id="bkin" accept=".json,application/json" hidden></label></div>'+
       '<p class="small soft" style="margin:10px 0 4px">'+(since===null?'You haven’t made a backup yet.':'Last backup: '+(since===0?'today':since+' day'+(since>1?'s':'')+' ago')+'.')+(persisted?' Storage on this device is protected.':'')+'</p>'+
       '<details class="adv"><summary>Or copy and paste as text</summary><textarea id="bk" rows="5">'+esc(JSON.stringify(S))+'</textarea><div class="acts" style="margin-top:10px"><button class="btn" data-restore>Restore from text</button></div></details>'};},
+  budgets:function(){return {title:'Spending budgets',body:'<p class="small soft">Tap a category to change how much you plan to spend on it each month.</p><div class="list">'+cats().map(function(c){var k=cc(c.k);return '<button class="li" data-cat-edit="'+c.k+'"><span class="grow" style="display:flex;align-items:center;gap:10px"><i class="bdot" style="background:'+k[0]+'"></i><b style="font-weight:700">'+esc(c.label)+'</b></span><span class="f" style="font-weight:800">'+gbp(c.budget)+'</span></button>';}).join('')+'</div>'};},
   install:function(){return {title:'Add Setu to your home screen',body:(isIOS?'<ol class="steps"><li>Tap the <b>Share</b> button at the bottom of Safari (the square with an arrow).</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. Setu now opens like an app.</li></ol>':'<ol class="steps"><li>Open your browser menu (⋮ or ⋯).</li><li>Choose <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Confirm. Setu now opens like an app.</li></ol>')+'<p class="small soft">Installed, Setu works offline and your data is safer. On iPhone, Safari can clear data from websites you haven’t opened for a while, but home-screen apps are kept.</p>'};},
   recur:function(){var C=cats();return {title:'Repeating spending',body:'<p class="small soft">Costs you pay every month, like subscriptions or a gym. Setu adds them to your log automatically on their day.</p>'+
       (S.recur.length?'<div class="list">'+S.recur.map(function(r){var c=C.find(function(y){return y.k===r.cat;});return '<button class="li" data-recur="'+r.id+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(r.name)+'</b><span class="small soft">'+esc(c?c.label:'')+', on the '+r.day+(r.day==1||r.day==21||r.day==31?'st':r.day==2||r.day==22?'nd':r.day==3||r.day==23?'rd':'th')+' of each month</span></span><span class="f" style="font-weight:800">'+gbp2(r.amt)+'</span></button>';}).join('')+'</div>':'<p class="small">Nothing set up yet.</p>')+
@@ -1086,6 +1104,10 @@ var SHEETS={
       '<label class="field"><span>Rate they offer (₹ for £1)</span><span class="adorn"><i>₹</i><input id="tfR" type="number" inputmode="decimal" step="any" value="'+(fx*0.975).toFixed(2)+'"></span></label>'+
       '<div class="field"><span>How often?</span><div class="seg" role="radiogroup"><button role="radio" data-tff="12" aria-checked="true">Monthly</button><button role="radio" data-tff="1" aria-checked="false">Just once</button></div></div></div>'+
       '<div id="tfOut" class="tfout" aria-live="polite"></div><p class="fine">Compared with today’s mid-market rate of ₹'+fx.toFixed(2)+' (European Central Bank). General information, not advice on any provider.</p>'};},
+  privacy:function(){return {title:'Privacy',body:'<p><b>Setu doesn’t collect your data.</b> There are no accounts, no sign-up, no ads and no tracking. Everything you enter is saved only in this browser on this device, and is never sent to us or anyone else.</p>'+
+    '<p class="small soft" style="margin-bottom:4px">To show live figures, your browser fetches public data directly from these services. They see a normal web request from your device (like visiting any website), but none of your Setu data:</p>'+
+    '<ul class="plist"><li>Exchange rates: Frankfurter (European Central Bank rates) and ExchangeRate-API</li><li>Fund prices: mfapi.in</li><li>News: a headlines file on this site, updated from Google News; if that’s unavailable, GDELT and GOV.UK</li></ul>'+
+    '<p class="small soft">You can delete everything at any time from Settings, then Start over. Backups you download stay wherever you save them.</p>'};},
   about:function(){return {title:'About Setu',body:'<p>Setu helps people who move from India to the UK. It shows how much money you have left each month, gives you a checklist for both countries, and helps you plan for a home and retirement in India.</p><p>It gives general guidance only. It is not financial, tax or immigration advice, and rules can change. Check the official websites, and talk to a qualified adviser before big decisions.</p><p class="small soft">Pay after tax uses 2026/27 tax rates for England, Wales and Northern Ireland, or Scotland if you choose it in setup. Everything you enter stays on this device and is never sent anywhere.</p>'};}
 };
 
@@ -1139,7 +1161,7 @@ document.addEventListener('click',function(e){
     var vm=viewMonth||mKey(),dt=vm===mKey()?today():vm+'-15';
     S.items.push({id:uid(),date:dt,cat:addCat,amt:Math.round(am*100)/100,note:document.getElementById('note').value.trim(),created:Date.now()});save();buzz();render();toast('Added '+gbp2(am));return;}
   if(d.undo){var u=d.undo;S.items=S.items.filter(function(x){return x.id!==u;});save();render();toast('Removed');return;}
-  if(d.catEdit){var c=cats().find(function(x){return x.k===d.catEdit;});formSheet('Budget for '+c.label,[{k:'budget',label:'Budget each month (£)'}],c,function(o){c.budget=o.budget;});return;}
+  if(d.catEdit){var fromB=sheetFn&&(sheetFn().title==='Spending budgets'),c=cats().find(function(x){return x.k===d.catEdit;});formSheet('Budget for '+c.label,[{k:'budget',label:'Budget each month (£)'}],c,function(o){c.budget=Math.max(0,o.budget||0);if(fromB)setTimeout(function(){openSheet(function(){return SHEETS.budgets();});},10);});return;}
   if(d.item){var X=S.items.find(function(x){return x.id===d.item;});formDelete=function(){S.items=S.items.filter(function(y){return y!==X;});};
     formSheet('Edit spending',[{k:'note',label:'What was it?',text:true},{k:'cat',label:'Category',options:cats().map(function(c){return [c.k,c.label];})},{k:'amt',label:'Amount (£)'},{k:'date',label:'Date',text:true,date:true}],X,function(o){if(!/^\d{4}-\d{2}-\d{2}$/.test(o.date))o.date=X.date;Object.assign(X,o);},'<button class="btn warn" data-form="delete">Delete</button>');return;}
   if(t.hasAttribute('data-restore')){try{var o=JSON.parse(document.getElementById('bk').value);if(!o||o.v!==1||!o.profile)throw 0;S=o;save();sheetFn=null;wz=null;render();toast('Data restored');}catch(err){alert('That text isn’t a Setu backup. Copy the whole backup text and try again.');}return;}

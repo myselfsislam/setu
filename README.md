@@ -23,6 +23,8 @@
 - **Backups:** download a backup file and restore it on another device
 
 ## Privacy
+No accounts, no ads, no tracking and no cookies. Fonts are self-hosted. The only outside requests are for public data (exchange rates, fund prices and news), and none of the user's data is sent with them.
+
 Everything runs in the browser. Data is saved only on the visitor's own device (browser local storage) and is never sent anywhere.
 
 ## Run it

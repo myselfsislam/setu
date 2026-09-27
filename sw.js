@@ -1,6 +1,6 @@
 /* Setu service worker: works offline, keeps the app fast. Bump VERSION on every release. */
-const VERSION = 'setu-v7-2026-09-27-newsfix';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/setu-192.png', './icons/setu-512.png', './icons/apple-touch-icon.png'];
+const VERSION = 'setu-v8-2026-09-27-launch';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './fonts/figtree.woff2', './fonts/bricolage.woff2', './icons/setu-192.png', './icons/setu-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
