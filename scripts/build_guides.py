@@ -200,6 +200,133 @@ GUIDES.append(("nro-vs-nre-account-uk",
  [("Is NRE interest taxable in the UK?", "It can be. India does not tax NRE interest, but UK residents can be taxed on worldwide income. New arrivals may be able to claim a 4-year relief on foreign income, which has to be claimed through Self Assessment."),
   ("Can I keep my resident savings account after moving to the UK?", "No. Once you become a non-resident Indian, resident accounts should be changed to NRO accounts. Ask your bank to do this.")]))
 
+
+# ---------------- More guides (added 27 Sept 2026) ----------------
+GUIDES.append(("isa-for-indians-in-the-uk",
+ "ISAs for Indians in the UK: how they work and what's changing in 2027 | Setu",
+ "A plain-English guide to ISAs for Indians living in the UK: the £20,000 allowance, cash vs stocks and shares, the Lifetime ISA, the 2027 cash ISA change, and what happens if you move back to India.",
+ "ISAs for Indians in the UK: a simple guide",
+ "An ISA lets you save or invest without paying UK tax on the interest or growth. Here's how it works for someone who has moved from India.",
+ """
+<div class="card"><h2 style="margin-top:0">The key numbers for 2026/27</h2>
+<ul class="list"><li><b>£20,000</b> a year in total across all your ISAs (6 April 2026 to 5 April 2027).</li>
+<li><b>Lifetime ISA:</b> up to £4,000 a year, which counts inside the £20,000.</li>
+<li><b>Unused allowance is lost</b> on 5 April. It doesn't carry over.</li></ul></div>
+<h2>What's changing in April 2027</h2>
+<p>From 6 April 2027, people under 65 can put at most <b>£12,000 a year into cash ISAs</b>. The overall £20,000 limit stays, so the rest can go into a stocks and shares ISA. Money already in a cash ISA isn't affected. 2026/27 is the last tax year when under-65s can put the full £20,000 into cash.</p>
+<h2>Cash ISA or stocks and shares ISA?</h2>
+<ul class="list"><li><b>Cash ISA:</b> like a savings account with tax-free interest. Good for money you may need within a few years, such as an emergency fund.</li>
+<li><b>Stocks and shares ISA:</b> invests in funds or shares. The value can fall as well as rise, so it suits money you won't need for 5 years or more.</li></ul>
+<h2>The Lifetime ISA: read the small print</h2>
+<p>You must open one before you turn 40. The government adds a 25% bonus (up to £1,000 a year), but you can only use it without a penalty for a <b>first home in the UK costing up to £450,000</b>, or from age 60. Taking money out for anything else, including a home in India, usually costs a 25% charge, so you can get back less than you put in. The government has said the Lifetime ISA will be replaced by a new first-time buyer ISA from April 2028.</p>
+<h2>Why ISAs matter more after your first few years</h2>
+<p>New arrivals may not pay UK tax on Indian income for their first 4 years if they claim the <a href="uk-tax-on-indian-income-4-year-relief.html">4-year foreign income relief</a>. After that, UK tax applies to interest and gains in India too. An ISA stays free of UK tax whatever happens, which is why many people build their long-term savings here.</p>
+<h2>If you move back to India</h2>
+<p>You can keep an ISA after you leave the UK, and it stays free of <b>UK</b> tax, but you can't add new money while you're not UK resident. India may tax the income and gains once you become resident there again, so plan any sale with a tax adviser, ideally during your RNOR years.</p>
+<p><a href="../?tab=goals">Plan your long-term goals in Setu ›</a></p>
+""",
+ [("How much can I put in an ISA in 2026/27?", "£20,000 in total across all your ISAs between 6 April 2026 and 5 April 2027. A Lifetime ISA has its own £4,000 limit inside that."),
+  ("Is the cash ISA limit changing?", "Yes. From 6 April 2027, under-65s can pay at most £12,000 a year into cash ISAs. The overall £20,000 limit stays the same."),
+  ("Can I use a Lifetime ISA to buy a home in India?", "Not without a penalty. The bonus is only for a first home in the UK costing up to £450,000, or from age 60. Other withdrawals usually cost 25%."),
+  ("Can I keep my ISA if I move back to India?", "Yes. It stays free of UK tax, but you can't add new money while you're not UK resident, and India may tax it once you're resident there.")]))
+
+GUIDES.append(("uk-tax-on-indian-income-4-year-relief",
+ "UK tax on Indian income: the 4-year FIG relief for new arrivals | Setu",
+ "Do you pay UK tax on interest, rent or gains in India? How the 4-year foreign income and gains (FIG) relief works for people moving from India, who qualifies, and the catch.",
+ "UK tax on your Indian income: the 4-year relief",
+ "Once you're UK resident, the UK can tax your income from India too. New arrivals may get a 4-year break, but it has to be claimed and it isn't always worth it.",
+ """
+<div class="card"><h2 style="margin-top:0">In short</h2>
+<ul class="list"><li>UK residents are taxed on their <b>worldwide</b> income and gains, including NRO and NRE interest, rent from a flat in India, and gains on Indian mutual funds.</li>
+<li>If you hadn't lived in the UK for the <b>10 tax years</b> before you arrived, you may be able to claim relief on foreign income and gains for your <b>first 4 tax years</b> here.</li>
+<li>It isn't automatic. You claim it each year on a <b>Self Assessment</b> tax return.</li></ul></div>
+<h2>Who can claim</h2>
+<p>The foreign income and gains (FIG) regime started on 6 April 2025 and replaced the old non-dom rules. You qualify in your first four tax years of UK residence if you weren't UK resident in any of the previous ten tax years. It's based on residence, not nationality. Your UK salary is taxed as normal; the relief only covers <b>foreign</b> income and gains.</p>
+<h2>The catch: you lose your tax-free allowances</h2>
+<p>In any year you claim, you give up your <b>£12,570 Personal Allowance</b> and your Capital Gains Tax annual exempt amount. For someone on a full UK salary with modest interest in India, that can cost more than the relief saves. It tends to help people with large income or gains in India. Work it out both ways, or ask a tax adviser, before claiming.</p>
+<h2>How to claim</h2>
+<ol class="list"><li>Register for Self Assessment with HMRC if you haven't before. If you became UK resident in a tax year, register by 5 October after that tax year ends.</li>
+<li>Fill in the residence and foreign income pages of your tax return, listing the foreign income and gains you want relief on.</li>
+<li>Claim within the time limit: for 2025/26, the deadline is 31 January 2028.</li></ol>
+<h2>Don't forget India</h2>
+<p>Income earned in India can still be taxed in India, for example NRO interest has tax deducted at source. The UK–India tax treaty helps avoid paying twice on the same income. Keep records of Indian tax paid.</p>
+<p><a href="https://www.gov.uk/tax-foreign-income" rel="nofollow noopener">GOV.UK: tax on foreign income</a> · <a href="nro-vs-nre-account-uk.html">NRO vs NRE accounts</a></p>
+""",
+ [("Do I pay UK tax on NRE interest?", "It can be taxable in the UK because UK residents are taxed on worldwide income, even though India doesn't tax NRE interest. New arrivals may be able to claim the 4-year relief."),
+  ("Who qualifies for the 4-year FIG relief?", "People in their first four tax years of UK residence who weren't UK resident in any of the ten tax years before they arrived."),
+  ("Is the 4-year relief automatic?", "No. You claim it each year on a Self Assessment tax return. If you claim, you lose your Personal Allowance and Capital Gains Tax annual exempt amount for that year."),
+  ("Is claiming always worth it?", "Not always. If your income from India is small, losing your £12,570 Personal Allowance can cost more than the tax you save.")]))
+
+GUIDES.append(("nri-182-day-rule",
+ "The 182-day rule: how many days can an NRI spend in India? | Setu",
+ "How India decides if you're an NRI: the 182-day test, the 120-day rule for higher Indian incomes, deemed residence, and RNOR when you move back. Updated for the Income-tax Act 2025.",
+ "The 182-day rule: staying an NRI while you live in the UK",
+ "Your tax status in India depends mainly on how many days you spend there. Here's how the rules work for someone working in the UK.",
+ """
+<div class="card"><h2 style="margin-top:0">The simple version</h2>
+<p>If you've moved to the UK for work, you'll generally stay a non-resident Indian (NRI) as long as you spend <b>fewer than 182 days in India</b> in an Indian tax year (1 April to 31 March). As an NRI, India only taxes income earned or received in India.</p></div>
+<h2>The exceptions to watch</h2>
+<ul class="list"><li><b>The 120-day rule:</b> if your Indian income (not counting foreign income) is over <b>₹15 lakh</b> in a year, you can become resident with 120 days in India if you also spent 365 days there over the previous four years.</li>
+<li><b>Deemed residence:</b> an Indian citizen with Indian income over ₹15 lakh who isn't liable to tax in any other country can be treated as resident. Paying UK tax as a UK resident normally avoids this.</li>
+<li><b>The year you leave:</b> Indian citizens who leave for a job abroad are judged on the 182-day test for that year.</li></ul>
+<h2>What changed in 2026</h2>
+<p>India's new Income-tax Act 2025 took effect on 1 April 2026. It replaces “previous year” and “assessment year” with a single <b>tax year</b>, but the residence tests above carry over with new section numbers, and NRE interest stays tax-free in India.</p>
+<h2>When you move back: RNOR</h2>
+<p>Returning NRIs often get a transition status called Resident but Not Ordinarily Resident (RNOR), usually for up to two or three years. During RNOR, most foreign income isn't taxed in India, which is a good window to sell UK investments or move savings home. Check the details with a tax adviser before you return.</p>
+<h2>Keep a record</h2>
+<p>Count your days from your passport stamps and boarding passes, and keep them. Setu's checklist reminds you each year.</p>
+<p><a href="../?tab=check">Open your checklist in Setu ›</a></p>
+""",
+ [("How many days can an NRI stay in India?", "Generally fewer than 182 days in an Indian tax year (April to March). A 120-day limit can apply if your Indian income is over ₹15 lakh and you spent 365 days in India over the previous four years."),
+  ("Did the new Income-tax Act change NRI rules?", "The Income-tax Act 2025, in force from 1 April 2026, mostly carries the residence rules over. It replaces previous year and assessment year with a single tax year."),
+  ("What is RNOR?", "Resident but Not Ordinarily Resident: a transition status for many returning NRIs, during which most foreign income isn't taxed in India.")]))
+
+GUIDES.append(("council-tax-for-new-arrivals",
+ "Council tax explained for new arrivals from India | Setu",
+ "What council tax is, how much it costs, who pays, the 25% single-person discount, and how to set it up when you move into a UK home.",
+ "Council tax explained for new arrivals",
+ "Council tax is a monthly local tax on your home. It's one of the first bills to set up after you move in, and there's a common discount many people miss.",
+ """
+<h2>What it pays for</h2>
+<p>Council tax funds local services such as bin collections, roads, libraries and social care. It's charged per home, not per person, and is usually paid by the people who live there, including tenants.</p>
+<h2>How much it costs</h2>
+<p>Each home in England and Scotland is placed in a <b>band</b> (A to H in England) based on its value, and your council sets the charge for each band. In Wales there are bands A to I. The amount varies a lot between areas, so check your exact charge on your council's website before you agree a rent.</p>
+<h2>Discounts to claim</h2>
+<ul class="list"><li><b>Living alone:</b> a <b>25% single-person discount</b>. If your partner hasn't joined you yet, you may qualify until they arrive.</li>
+<li><b>Full-time students</b> are usually disregarded, so a home where everyone is a student may pay nothing.</li>
+<li>Your council may offer reductions if you're on a low income.</li></ul>
+<h2>How to set it up</h2>
+<ol class="list"><li>Find your council using your postcode on GOV.UK.</li><li>Register as the person responsible from the day you moved in.</li><li>Choose to pay over 10 or 12 months. Twelve smaller payments are easier to budget for.</li><li>Tell the council when anyone moves in or out, as it can change your bill.</li></ol>
+<p><a href="https://www.gov.uk/council-tax" rel="nofollow noopener">GOV.UK: council tax</a> · <a href="moving-to-uk-from-india-money-checklist.html">Your first 90 days money checklist</a></p>
+""",
+ [("Do tenants pay council tax?", "Usually, yes. Council tax is normally paid by the people who live in the home, including tenants, unless your tenancy says it's included in the rent."),
+  ("How much is the single-person discount?", "25% off your bill if you're the only adult living in the home."),
+  ("Can I pay council tax monthly?", "Yes. Councils usually offer 10 monthly payments, and many let you choose 12.")]))
+
+GUIDES.append(("emergency-fund-on-a-work-visa",
+ "How big should your emergency fund be on a UK work visa? | Setu",
+ "Why an emergency fund matters more on a Skilled Worker visa, how many months to save, where to keep it, and how to build it while paying EMIs in India.",
+ "How big should your emergency fund be on a work visa?",
+ "On a sponsored visa, losing your job starts a clock. A cash cushion gives you time to find a new sponsor without panic.",
+ """
+<div class="card"><h2 style="margin-top:0">Why it matters more on a work visa</h2>
+<p>If your sponsored job ends, your employer must tell the Home Office, which usually shortens your permission to stay to around <b>60 days</b> (or less if your visa ends sooner). In that time you need to find a new sponsor, switch visa or leave. Savings mean you can focus on the right job, not the first one.</p></div>
+<h2>How many months to save</h2>
+<ul class="list"><li><b>Start with one month</b> of rent and bills sitting in your current account.</li>
+<li><b>Build to 3 months</b> of essential UK costs as your first proper target.</li>
+<li><b>Aim for 4 to 6 months</b> if you're the only earner, have a family here, or pay large EMIs in India. Remember flights home and a deposit if you have to move.</li></ul>
+<h2>What to count</h2>
+<p>Rent, council tax, energy, phone, food, travel, and any payments you must keep making in India, like loan EMIs. Leave out investing and nice-to-haves.</p>
+<h2>Where to keep it</h2>
+<p>An <b>easy-access savings account in the UK</b>, in pounds, so you can reach it quickly. A cash ISA keeps the interest free of UK tax. Avoid shares or locked deposits for this money.</p>
+<h2>Build it alongside Indian EMIs</h2>
+<ol class="list"><li>Pay off very expensive debt, like a credit card balance, first.</li><li>Then split what's left each month between the emergency fund and other goals.</li><li>Once the fund is full, move that money into long-term investing.</li></ol>
+<p>Setu does this split for you and shows how many weeks your savings would last. <a href="../">Try it free ›</a></p>
+""",
+ [("How long do I have to find a new job on a Skilled Worker visa?", "Usually about 60 days after the Home Office shortens your permission, or less if your visa expires sooner. Check your own documents and get immigration advice if it happens."),
+  ("How many months should my emergency fund cover?", "Build to at least 3 months of essential UK costs, and 4 to 6 months if you're the only earner, have family here, or pay large EMIs in India."),
+  ("Where should I keep my emergency fund?", "In an easy-access UK savings account or cash ISA, in pounds, so you can reach it quickly.")]))
+
 def main():
     os.makedirs(os.path.join(OUT, "guides"), exist_ok=True)
     for g in GUIDES:
@@ -208,7 +335,7 @@ def main():
         open(os.path.join(OUT, "guides", slug + ".html"), "w").write(page(slug, title, desc, h1, lead, body, faq, js))
     items = "".join(f'<div class="card"><h2 style="margin:0 0 6px;font-size:22px"><a href="{g[0]}.html">{html.escape(g[3])}</a></h2><p style="margin:0">{html.escape(g[2])}</p></div>' for g in GUIDES)
     open(os.path.join(OUT, "guides", "index.html"), "w").write(page("", "Money guides for Indians moving to the UK | Setu",
-        "Free, plain-English guides for Indians in the UK: first 90 days checklist, take-home pay in rupees, sending money home, NRO and NRE accounts.",
+        "Free, plain-English guides for Indians in the UK: first 90 days, take-home pay in rupees, sending money home, NRO and NRE, ISAs, UK tax on Indian income, the 182-day rule, council tax and emergency funds.",
         "Money guides for Indians moving to the UK", "Plain-English guides and calculators. Free, with no sign-up.", items))
     urls = [f"{SITE_URL}/", f"{SITE_URL}/guides/"] + [f"{SITE_URL}/guides/{g[0]}.html" for g in GUIDES]
     open(os.path.join(OUT, "sitemap.xml"), "w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +

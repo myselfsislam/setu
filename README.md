@@ -35,3 +35,12 @@ New > Blueprint (uses `render.yaml`), or New > Static Site with publish director
 
 ## Disclaimer
 General guidance only, not financial, tax or immigration advice.
+
+## Tests
+Run every check (features, take-home maths, accessibility, layout on 10 screen sizes):
+```
+pip install playwright && python -m playwright install --with-deps chromium
+npm i axe-core@4
+python tests/run_all.py
+```
+See `MAINTENANCE.md` for the upkeep calendar.
