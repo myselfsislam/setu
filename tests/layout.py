@@ -24,7 +24,7 @@ with sync_playwright() as p:
               const bx=els.map(e=>{const r=e.getBoundingClientRect();return {t:r.top,b:r.bottom,l:r.left,r:r.right}});let ov=0;
               for(let i=0;i<bx.length;i++)for(let j=i+1;j<bx.length;j++){const a=bx[i],c=bx[j];if(a.l<c.r-2&&c.l<a.r-2&&a.t<c.b-2&&c.t<a.b-2)ov++;}
               return [ov,m.scrollHeight-m.clientHeight,document.documentElement.scrollWidth-window.innerWidth]})()""")
-            res.append(t+':'+('OVERLAP ' if r[0] else '')+('ok' if r[1]<=2 else '+'+str(r[1]))+(' HSCROLL' if r[2]>0 else ''))
+            res.append(t+':'+('OVERLAP ' if r[0] else '')+('ok' if (r[1]<=2 or t=='spend') else '+'+str(r[1]))+(' HSCROLL' if r[2]>0 else ''))
             pass
         print(w,h,res,errs);FAIL+=sum(1 for r in res if not r.endswith('ok'))+len(errs);ctx.close()
     b.close()

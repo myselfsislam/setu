@@ -321,19 +321,19 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .desk{display:none}
 @media (min-width:880px){.desk{display:block}.dsum{text-align:left;cursor:pointer;width:100%}.dsrow{display:flex;gap:16px;align-items:center;margin-top:6px}.dcat{display:grid;grid-template-columns:78px 1fr;align-items:center;gap:8px}.dcat .bar{margin:3px 0}.v-home .dsum{grid-column:auto}}
 .tblcard{padding:12px 14px 10px}
-.tblwrap{overflow-y:auto;overflow-x:hidden;margin:6px 0 0;border-radius:12px}
+.tblwrap{margin:6px 0 0}
 .stbl{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:fixed}
 .stbl col.cw{width:auto}.stbl col.cc{width:34%}.stbl col.ca{width:92px}
-.stbl thead th{position:sticky;top:0;background:var(--card);z-index:1;text-align:left;font-size:11.5px;font-weight:700;color:var(--soft);padding:6px 6px;border-bottom:1.5px solid var(--rule)}
+.stbl thead th{position:sticky;top:-1px;background:var(--card);z-index:1;text-align:left;font-size:11.5px;font-weight:700;color:var(--soft);padding:6px 6px;border-bottom:1.5px solid var(--rule)}
 .stbl td{padding:8px 6px;border-bottom:1px solid var(--rule);vertical-align:middle}
 .stbl .tnum{text-align:right;white-space:nowrap}.stbl td.tnum b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:14.5px}.stbl td.tnum small{display:block;font-size:11px;color:var(--soft);font-weight:600}
 .stbl tbody tr[data-item]{cursor:pointer;transition:background-color .15s ease}
 @media (hover:hover){.stbl tbody tr[data-item]:hover{background:var(--t-indigo)}}
 .stbl tr:focus-visible{outline:2px solid var(--indigo);outline-offset:-2px}
-.dayrow th,.dayrow td{background:var(--bg);font-size:12px;font-weight:800;color:var(--soft);padding:5px 6px;text-align:left}.dayrow td{text-align:right}
+.dayrow th,.dayrow td{background:var(--bg);font-size:12px;font-weight:800;color:var(--soft);padding:6px 6px;text-align:left;border-bottom:1px solid var(--rule)}.dayrow td{text-align:right}
 .tdate{color:var(--soft);white-space:nowrap;font-size:12.5px}.twhat{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tcat{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.tcat i{flex-shrink:0}.tcat i{width:8px;height:8px;border-radius:50%;background:var(--cc)}
-.stbl tfoot th,.stbl tfoot td{padding:8px 6px;border-top:1.5px solid var(--rule);font-weight:800;text-align:left;position:sticky;bottom:0;background:var(--card)}.stbl tfoot td{text-align:right}
+.stbl tfoot th,.stbl tfoot td{padding:10px 6px;border-top:1.5px solid var(--rule);font-weight:800;text-align:left;background:var(--card)}.stbl tfoot td{text-align:right}
 @media (min-width:880px){.v-spend .tblcard{grid-column:1/-1}.stbl col.cc{width:28%}.stbl col.ca{width:140px}}
 .pace{font-size:12px;font-weight:700;margin-top:5px}
 .ttools{display:flex;gap:6px;margin-top:8px}.ttools input{flex:1;min-width:0;padding:8px 11px;font-size:14px}.ttools select{width:auto;padding:8px 10px;font-size:14px}.ttools .btn{padding:8px 12px}
@@ -407,6 +407,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 @media (max-height:720px){.costs{padding:8px 12px}.costchips{margin-top:6px}.cchip{padding:4px 9px}}
 @media (min-width:880px){.v-spend .tiles{grid-template-columns:repeat(auto-fit,minmax(175px,1fr))!important}}
 .rtablist{display:flex;gap:6px}
+.morerow td{text-align:center;padding:10px 6px!important;border-bottom:0!important}.morerow .link{font-size:14px}
+.v-spend .tblcard{padding:14px 16px 12px}
+.stbl td{padding:9px 6px}
+main{scrollbar-width:thin;scrollbar-color:var(--rule) transparent}
+main::-webkit-scrollbar{width:10px}main::-webkit-scrollbar-thumb{background:var(--rule);border-radius:10px;border:3px solid var(--bg)}main::-webkit-scrollbar-track{background:transparent}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -787,6 +792,7 @@ function render(){
 }
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function fitOptional(){var m=document.getElementById('main');if(!m)return;var cc=m.querySelector('.costchips');if(cc)cc.style.display='';var o=[].slice.call(m.querySelectorAll('.opt'));o.forEach(function(e){e.style.display='';});
+  if(m.classList.contains('v-spend')&&m.querySelector('.tblcard'))return;
   if(cc&&m.scrollHeight>m.clientHeight+2)cc.style.display='none';
   o.sort(function(a,b){return (+a.dataset.prio)-(+b.dataset.prio);});while(m.scrollHeight>m.clientHeight+2&&o.length){o.shift().style.display='none';}}
 window.addEventListener('resize',function(){sizeTable();fitOptional();sizeTable();fitRail();});
@@ -908,16 +914,18 @@ function moneyInRow(vm,spent){
 }
 var spendQ='',spendF='';
 function spendRows(items,C){var q=spendQ.trim().toLowerCase();return items.filter(function(x){if(spendF&&x.cat!==spendF)return false;if(!q)return true;var c=C.find(function(y){return y.k===x.cat;});return (x.note||'').toLowerCase().indexOf(q)>=0||(c&&c.label.toLowerCase().indexOf(q)>=0)||String(x.amt).indexOf(q)>=0;});}
+var spendAll=false;
 function spendTable(items,C){
   items=spendRows(items,C);var fx=fxNow(),rows=items.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(b.created||0)-(a.created||0);}),tot=sum(rows.map(function(x){return x.amt;})),h='',lastD=null;
   var byDay={};rows.forEach(function(x){byDay[x.date]=(byDay[x.date]||0)+x.amt;});
-  rows.forEach(function(x){var c=C.find(function(y){return y.k===x.cat;}),k=cc(x.cat),d=new Date(x.date+'T12:00');
+  var LIM=15,shown=(spendAll||spendQ||spendF)?rows:rows.slice(0,LIM),more=rows.length-shown.length;
+  shown.forEach(function(x){var c=C.find(function(y){return y.k===x.cat;}),k=cc(x.cat),d=new Date(x.date+'T12:00');
     if(x.date!==lastD){lastD=x.date;var isT=x.date===today();h+='<tr class="dayrow"><th colspan="2" scope="rowgroup">'+(isT?'Today':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}))+'</th><td class="tnum">'+gbp2(byDay[x.date])+'</td></tr>';}
     h+='<tr data-item="'+x.id+'" tabindex="0"><td class="twhat">'+esc(x.note||(c?c.label:'Spending'))+'</td><td><span class="tcat" style="--cc:'+k[0]+'"><i></i>'+esc(c?c.label:'')+'</span></td><td class="tnum"><b>'+gbp2(x.amt)+'</b><small>'+inr(x.amt*fx)+'</small></td></tr>';});
   var tools='<div class="ttools"><input id="sq" type="search" placeholder="Search spending" aria-label="Search spending" value="'+esc(spendQ)+'"><select id="sf" aria-label="Filter by category"><option value="">All</option>'+C.map(function(c){return '<option value="'+c.k+'"'+(spendF===c.k?' selected':'')+'>'+esc(c.label)+'</option>';}).join('')+'</select><button class="btn sm" data-csv="month" aria-label="Download this month as CSV">CSV</button></div>';
   if(!rows.length)return '<section class="card tblcard"><div class="row-b"><h3>Your spending log</h3></div>'+tools+'<div class="tblwrap"><p class="small soft" style="padding:10px 2px">Nothing matches your search.</p></div></section>';
   return '<section class="card tblcard"><div class="row-b"><h3>Your spending log</h3><span class="small soft">'+rows.length+' item'+(rows.length>1?'s':'')+', '+gbp2(tot)+'</span></div>'+tools+
-    '<div class="tblwrap"><table class="stbl"><colgroup><col class="cw"><col class="cc"><col class="ca"></colgroup><thead><tr><th scope="col">What</th><th scope="col">Category</th><th scope="col" class="tnum">Amount</th></tr></thead><tbody>'+h+'</tbody><tfoot><tr><th colspan="2" scope="row">Total this month</th><td class="tnum"><b>'+gbp2(tot)+'</b><small>'+inr(tot*fx)+'</small></td></tr></tfoot></table></div><p class="fine" style="margin-top:6px">Tap a row to edit or delete it.</p></section>';
+    '<div class="tblwrap"><table class="stbl"><colgroup><col class="cw"><col class="cc"><col class="ca"></colgroup><thead><tr><th scope="col">What</th><th scope="col">Category</th><th scope="col" class="tnum">Amount</th></tr></thead><tbody>'+h+(more>0?'<tr class="morerow"><td colspan="3"><button class="link" data-showall>Show all '+rows.length+' items ↓</button></td></tr>':'')+'</tbody><tfoot><tr><th colspan="2" scope="row">'+(spendQ||spendF?'Total shown':'Total this month')+'</th><td class="tnum"><b>'+gbp2(tot)+'</b><small>'+inr(tot*fx)+'</small></td></tr></tfoot></table></div><p class="fine" style="margin-top:6px">Tap a row to edit or delete it.</p></section>';
 }
 function refreshTable(){var card=document.querySelector('.tblcard');if(!card)return;var vm=viewMonth||mKey(),C=cats(),items=S.items.filter(function(x){return x.date.slice(0,7)===vm;});
   var tmp=document.createElement('div');tmp.innerHTML=spendTable(items,C);var nw=tmp.firstChild;
@@ -928,7 +936,7 @@ function downloadFile(name,text,type){try{var b=new Blob([text],{type:type||'tex
 function exportCSV(which){var C=cats(),fx=fxNow(),vm=viewMonth||mKey(),list=which==='all'?S.items.slice():spendRows(S.items.filter(function(x){return x.date.slice(0,7)===vm;}),C);
   list.sort(function(a,b){return a.date<b.date?-1:1;});var rows=[['Date','What','Category','Amount (GBP)','Approx INR','Repeating']].concat(list.map(function(x){var c=C.find(function(y){return y.k===x.cat;});return [x.date,x.note||'',c?c.label:x.cat,(+x.amt).toFixed(2),Math.round(x.amt*fx),x.rid?'Yes':''];}));
   var ok=downloadFile('setu-spending-'+(which==='all'?'all':vm)+'.csv',rows.map(function(r){return r.map(csvCell).join(',');}).join('\n'),'text/csv');toast(ok?'CSV downloaded':'Download isn’t available here');}
-function sizeTable(){var w=document.querySelector('.tblwrap'),m=document.getElementById('main');if(!w||!m)return;w.style.maxHeight='';
+function sizeTable(){var w=document.querySelector('.tblwrap'),m=document.getElementById('main');if(!w||!m)return;w.style.maxHeight='';return;
   var room=m.getBoundingClientRect().bottom-w.getBoundingClientRect().top-parseFloat(getComputedStyle(m).paddingBottom||0)-34;w.style.maxHeight=Math.max(innerHeight<700?72:96,Math.floor(room))+'px';}
 function costsCard(){var p=S.profile,fx=+p.fx||129,ind=indiaMonthly(p),emi=+p.emi||0;
   var chips=[['Rent',gbp(+p.rent||0)],['Bills',gbp(+p.bills||0)],['Personal',gbp(+p.everyday||0)],['India',inr(ind)+' ≈ '+gbp(ind/fx)]];
@@ -1258,6 +1266,7 @@ document.addEventListener('click',function(e){
     formSheet(rid==='new'?'Add a repeating cost':'Edit repeating cost',[{k:'name',label:'What is it? (e.g. Netflix, gym)',text:true},{k:'cat',label:'Category',options:cats().map(function(c){return [c.k,c.label];})},{k:'amt',label:'Amount each month (£)'},{k:'day',label:'Day of the month it’s paid (1–31)'}],R,function(o){o.day=Math.min(31,Math.max(1,Math.round(o.day||1)));o.name=o.name||'Repeating cost';Object.assign(R,o);if(rid==='new')S.recur.push(R);var n=applyRecurring();back();toast(n?'Added '+n+' to this month':'Saved');},rid==='new'?'':'<button class="btn warn" data-form="delete">Delete</button>');return;}
   if(t.hasAttribute('data-costs-save')){var P=S.profile,ev0=+P.everyday||0;document.querySelectorAll('[data-cost]').forEach(function(inp){var k=inp.dataset.cost,v=inp.value.trim();if(k==='pension'){P.pension=v===''?'':Math.max(0,Math.min(100,+v||0));return;}P[k]=Math.max(0,parseFloat(v)||0);});
     if(Math.round(+P.everyday||0)!==Math.round(ev0))scaleBudgets(+P.everyday||0);syncDebts(P);save();sheetFn=null;render();toast('Saved. Your dashboard now uses these figures');return;}
+  if(t.hasAttribute('data-showall')){spendAll=true;refreshTable();return;}
   if(d.email){var eid=d.email;openSheet(function(){return emailSheet(eid);});return;}
   if(d.copy){var es=document.getElementById('emSub'),eb=document.getElementById('emBody');if(!es||!eb)return;copyText(d.copy==='sub'?es.value:d.copy==='body'?eb.value:'Subject: '+es.value+'\n\n'+eb.value);return;}
   if(d.monthin){var mk=d.monthin;S.months=S.months||{};var cur0=S.months[mk]||{},exp0=takeHome(S.profile.salary,S.profile.pension).month;

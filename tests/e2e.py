@@ -92,7 +92,8 @@ try:
     P=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")
     check('Monthly costs editor saves',P['profile']['rent']==1200 and P['profile']['everyday']==500,(P['profile']['rent'],P['profile']['everyday']))
     check('Personal spending equals category budgets',abs(sum(c['budget'] for c in P['cats'])-P['profile']['everyday'])<1)
-    check('Spending fits',fit(pg)<=2,fit(pg))
+    check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
+    check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
     # --- Goals ---
     pg.locator('[data-tab="goals"]:visible').first.click();pg.wait_for_timeout(300)
     pg.click('[data-funds="retire"]');pg.wait_for_timeout(400);pg.click('[data-choose="retire:n50"]');pg.wait_for_timeout(300)
