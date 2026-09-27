@@ -60,5 +60,5 @@ function run(){var g=+document.getElementById('g').value||0,pp=+document.getElem
  document.getElementById('o1').textContent=f(r.m,'£');document.getElementById('o2').textContent=f(r.m*rate,'₹');document.getElementById('o3').textContent=f(r.tax/12,'£');document.getElementById('o4').textContent=f(r.ni/12,'£');}
 ['g','p','s'].forEach(function(i){document.getElementById(i).addEventListener('input',run);});run();
 fetch('https://api.frankfurter.dev/v1/latest?base=GBP&symbols=INR').then(function(r){return r.json();}).then(function(j){if(j&&j.rates&&j.rates.INR){rate=j.rates.INR;document.getElementById('rt').textContent='Using today’s rate: ₹'+rate.toFixed(2)+' = £1.';run();}}).catch(function(){});})();
-</script>
+</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"7e9e4c80e7b2452fa72ee68caac0c878"}'></script>
 </body></html>

@@ -3,7 +3,7 @@ Change SITE_URL once when you move to your own domain, then run:  python scripts
 import json, os, html, datetime
 
 SITE_URL = "https://myselfsislam.github.io/setu"   # no trailing slash
-CF_BEACON_TOKEN = ""                                # Cloudflare Web Analytics token (optional)
+CF_BEACON_TOKEN = "7e9e4c80e7b2452fa72ee68caac0c878"                                # Cloudflare Web Analytics token (optional)
 GOOGLE_VERIFY = ""                                  # Google Search Console verification code (optional)
 TODAY = datetime.date(2026, 9, 27).isoformat()
 OUT = "."

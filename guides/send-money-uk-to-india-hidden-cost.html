@@ -57,5 +57,5 @@ document.getElementById('x1').textContent=f(got);document.getElementById('x2').t
 ['a','fee','r'].forEach(function(i){document.getElementById(i).addEventListener('input',run);});run();
 fetch('https://api.frankfurter.dev/v1/latest?base=GBP&symbols=INR').then(function(r){return r.json();}).then(function(j){if(j&&j.rates&&j.rates.INR){mid=j.rates.INR;document.getElementById('m').textContent='Today’s mid-market rate: ₹'+mid.toFixed(2)+' = £1 (European Central Bank).';if(!document.getElementById('r').dataset.touched)document.getElementById('r').value=(mid*0.975).toFixed(2);run();}}).catch(function(){});
 document.getElementById('r').addEventListener('input',function(){this.dataset.touched=1;});})();
-</script>
+</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"7e9e4c80e7b2452fa72ee68caac0c878"}'></script>
 </body></html>
