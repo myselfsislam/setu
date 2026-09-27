@@ -57,6 +57,11 @@ try:
     check('Phase complete marker',pg.locator('.ph.full').count()>=1)
     pg.click('[data-tick="sim"]');check('Untick works',pg.locator('[data-tick="sim"][aria-checked="false"]').count()==1)
     pg.click('[data-task="nre"]');pg.wait_for_timeout(200);check('Task sheet opens',pg.locator('.sheet h2').inner_text()=='Open an NRE account');pg.click('[data-close]')
+    pg.click('[data-task="nro"]');pg.wait_for_timeout(200);pg.click('[data-email="nro"]');pg.wait_for_timeout(200)
+    check('Email draft opens with placeholders',pg.locator('#emBody').count()==1 and '[account number]' in pg.input_value('#emBody') and 'square brackets' in pg.inner_text('#emHint'))
+    check('Email draft escapes user name',pg.locator('.sheet img').count()==0)
+    pg.fill('#emSub','Test subject');pg.wait_for_timeout(100);check('Open-in-email link follows edits','Test%20subject' in (pg.get_attribute('#emOpen','href') or ''))
+    pg.click('[data-close]')
     check('Checklist fits',fit(pg)<=2,fit(pg))
     # --- Spending ---
     pg.locator('[data-tab="spend"]:visible').first.click();pg.wait_for_timeout(300)
