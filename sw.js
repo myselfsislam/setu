@@ -1,5 +1,5 @@
 /* Setu service worker: works offline, keeps the app fast. Bump VERSION on every release. */
-const VERSION = 'setu-v9-2026-09-27-revenue';
+const VERSION = 'setu-v10-2026-09-27-seo';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './fonts/figtree.woff2', './fonts/bricolage.woff2', './icons/setu-192.png', './icons/setu-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -20,8 +20,11 @@ self.addEventListener('fetch', e => {
   }
   // The app page: network first so updates arrive, cached copy when offline.
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(VERSION).then(c => c.put('./index.html', copy)); return r; })
-      .catch(() => caches.match('./index.html')));
+    // Each page is cached under its own address (app and guides), so the app is never replaced by a guide.
+    const isApp = /\/(index\.html)?$/.test(url.pathname);
+    const key = isApp ? './index.html' : url.pathname;
+    e.respondWith(fetch(req).then(r => { if (r.ok) { const copy = r.clone(); caches.open(VERSION).then(c => c.put(key, copy)); } return r; })
+      .catch(() => caches.match(key).then(hit => hit || caches.match('./index.html'))));
     return;
   }
   // Fonts, icons and other files: cached copy first, refreshed in the background.

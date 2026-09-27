@@ -1,12 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://cloudflareinsights.com https://api.frankfurter.dev https://open.er-api.com https://api.mfapi.in https://api.gdeltproject.org https://www.gov.uk; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>Setu: your money bridge from India to the UK</title>
-<meta name="description" content="A free, private money planner for Indians moving to the UK: monthly budget, first-90-days checklist, and goals back home.">
+<title>Setu: free money planner for Indians moving to the UK</title>
+<meta name="description" content="Free, private money planner for Indians moving to the UK. See take-home pay in pounds and rupees, track spending, follow a first-90-days checklist, and plan a home and retirement in India.">
+<link rel="canonical" href="https://myselfsislam.github.io/setu/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<!-- GOOGLE_SITE_VERIFICATION -->
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Setu","url":"https://myselfsislam.github.io/setu/","description":"Free, private money planner for Indians moving to the UK: take-home pay in pounds and rupees, spending tracker, first-90-days checklist, and goals for a home and retirement in India.","applicationCategory":"FinanceApplication","operatingSystem":"Any (web browser)","inLanguage":"en-GB","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"image":"https://myselfsislam.github.io/setu/og.png","featureList":["UK take-home pay in pounds and rupees","Spending tracker with budgets","First 90 days checklist for India and the UK","NRO and NRE account guidance","Money transfer cost checker","Retirement and home-in-India goals"]}</script>
 <meta name="theme-color" content="#4B3BE0">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/setu-192.png">
@@ -452,7 +456,19 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div id="app"><div class="seo-fallback" style="max-width:720px;margin:0 auto;padding:32px 20px;font-family:Figtree,system-ui,sans-serif;line-height:1.6">
+<h1>Setu: a free money planner for Indians moving to the UK</h1>
+<p>Setu helps you manage money across India and the UK. It's free, takes 3 minutes to set up, and needs no sign-up. Everything you enter stays on your device.</p>
+<ul>
+<li>See your UK take-home pay each month, in pounds and Indian rupees (2026/27 tax rates, including Scotland).</li>
+<li>Track your spending against simple budgets, with a month-end forecast.</li>
+<li>Follow a first-90-days checklist for both countries: NRO and NRE accounts, National Insurance, tax code, council tax, ISA and pension.</li>
+<li>Check the hidden cost of sending money from the UK to India.</li>
+<li>Plan a home and retirement back in India.</li>
+</ul>
+<p><b>Guides:</b> <a href="guides/moving-to-uk-from-india-money-checklist.html">First 90 days money checklist</a> · <a href="guides/uk-salary-after-tax-in-rupees.html">UK salary after tax in rupees</a> · <a href="guides/send-money-uk-to-india-hidden-cost.html">Sending money to India: the hidden cost</a> · <a href="guides/nro-vs-nre-account-uk.html">NRO vs NRE accounts</a></p>
+<noscript><p>Setu needs JavaScript to run. Please turn it on in your browser.</p></noscript>
+</div></div>
 <script>
 (function(){
 'use strict';
@@ -463,6 +479,11 @@ var MONEY_CFG={
   tipLink:'',             // your tip-jar page, e.g. https://ko-fi.com/yourname
   sponsor:null            // e.g. {name:'ABC Tax Advisers', text:'UK–India tax returns for NRIs', url:'https://example.com'}
 };
+/* ===== Site settings ===== */
+var SITE_CFG={
+  cfBeaconToken:''        // Cloudflare Web Analytics token: counts visits with no cookies and no personal data
+};
+if(SITE_CFG.cfBeaconToken&&/^https?:$/.test(location.protocol)&&!/claude\.ai|claudeusercontent/.test(location.hostname)){try{var cfb=document.createElement('script');cfb.defer=true;cfb.src='https://static.cloudflareinsights.com/beacon.min.js';cfb.setAttribute('data-cf-beacon',JSON.stringify({token:SITE_CFG.cfBeaconToken,spa:true}));document.head.appendChild(cfb);}catch(e){}}
 var KEY='setu-v1',storageOK=true;
 function load(){try{var v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.v===1)return v;}catch(e){storageOK=false;}return {v:1,profile:null,checks:{},items:[],cats:null};}
 function migrate(p){if(!p||p.emi!=null)return p;
@@ -540,6 +561,10 @@ function fxLabel(){return '₹'+fxNow().toFixed(2)+' = £1'+(FX.at?', updated '+
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));storageOK=true;if(persisted===null){persisted=false;askPersist();}}catch(e){storageOK=false;}}
 var tab='home',phase=null,addCat='groceries',viewMonth=null,sheetFn=null,wz=null;
 try{tab=sessionStorage.getItem('setu-tab')||'home';}catch(e){}
+var QS=(function(){var o={};try{new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;});}catch(e){}return o;})();
+if(['home','check','spend','goals'].indexOf(QS.tab)>=0)tab=QS.tab;
+function tabURL(t){try{var u=new URL(location.href);u.searchParams.set('tab',t);u.searchParams.delete('open');history.pushState({tab:t},'',u.pathname+u.search);}catch(e){}}
+window.addEventListener('popstate',function(e){var t=(e.state&&e.state.tab)||(new URLSearchParams(location.search).get('tab'))||'home';if(['home','check','spend','goals'].indexOf(t)>=0){tab=t;sheetFn=null;render();}});
 
 /* ---------- helpers ---------- */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -690,7 +715,7 @@ function render(){
   var mh=tab==='home'?'<div class="ava" aria-hidden="true">'+esc((p.name||'S').charAt(0).toUpperCase())+'</div><div class="hi"><b>'+esc(p.name?'Hey '+p.name:greet())+'</b><span>'+esc(whenTxt())+'</span></div>':'<h1 class="ptitle">'+esc(ph[0])+'</h1>';
   app.innerHTML='<div class="app">'+
     '<aside class="side"><div class="brand">'+LOGO+'Setu</div><nav class="snav" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'sn');}).join('')+'</nav>'+
-      '<div class="sfoot"><button class="sn" data-sheet="settings">'+GEAR+'<span>Settings</span></button><p>Free and private. Everything stays on this device. General guidance, not financial advice.</p><p class="sidelinks"><button class="link" data-sheet="privacy">Privacy</button> <button class="link" data-sheet="terms">Terms</button> <button class="link" data-sheet="earn">How Setu makes money</button>'+(MONEY_CFG.tipLink?' <a class="link" href="'+esc(MONEY_CFG.tipLink)+'" target="_blank" rel="noopener noreferrer">☕ Support</a>':'')+'</p></div></aside>'+
+      '<div class="sfoot"><button class="sn" data-sheet="settings">'+GEAR+'<span>Settings</span></button><p>Free and private. Everything stays on this device. General guidance, not financial advice.</p><p class="sidelinks"><a class="link" href="guides/">Guides</a> <button class="link" data-sheet="privacy">Privacy</button> <button class="link" data-sheet="terms">Terms</button> <button class="link" data-sheet="earn">How Setu makes money</button>'+(MONEY_CFG.tipLink?' <a class="link" href="'+esc(MONEY_CFG.tipLink)+'" target="_blank" rel="noopener noreferrer">☕ Support</a>':'')+'</p></div></aside>'+
     '<div class="col"><header class="mhd">'+mh+'<button class="gear" data-sheet="settings" aria-label="Settings">'+GEAR+'</button></header>'+
     '<main id="main" class="v-'+tab+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+V[tab]()+'</main>'+
     '<nav class="tabbar" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'tb');}).join('')+'</nav></div><aside class="rail" id="rail" aria-label="Markets today">'+(isWide()?railBody():'')+'</aside></div>'+(sheetFn?sheetHTML(anim):'');
@@ -1100,7 +1125,7 @@ var SHEETS={
   task:function(id){var t=TASKS.find(function(x){return x.id===id;}),on=!!S.checks[id],dd=dueDate(t);return {title:t.title,body:(dd?'<p class="small soft">Try to finish by '+dLabel(dd)+'</p>':'')+'<p>'+esc(t.text)+'</p>'+(t.link?'<a class="official" href="'+t.link+'" target="_blank" rel="noopener">Read the official guidance</a>':'')+'<div class="acts" style="margin-top:16px"><button class="btn '+(on?'':'go')+'" data-tick="'+id+'" data-close-after>'+(on?'Mark as not done':'Mark as done')+'</button></div>'};},
   items:function(){var vm=viewMonth||mKey(),C=cats(),it=S.items.filter(function(x){return x.date.slice(0,7)===vm;}).sort(function(a,b){return a.date<b.date?1:-1;});
     return {title:'Spending in '+mLabel(vm),body:it.length?'<div class="list">'+it.map(function(x){var c=C.find(function(y){return y.k===x.cat;});return '<button class="li" data-item="'+x.id+'"><span class="grow"><b style="display:block;font-weight:600">'+esc(x.note||(c?c.label:'Spending'))+'</b><span class="small soft">'+esc(c?c.label:'')+', '+dLabel(new Date(x.date+'T12:00'))+'</span></span><span class="f" style="font-weight:700">'+gbp2(x.amt)+'</span></button>';}).join('')+'</div><p class="fine">Tap an item to edit or delete it.</p>':'<p class="soft">Nothing logged for '+mLabel(vm)+' yet. Add spending from the Spending tab.</p>'};},
-  settings:function(){var p=S.profile;if(!p)return SHEETS.about();return {title:'Settings',body:'<div class="list">'+[['setup','Edit my setup','Pay, rent, loans and savings'],['fx','Rupee rate',fxLabel()+'. Tap to refresh.'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['backup','Back up your data',S.lastBackup?'Last backup '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago':'Not backed up yet'],['transfer','Check a money transfer','See what your bank really charges to send money home'],['csvall','Download all spending (CSV)','Open it in Excel or Google Sheets'],['budgets','Spending budgets',gbp(sum(cats().map(function(c){return c.budget;})))+' a month across '+cats().length+' categories'],['recur','Repeating spending',S.recur.length+' set up']].concat(canInstall()?[['install','Install Setu as an app','Works offline and keeps your data safer']]:[]).concat([['privacy','Privacy','No accounts, no tracking. Your data stays on this device'],['terms','Terms of use','Guidance only, not advice'],['earn','How Setu makes money','Free, no ads, clearly labelled referrals'],['about','About Setu','What Setu is, and what it isn’t']]).concat(MONEY_CFG.tipLink?[['tip','☕ Support Setu','Tip the maker if Setu helps you']]:[]).map(function(r){return '<button class="li" data-set="'+r[0]+'"><span class="grow"><b style="display:block;font-weight:600">'+r[1]+'</b><span class="small soft">'+esc(r[2])+'</span></span><span class="chev">›</span></button>';}).join('')+'<button class="li" data-set="reset"><span class="grow"><b style="display:block;font-weight:600;color:var(--rust)">Start over</b><span class="small soft">Delete everything on this device</span></span></button></div>'+(storageOK?'':'<p class="small bad">This browser is blocking storage, so your data will be lost when you close the page.</p>')};},
+  settings:function(){var p=S.profile;if(!p)return SHEETS.about();return {title:'Settings',body:'<div class="list">'+[['setup','Edit my setup','Pay, rent, loans and savings'],['fx','Rupee rate',fxLabel()+'. Tap to refresh.'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['backup','Back up your data',S.lastBackup?'Last backup '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago':'Not backed up yet'],['transfer','Check a money transfer','See what your bank really charges to send money home'],['csvall','Download all spending (CSV)','Open it in Excel or Google Sheets'],['budgets','Spending budgets',gbp(sum(cats().map(function(c){return c.budget;})))+' a month across '+cats().length+' categories'],['recur','Repeating spending',S.recur.length+' set up']].concat(canInstall()?[['install','Install Setu as an app','Works offline and keeps your data safer']]:[]).concat([['guides','Money guides','Checklist, take-home pay in rupees, NRO vs NRE'],['privacy','Privacy','No accounts, no tracking. Your data stays on this device'],['terms','Terms of use','Guidance only, not advice'],['earn','How Setu makes money','Free, no ads, clearly labelled referrals'],['about','About Setu','What Setu is, and what it isn’t']]).concat(MONEY_CFG.tipLink?[['tip','☕ Support Setu','Tip the maker if Setu helps you']]:[]).map(function(r){return '<button class="li" data-set="'+r[0]+'"><span class="grow"><b style="display:block;font-weight:600">'+r[1]+'</b><span class="small soft">'+esc(r[2])+'</span></span><span class="chev">›</span></button>';}).join('')+'<button class="li" data-set="reset"><span class="grow"><b style="display:block;font-weight:600;color:var(--rust)">Start over</b><span class="small soft">Delete everything on this device</span></span></button></div>'+(storageOK?'':'<p class="small bad">This browser is blocking storage, so your data will be lost when you close the page.</p>')};},
   backup:function(){var since=S.lastBackup?Math.floor((Date.now()-S.lastBackup)/864e5):null;
     return {title:'Back up your data',body:'<p class="small soft">Setu keeps everything on this device only. Save a backup file somewhere safe, like email or cloud storage. To move to a new phone, open Setu there and restore the file.</p>'+
       '<div class="acts"><button class="btn go" data-bkfile>Download backup file</button><label class="btn filebtn">Restore from file<input type="file" id="bkin" accept=".json,application/json" hidden></label></div>'+
@@ -1111,7 +1136,7 @@ var SHEETS={
   recur:function(){var C=cats();return {title:'Repeating spending',body:'<p class="small soft">Costs you pay every month, like subscriptions or a gym. Setu adds them to your log automatically on their day.</p>'+
       (S.recur.length?'<div class="list">'+S.recur.map(function(r){var c=C.find(function(y){return y.k===r.cat;});return '<button class="li" data-recur="'+r.id+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(r.name)+'</b><span class="small soft">'+esc(c?c.label:'')+', on the '+r.day+(r.day==1||r.day==21||r.day==31?'st':r.day==2||r.day==22?'nd':r.day==3||r.day==23?'rd':'th')+' of each month</span></span><span class="f" style="font-weight:800">'+gbp2(r.amt)+'</span></button>';}).join('')+'</div>':'<p class="small">Nothing set up yet.</p>')+
       '<div class="acts" style="margin-top:12px"><button class="btn go" data-recur="new">+ Add a repeating cost</button></div>'};},
-  transfer:function(){var p=S.profile,fx=fxNow(),amt=Math.round(indiaMonthly(p)/fx)||500;
+  transfer:function(){var p=S.profile||{},fx=fxNow(),amt=Math.round(indiaMonthly(p)/fx)||500;
     return {title:'Check the cost of sending money home',body:'<p class="small soft">Banks hide most of their charge in a worse exchange rate. Enter what your provider offers to see what it really costs you.</p>'+
       '<div class="fields"><div class="grid2"><label class="field"><span>You send</span><span class="adorn"><i>£</i><input id="tfA" type="number" inputmode="decimal" value="'+amt+'"></span></label><label class="field"><span>Their fee</span><span class="adorn"><i>£</i><input id="tfF" type="number" inputmode="decimal" value="0"></span></label></div>'+
       '<label class="field"><span>Rate they offer (₹ for £1)</span><span class="adorn"><i>₹</i><input id="tfR" type="number" inputmode="decimal" step="any" value="'+(fx*0.975).toFixed(2)+'"></span></label>'+
@@ -1121,7 +1146,7 @@ var SHEETS={
   terms:function(){return {title:'Terms of use',body:'<p class="small">By using Setu you agree to these terms.</p><ul class="plist"><li><b>Guidance, not advice.</b> Setu gives general information and simple calculations. It isn’t financial, tax, legal or immigration advice, and doesn’t recommend any specific product. Talk to a qualified adviser before big decisions.</li><li><b>Check the figures.</b> Tax rules, rates and market data can change or be wrong. Always confirm with official sources before acting.</li><li><b>Your data is yours.</b> It stays on your device. You’re responsible for keeping backups.</li><li><b>Links to other sites.</b> Setu isn’t responsible for other websites, including referral partners. Some links are referral links and are labelled.</li><li><b>No guarantee.</b> Setu is provided as it is, without warranties, and to the extent the law allows, we aren’t liable for losses from using it.</li><li>These terms are governed by the laws of England and Wales.</li></ul><p class="small soft">Last updated 27 September 2026.</p>'};},
   privacy:function(){return {title:'Privacy',body:'<p><b>Setu doesn’t collect your data.</b> There are no accounts, no sign-up, no ads and no tracking. Everything you enter is saved only in this browser on this device, and is never sent to us or anyone else.</p>'+
     '<p class="small soft" style="margin-bottom:4px">To show live figures, your browser fetches public data directly from these services. They see a normal web request from your device (like visiting any website), but none of your Setu data:</p>'+
-    '<ul class="plist"><li>Exchange rates: Frankfurter (European Central Bank rates) and ExchangeRate-API</li><li>Fund prices: mfapi.in</li><li>News: a headlines file on this site, updated from Google News; if that’s unavailable, GDELT and GOV.UK</li></ul>'+
+    '<ul class="plist">'+(SITE_CFG.cfBeaconToken?'<li>Visitor counts: Cloudflare Web Analytics, which counts visits without cookies or personal data</li>':'')+'<li>Exchange rates: Frankfurter (European Central Bank rates) and ExchangeRate-API</li><li>Fund prices: mfapi.in</li><li>News: a headlines file on this site, updated from Google News; if that’s unavailable, GDELT and GOV.UK</li></ul>'+
     '<p class="small soft">Referral links open the partner’s website, which has its own privacy policy. Setu doesn’t share anything with them. You can delete everything at any time from Settings, then Start over. Backups you download stay wherever you save them.</p>'};},
   about:function(){return {title:'About Setu',body:'<p>Setu helps people who move from India to the UK. It shows how much money you have left each month, gives you a checklist for both countries, and helps you plan for a home and retirement in India.</p><p>It gives general guidance only. It is not financial, tax or immigration advice, and rules can change. Check the official websites, and talk to a qualified adviser before big decisions.</p><p class="small soft">Pay after tax uses 2026/27 tax rates for England, Wales and Northern Ireland, or Scotland if you choose it in setup. Everything you enter stays on this device and is never sent anywhere.</p>'};}
 };
@@ -1152,7 +1177,7 @@ document.addEventListener('click',function(e){
   if(d.rtab){railTab=d.rtab;try{sessionStorage.setItem('setu-rail',railTab);}catch(err){}refreshRail();var nb=document.getElementById('rt-'+railTab);if(nb)nb.focus();return;}
   if(t.hasAttribute('data-newsrefresh')){newsFileTried=false;newsFileFailed=false;newsTriedAt=0;loadNews(true);refreshRail();toast('Checking for new headlines…');return;}
   if(d.go){var g=d.go.split(':');if(g[0]==='install'){S.installSeen=true;save();doInstall();return;}if(g[0]==='sheet'){var sn=g[1];openSheet(function(){return SHEETS[sn]();});return;}if(g[0]==='tab'){tab=g[1];render();}else if(g[0]==='plan'){var pi=+g[1],pl=split(),ix=pl.findIndex(function(x){return x.title===(pi===0?'Emergency savings':'Clear the credit card');});if(ix<0)ix=0;openSheet(function(){return SHEETS.plan(ix);});}else if(g[0]==='task'){var tid=g[1];openSheet(function(){return SHEETS.task(tid);});}else if(g[0]==='set'&&g[1]==='setup'){startWizard();}return;}
-  if(d.tab){tab=d.tab;try{sessionStorage.setItem('setu-tab',tab);}catch(err){}render();var m=document.getElementById('main');if(m)m.scrollTop=0;return;}
+  if(d.tab){var changed=tab!==d.tab;tab=d.tab;try{sessionStorage.setItem('setu-tab',tab);}catch(err){}if(changed)tabURL(tab);render();var m=document.getElementById('main');if(m)m.scrollTop=0;return;}
   if(d.plan!=null){var i=d.plan==='debt'?'debt':+d.plan;openSheet(function(){return SHEETS.plan(i);});return;}
   if(d.phase){phase=d.phase;render();return;}
   if(d.task){var id=d.task;openSheet(function(){return SHEETS.task(id);});return;}
@@ -1163,6 +1188,7 @@ document.addEventListener('click',function(e){
   if(d.set){var s=d.set;
     if(s==='setup'){sheetFn=null;startWizard();return;}
     if(s==='csvall'){exportCSV('all');return;}
+    if(s==='guides'){location.href='guides/';return;}
     if(s==='tip'){window.open(MONEY_CFG.tipLink,'_blank','noopener');return;}
     if(s==='install'){sheetFn=null;doInstall();return;}
     if(s==='fx'){toast('Checking the latest rate…');fetchFx(true).then(function(ok){render();toast(ok?'Rate updated: '+fxLabel().split(',')[0]:'Couldn’t reach the rate service. Using the last known rate.');});return;}
@@ -1204,6 +1230,7 @@ document.addEventListener('keydown',function(e){
 });
 applyRecurring();
 render();
+if(QS.open==='transfer'){setTimeout(function(){openSheet(function(){return SHEETS.transfer();});},200);}
 fetchFx(false).then(function(ch){if(ch)render();});
 fetchFxHist().then(function(ch){if(ch)render();});
 })();
