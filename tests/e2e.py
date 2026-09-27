@@ -88,6 +88,10 @@ try:
     txt=open(dl.value.path()).read();check('CSV export valid',txt.startswith('Date,What') and txt.count('\n')>=2)
     pg.click('[data-month]');pg.wait_for_timeout(200);check('Previous month navigation',pg.locator('.mhead .small').inner_text()!='September 2026')
     pg.locator('[data-month]').nth(1).click();pg.wait_for_timeout(200)
+    pg.click('.mimid');pg.wait_for_timeout(200);pg.fill('[data-cost="rent"]','1200');pg.fill('[data-cost="everyday"]','500');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
+    P=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")
+    check('Monthly costs editor saves',P['profile']['rent']==1200 and P['profile']['everyday']==500,(P['profile']['rent'],P['profile']['everyday']))
+    check('Personal spending equals category budgets',abs(sum(c['budget'] for c in P['cats'])-P['profile']['everyday'])<1)
     check('Spending fits',fit(pg)<=2,fit(pg))
     # --- Goals ---
     pg.locator('[data-tab="goals"]:visible').first.click();pg.wait_for_timeout(300)
