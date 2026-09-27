@@ -396,9 +396,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .emhint{color:#FFC766}:root:not([data-theme="light"]) .emhint.ready{color:#6FE3BF}}
 .emacts{flex-wrap:wrap}.emacts .btn{flex:1 1 auto}.emopen{display:flex;width:100%;margin-top:8px}
 .costs{padding:10px 14px}.costhead{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:none;padding:0;cursor:pointer;font:inherit;color:inherit;text-align:left}
-.costhead b{font-size:15px}.costchips{display:flex;gap:6px;overflow-x:auto;margin-top:8px;scrollbar-width:none;padding-bottom:2px}.costchips::-webkit-scrollbar{display:none}
-.cchip{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;border:0;border-radius:12px;background:var(--bg);padding:6px 11px;cursor:pointer;font:inherit;color:inherit}
-.cchip span{font-size:11.5px;color:var(--soft);font-weight:600}.cchip b{font-size:14px;white-space:nowrap}
+.costhead b{font-size:15px}.costchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.costchips::-webkit-scrollbar{display:none}
+.cchip{flex:1 1 150px;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:0;border-radius:14px;background:var(--bg);padding:10px 14px 10px 16px;cursor:pointer;font:inherit;color:inherit;text-align:left;position:relative;overflow:hidden;transition:box-shadow .15s ease}
+.cchip::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--cc)}
+.cchip small{font-size:11.5px;color:var(--soft);font-weight:600}
+@media (hover:hover){.cchip:hover{box-shadow:inset 0 0 0 2px var(--indigo)}}
+.cchip span{font-size:12px;color:var(--soft);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.cchip b{font-size:18px;font-family:"Bricolage Grotesque",sans-serif;white-space:nowrap}
 .csub{font-size:14px;margin:14px 0 6px}.cnote{display:block;margin-top:3px;font-size:12px}
 @media (min-width:880px){.v-spend .costs{grid-column:1/-1}}
 .moneyin>*{flex:1 1 0}.moneyin .small{white-space:nowrap}.mileft .small.addlink{white-space:normal}
@@ -791,7 +794,11 @@ function render(){
   lastRailMode=railMode();document.body.classList.toggle('rail-overlay',lastRailMode==='overlay');afterRender(enter);lastTicked=null;bindSheet();fitRail();loadRail();var sh1=document.querySelector('.sheet');if(sh1&&shTop)sh1.scrollTop=shTop;
 }
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-function fitOptional(){var m=document.getElementById('main');if(!m)return;var cc=m.querySelector('.costchips');if(cc)cc.style.display='';var o=[].slice.call(m.querySelectorAll('.opt'));o.forEach(function(e){e.style.display='';});
+function balanceTiles(){document.querySelectorAll('.costchips').forEach(function(c){var k=[].slice.call(c.children),n=k.length;if(!n)return;var cw=c.clientWidth,gap=8,minW=150;
+  var per=Math.max(1,Math.min(n,Math.floor((cw+gap)/(minW+gap)))),rows=Math.ceil(n/per);per=Math.ceil(n/rows);
+  k.forEach(function(e){e.style.flex='1 1 calc((100% - '+(per-1)*gap+'px) / '+per+')';});});}
+window.addEventListener('resize',function(){balanceTiles();});
+function fitOptional(){balanceTiles();var m=document.getElementById('main');if(!m)return;var cc=m.querySelector('.costchips');if(cc)cc.style.display='';var o=[].slice.call(m.querySelectorAll('.opt'));o.forEach(function(e){e.style.display='';});
   if(m.classList.contains('v-spend')&&m.querySelector('.tblcard'))return;
   if(cc&&m.scrollHeight>m.clientHeight+2)cc.style.display='none';
   o.sort(function(a,b){return (+a.dataset.prio)-(+b.dataset.prio);});while(m.scrollHeight>m.clientHeight+2&&o.length){o.shift().style.display='none';}}
@@ -939,9 +946,11 @@ function exportCSV(which){var C=cats(),fx=fxNow(),vm=viewMonth||mKey(),list=whic
 function sizeTable(){var w=document.querySelector('.tblwrap'),m=document.getElementById('main');if(!w||!m)return;w.style.maxHeight='';return;
   var room=m.getBoundingClientRect().bottom-w.getBoundingClientRect().top-parseFloat(getComputedStyle(m).paddingBottom||0)-34;w.style.maxHeight=Math.max(innerHeight<700?72:96,Math.floor(room))+'px';}
 function costsCard(){var p=S.profile,fx=+p.fx||129,ind=indiaMonthly(p),emi=+p.emi||0;
-  var chips=[['Rent',gbp(+p.rent||0)],['Bills',gbp(+p.bills||0)],['Personal',gbp(+p.everyday||0)],['India',inr(ind)+' ≈ '+gbp(ind/fx)]];
+  var chips=[['Rent',gbp(+p.rent||0),'','var(--s-rent)'],['Bills',gbp(+p.bills||0),'','var(--s-bills)'],['Personal',gbp(+p.everyday||0),'','var(--s-day)']];
+  [['Family & insurance',+p.indiaOther||0],['Loan EMIs',emi],['SIPs',+p.sip||0]].forEach(function(x){if(x[1]>0)chips.push([x[0],gbp(x[1]/fx),inr(x[1]),'var(--s-india)']);});
+  if(chips.length===3&&ind<=0)chips.push(['India',gbp(0),'','var(--s-india)']);
   var total=(+p.rent||0)+(+p.bills||0)+(+p.everyday||0)+ind/fx;
-  return '<section class="card costs desk opt" data-prio="1"><button class="costhead" data-sheet="costs" aria-label="Edit your monthly costs"><span><b>Your monthly costs</b><span class="small soft"> '+gbp(total)+' a month</span></span><span class="dadd">Edit ›</span></button><div class="costchips">'+chips.map(function(c){return '<button class="cchip" data-sheet="costs"><span>'+c[0]+'</span><b>'+c[1]+'</b></button>';}).join('')+'</div></section>';}
+  return '<section class="card costs desk opt" data-prio="1"><button class="costhead" data-sheet="costs" aria-label="Edit your monthly costs"><span><b>Your monthly costs</b><span class="small soft"> '+gbp(total)+' a month</span></span><span class="dadd">Edit ›</span></button><div class="costchips">'+chips.map(function(c){return '<button class="cchip" data-sheet="costs" style="--cc:'+c[3]+'"><span>'+c[0]+'</span><b>'+c[1]+'</b>'+(c[2]?'<small>'+c[2]+'</small>':'')+'</button>';}).join('')+'</div></section>';}
 function vSpend(){
   var C=cats(),cur=mKey(),vm=viewMonth||cur,items=S.items.filter(function(x){return x.date.slice(0,7)===vm;}),tot=sum(items.map(function(x){return x.amt;})),bud=sum(C.map(function(c){return c.budget;})),left=bud-tot,used=pct(tot,bud);
   var R=38,L=2*Math.PI*R,off=(L*(1-used/100)).toFixed(1);
