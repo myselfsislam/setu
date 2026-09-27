@@ -949,11 +949,21 @@ var NTOPIC={
  mf:{label:'Mutual funds',q:['"mutual fund" India SIP'],k:['mutual fund','sip','amfi']}};
 function newsTopics(){var p=S.profile||{},ids=[];[p.retFund,p.homeFund].forEach(function(x){if(x&&NTOPIC[x]&&ids.indexOf(x)<0)ids.push(x);});
   if(!ids.length&&((+p.sip||0)>0||(+p.invested||0)>0))ids.push('mf');if(!ids.length)ids.push('n50');ids.push('fx');return ids;}
-S.news=S.news||{};var newsBusy=false,newsFail={},newsTriedAt=0;
+S.news=S.news||{};var newsBusy=false,newsFail={},newsTriedAt=0,newsFileTried=false,newsFileFailed=false;
 function gdeltURL(terms,extra,span,n){return 'https://api.gdeltproject.org/api/v2/doc/doc?query='+encodeURIComponent('('+terms.join(' OR ')+') sourcelang:english'+(extra?' '+extra:''))+'&mode=artlist&maxrecords='+(n||20)+'&sort=datedesc&timespan='+(span||'3d')+'&format=json';}
 function getJSON(url){return fetch(url,{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.text();}).then(function(t){return JSON.parse(t);});}
 function cleanArts(j){var seen={};return ((j&&j.articles)||[]).filter(function(a){var k=(a.title||'').toLowerCase().slice(0,60);if(!a.title||seen[k])return false;seen[k]=1;return true;}).map(function(a){return {t:a.title.replace(/\s+/g,' ').trim(),u:a.url,d:a.domain||'',at:a.seendate||''};});}
+var newsRaw=null;
+function loadNewsFile(){return fetch('news.json?h='+Math.floor(Date.now()/36e5),{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.json();}).then(function(j){if(!j||!j.topics)throw 0;newsRaw=j;deriveNews(j);return true;});}
+function deriveNews(j){var ids=newsTopics(),seen={},inv=[];
+    ids.forEach(function(id){(j.topics[id]||[]).forEach(function(a){var k=(a.t||'').toLowerCase().slice(0,60);if(!a.t||seen[k])return;seen[k]=1;inv.push({t:a.t,u:a.u,d:a.d||'',at:a.at||'',tag:NTOPIC[id].label});});});
+    inv.sort(function(a,b){return a.at<b.at?1:-1;});
+    S.news={at:Date.now(),key:ids.join(','),inv:inv,uk:j.uk||[],india:j.india||[],src:'file',gen:j.generated||''};save();}
 function loadNews(force){
+  if(newsRaw&&S.news.key!==newsTopics().join(','))deriveNews(newsRaw);
+  if(!newsBusy&&!newsFileTried){newsFileTried=true;var fk=newsTopics().join(',');if(force||!(S.news.src==='file'&&S.news.key===fk&&Date.now()-S.news.at<36e5)){newsBusy=true;
+    loadNewsFile().then(function(){newsBusy=false;newsFail={};refreshRail();},function(){newsBusy=false;newsFileFailed=true;loadNews(force);});return;}}
+  if(!newsFileFailed&&S.news.src==='file')return;
   var N=S.news,fresh=N.at&&(Date.now()-N.at<3*36e5)&&N.key===newsTopics().join(',');if(newsBusy||(fresh&&!force))return;if(!force&&newsTriedAt&&Date.now()-newsTriedAt<10*6e4)return;newsTriedAt=Date.now();newsBusy=true;newsFail={};
   var ids=newsTopics(),terms=[];ids.forEach(function(i){NTOPIC[i].q.forEach(function(q){if(terms.indexOf(q)<0)terms.push(q);});});
   var out={at:Date.now(),key:ids.join(',')};
@@ -982,9 +992,9 @@ function newsItem(a,tag){return '<li><a href="'+esc(a.u)+'" target="_blank" rel=
 function newsBody(){
   loadNews(false);var N=S.news||{},ids=newsTopics();
   var h='<section class="card rc ncard"><div class="row-b"><h3>Your investments</h3><button class="link small" data-newsrefresh aria-label="Refresh news">↻</button></div><div class="ntopics">'+ids.map(function(i){return '<a class="chip nchip" href="'+gnews(NTOPIC[i].q[0].replace(/"/g,''))+'" target="_blank" rel="noopener noreferrer">'+esc(NTOPIC[i].label)+' ↗</a>';}).join('')+'</div>';
-  if(N.inv&&N.inv.length)h+='<ul class="nlist">'+N.inv.slice(0,12).map(function(a){return newsItem(a,tagOf(a.t,ids));}).join('')+'</ul>';
+  if(N.inv&&N.inv.length)h+='<ul class="nlist">'+N.inv.slice(0,12).map(function(a){return newsItem(a,a.tag||tagOf(a.t,ids));}).join('')+'</ul>';
   else h+='<p class="small soft nempty">'+(newsFail.inv?'Live headlines aren’t available right now. Tap a topic above to read the latest news.':newsBusy?'Loading the latest headlines…':'Live headlines appear on your hosted site. Tap a topic above for the latest news.')+'</p>';
-  h+='<p class="rfoot">Headlines from GDELT, a free global news index. Setu doesn’t check or endorse them.</p></section>';
+  h+='<p class="rfoot">'+(N.src==='file'?'Headlines from Google News, refreshed every 3 hours'+(N.gen?' (last '+agoGd(N.gen)+')':'')+'.':'Headlines from GDELT, a free global news index.')+' Setu doesn’t check or endorse them.</p></section>';
   h+='<section class="card rc ncard"><div class="row-b"><h3>Tax and policy</h3><span class="small soft">UK and India</span></div><div class="nlistwrap">';
   h+='<div class="nsub"><span class="flag uk">UK</span>Latest from HMRC and the Treasury</div>';
   if(N.uk&&N.uk.length)h+='<ul class="nlist">'+N.uk.slice(0,4).map(function(a){return newsItem({t:a.t,u:a.u,d:'GOV.UK',at:a.at},'');}).join('')+'</ul>';
@@ -1093,7 +1103,7 @@ document.addEventListener('click',function(e){
     formSheet(meta[1],F,{bal:obj.bal||'',emi:obj.emi||''},function(o){obj.bal=o.bal||0;obj.emi=o.emi||0;},((+obj.bal||0)+(+obj.emi||0)>0?'<button class="btn warn" data-form="delete">Remove</button>':''));return;}
   if(d.seg){wz.d[d.seg]=d.v;render();return;}
   if(d.rtab){railTab=d.rtab;try{sessionStorage.setItem('setu-rail',railTab);}catch(err){}refreshRail();var nb=document.getElementById('rt-'+railTab);if(nb)nb.focus();return;}
-  if(t.hasAttribute('data-newsrefresh')){loadNews(true);refreshRail();toast('Checking for new headlines…');return;}
+  if(t.hasAttribute('data-newsrefresh')){newsFileTried=false;newsFileFailed=false;newsTriedAt=0;loadNews(true);refreshRail();toast('Checking for new headlines…');return;}
   if(d.go){var g=d.go.split(':');if(g[0]==='install'){S.installSeen=true;save();doInstall();return;}if(g[0]==='sheet'){var sn=g[1];openSheet(function(){return SHEETS[sn]();});return;}if(g[0]==='tab'){tab=g[1];render();}else if(g[0]==='plan'){var pi=+g[1],pl=split(),ix=pl.findIndex(function(x){return x.title===(pi===0?'Emergency savings':'Clear the credit card');});if(ix<0)ix=0;openSheet(function(){return SHEETS.plan(ix);});}else if(g[0]==='task'){var tid=g[1];openSheet(function(){return SHEETS.task(tid);});}else if(g[0]==='set'&&g[1]==='setup'){startWizard();}return;}
   if(d.tab){tab=d.tab;try{sessionStorage.setItem('setu-tab',tab);}catch(err){}render();var m=document.getElementById('main');if(m)m.scrollTop=0;return;}
   if(d.plan!=null){var i=d.plan==='debt'?'debt':+d.plan;openSheet(function(){return SHEETS.plan(i);});return;}

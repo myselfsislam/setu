@@ -1,5 +1,5 @@
 /* Setu service worker: works offline, keeps the app fast. Bump VERSION on every release. */
-const VERSION = 'setu-v2-2026-09-27-news';
+const VERSION = 'setu-v3-2026-09-27-newsfile';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/setu-192.png', './icons/setu-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -13,6 +13,11 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   // Live data (exchange rates, fund prices): always from the network, never cached here.
   if (/frankfurter|mfapi|gdeltproject|gov\.uk/.test(url.hostname)) return;
+  // Headlines file: network first, cached copy when offline.
+  if (url.pathname.endsWith('/news.json')) {
+    e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(VERSION).then(c => c.put(url.pathname, copy)); return r; }).catch(() => caches.match(url.pathname)));
+    return;
+  }
   // The app page: network first so updates arrive, cached copy when offline.
   if (req.mode === 'navigate') {
     e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(VERSION).then(c => c.put('./index.html', copy)); return r; })
