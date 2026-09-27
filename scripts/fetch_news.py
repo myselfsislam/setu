@@ -35,7 +35,7 @@ TOPIC_WORDS = {
 MONEY = ["market", "stock", "share", "index", "fund", "invest", "sip", "nav", "return", "rate", "yield", "bond", "price",
          "rupee", "inr", "sterling", "gbp", "sensex", "nifty", "rally", "fall", "gain", "surge", "slump", "record", "trade",
          "deposit", "interest", "rbi", "sebi", "tax", "etf", "portfolio", "inflow", "outflow", "earnings", "valuation", "currency", "forex"]
-BLOCK = ["cricket", "football", "ipl", "match", "wicket", "film", "movie", "actor", "actress", "box office", "murder",
+BLOCK = ["paxg", "pax gold", "convert 1", "usdc", "usdt", "tether", "-growth", "plan-growth", "fund-growth", "normal plan", "growth option", "mutual funds news", "mutual fund investment,", "nav today", "fund(g)", "direct plan", "regular plan", "regular-growth", "direct-growth", "idcw", "(g)", "interactive stock chart", "live |", "portfolio |", "technical analysis", "buy or sell", "xrp", "bitcoin", "ethereum", "crypto", "cricket", "football", "ipl", "match", "wicket", "film", "movie", "actor", "actress", "box office", "murder",
          "arrested", "horoscope", "recipe", "weather", "rain", "celebrity", "wedding", "song", "trailer"]
 
 def relevant(title, tid):
@@ -63,7 +63,7 @@ def gnews(query, days, limit, region="IN", tid=None):
         src = (src_el.text or "").strip() if src_el is not None else ""
         if src and title.endswith(" - " + src):
             title = title[: -(len(src) + 3)]
-        key = re.sub(r"\W+", " ", title.lower())[:70]
+        key = " ".join(re.sub(r"[^a-z0-9 ]", " ", title.lower()).split()[:4])
         if not title or key in seen:
             continue
         seen.add(key)

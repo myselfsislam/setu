@@ -951,7 +951,7 @@ var NTOPIC={
  mf:{label:'Mutual funds',q:['"mutual fund" India SIP'],k:['mutual fund','sip','amfi']}};
 var TOPIC_WORDS={n50:['sensex','nifty'],nn50:['next 50','nifty'],mid:['midcap','mid-cap','mid cap'],small:['smallcap','small-cap','small cap'],us:['s&p','wall street','nasdaq','dow'],baf:['balanced advantage','hybrid'],short:['debt fund','debt mutual','bond','yield','duration fund'],liquid:['liquid fund','debt fund','debt mutual','money market'],fd:['fixed deposit','fd ','fds','deposit rate','nre'],gold:['gold'],fx:['rupee','inr','sterling','pound','gbp'],mf:['mutual fund','sip','nav','amfi','fund']};
 var MONEYW=['market','stock','share','index','fund','invest','sip','nav','return','rate','yield','bond','price','rupee','inr','sterling','gbp','sensex','nifty','rally','fall','gain','surge','slump','record','trade','deposit','interest','rbi','sebi','tax','etf','portfolio','inflow','outflow','earnings','valuation','currency','forex'];
-var BLOCKW=['cricket','football','ipl','match','wicket','film','movie','actor','actress','box office','murder','arrested','horoscope','recipe','weather','rain','celebrity','wedding','song','trailer'];
+var BLOCKW=['paxg','pax gold','convert 1','usdc','usdt','tether','-growth','plan-growth','fund-growth','normal plan','growth option','mutual funds news','mutual fund investment,','nav today','fund(g)','direct plan','regular plan','regular-growth','direct-growth','idcw','(g)','interactive stock chart','live |','portfolio |','technical analysis','buy or sell','xrp','bitcoin','ethereum','crypto','cricket','football','ipl','match','wicket','film','movie','actor','actress','box office','murder','arrested','horoscope','recipe','weather','rain','celebrity','wedding','song','trailer'];
 function isInvest(title,id){var t=' '+String(title||'').toLowerCase()+' ';if(BLOCKW.some(function(b){return t.indexOf(b)>=0;}))return false;if(!(TOPIC_WORDS[id]||[]).some(function(w){return t.indexOf(w)>=0;}))return false;return MONEYW.some(function(w){return t.indexOf(w)>=0;});}
 function newsTopics(){var p=S.profile||{},ids=[];[p.retFund,p.homeFund].forEach(function(x){if(x&&NTOPIC[x]&&ids.indexOf(x)<0)ids.push(x);});
   if(!ids.length&&((+p.sip||0)>0||(+p.invested||0)>0))ids.push('mf');if(!ids.length)ids.push('n50');ids.push('fx');return ids;}
@@ -961,15 +961,17 @@ function fetchT(url,ms,opt){var c=window.AbortController?new AbortController():n
 function getJSON(url,ms){return fetchT(url,ms||9000,{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.text();}).then(function(t){return JSON.parse(t);});}
 function cleanArts(j){var seen={};return ((j&&j.articles)||[]).filter(function(a){var k=(a.title||'').toLowerCase().slice(0,60);if(!a.title||seen[k])return false;seen[k]=1;return true;}).map(function(a){return {t:a.title.replace(/\s+/g,' ').trim(),u:a.url,d:a.domain||'',at:a.seendate||''};});}
 var newsRaw=null;
-function loadNewsFile(){return fetchT('news.json?h='+Math.floor(Date.now()/36e5),4000).then(function(r){if(!r.ok)throw r.status;return r.json();}).then(function(j){if(!j||!j.topics)throw 0;newsRaw=j;deriveNews(j);return true;});}
-function deriveNews(j){var ids=newsTopics(),seen={},inv=[];
-    ids.forEach(function(id){(j.topics[id]||[]).forEach(function(a){var k=(a.t||'').toLowerCase().slice(0,60);if(!a.t||seen[k]||!isInvest(a.t,id))return;seen[k]=1;inv.push({t:a.t,u:a.u,d:a.d||'',at:a.at||'',tag:NTOPIC[id].label});});});
-    inv.sort(function(a,b){return a.at<b.at?1:-1;});
+function loadNewsFile(){return fetchT('news.json?t='+Math.floor(Date.now()/6e4),5000,{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.json();}).then(function(j){if(!j||!j.topics)throw 0;newsRaw=j;deriveNews(j);return true;});}
+function deriveNews(j){var ids=newsTopics(),seen={},per={};
+  ids.forEach(function(id){per[id]=[];(j.topics[id]||[]).slice().sort(function(a,b){return a.at<b.at?1:-1;}).forEach(function(a){if(!a.t||per[id].length>=4||!isInvest(a.t,id))return;
+    var low=a.t.toLowerCase(),k=/(gold|silver) (rate|price)/.test(low)&&/today|\d{1,2}(st|nd|rd|th)|\d{4}/.test(low)?'daily-metal-rate':low.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(Boolean).slice(0,4).join(' ');
+    if(seen[k])return;seen[k]=1;per[id].push({t:a.t,u:a.u,d:a.d||'',at:a.at||'',tag:NTOPIC[id].label});});});
+  var inv=[],more=true;for(var r=0;more;r++){more=false;ids.forEach(function(id){if(per[id][r]){inv.push(per[id][r]);more=true;}});}
     S.news={at:Date.now(),key:ids.join(','),inv:inv,uk:j.uk||[],india:j.india||[],src:'file',gen:j.generated||''};save();}
 function loadNews(force){
   if(newsRaw&&S.news.key!==newsTopics().join(','))deriveNews(newsRaw);
   if(!newsBusy&&!newsFileTried){newsFileTried=true;var fk=newsTopics().join(',');if(force||!(S.news.src==='file'&&S.news.key===fk&&Date.now()-S.news.at<36e5)){newsBusy=true;
-    loadNewsFile().then(function(){newsBusy=false;newsFail={};refreshRail();},function(){newsBusy=false;newsFileFailed=true;loadNews(force);});return;}}
+    loadNewsFile().then(function(){newsBusy=false;newsFail={};newsFileFailed=false;refreshRail();},function(){newsBusy=false;newsFileFailed=true;setTimeout(function(){newsFileTried=false;if(railTab==='news')loadNews(true);},60000);loadNews(force);});return;}}
   if(!newsFileFailed&&S.news.src==='file')return;
   var N=S.news,fresh=N.at&&(Date.now()-N.at<3*36e5)&&N.key===newsTopics().join(',');if(newsBusy||(fresh&&!force))return;if(!force&&newsTriedAt&&Date.now()-newsTriedAt<10*6e4)return;newsTriedAt=Date.now();newsBusy=true;newsFail={};
   var ids=newsTopics(),terms=[];ids.forEach(function(i){NTOPIC[i].q.forEach(function(q){if(terms.indexOf(q)<0)terms.push(q);});});
