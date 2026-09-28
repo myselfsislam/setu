@@ -45,7 +45,7 @@ try:
     left=pg.evaluate("(()=>{const t=document.querySelector('.hero .big').textContent;return +t.replace(/[^0-9.-]/g,'')})()")
     check('Plan shows steps without money amounts',pg.locator('.step').count()>=2 and not any(c in pg.inner_text('.card.plan') for c in '£₹'),pg.inner_text('.card.plan')[:80])
     pg.click('.herohow');pg.wait_for_timeout(300)
-    vals=pg.evaluate("[...document.querySelectorAll('.calct tr')].map(r=>{const t=r.querySelector('th').childNodes[0].textContent.trim(),v=r.querySelector('td').textContent;const m=v.match(/£([\\d,.-]+)/);return [t,m?+m[1].replace(/,/g,''):0]})")
+    vals=pg.evaluate("[...document.querySelectorAll('.calct tr')].map(r=>{const t=r.querySelector('th').childNodes[0].textContent.trim(),v=(r.querySelector('td .cg')||r.querySelector('td')).textContent;const m=v.match(/£([\\d,.-]+)/);return [t,m?+m[1].replace(/,/g,''):0]})")
     mi=[v for t,v in vals if t.startswith('= Money in')][0];lf=[v for t,v in vals if t.startswith('= Left')][0];costs=sum(v for t,v in vals if t.startswith('−'))
     check('Left to save = money in minus all costs',abs(mi-costs-lf)<=6 and abs(lf-left)<=1,(mi,costs,lf,left))
     pg.click('[data-close]');pg.wait_for_timeout(200)

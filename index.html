@@ -459,6 +459,8 @@ main::-webkit-scrollbar{width:10px}main::-webkit-scrollbar-thumb{background:var(
 @media (max-width:560px){.phases{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.phases .ph{flex-direction:row;align-items:baseline;justify-content:center;gap:3px;padding:7px 2px;font-size:12px;min-width:0;border-radius:12px;white-space:nowrap}.phases .ph small{font-size:10.5px}.phases .pl{display:none}.phases .ps{display:block;white-space:nowrap}.phases .ph small{margin:0}}
 @media (max-height:680px){.phases .ph{padding:4px 2px;font-size:11.5px}.v-check .card{padding-top:8px;padding-bottom:8px}.item{padding:3px 0}.iact{width:30px;height:30px}}
 @media (min-width:880px){.v-goals .goal.solo{grid-column:1/-1}}
+.calct .cv{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}.calct .cg{font-weight:800}.calct .cr{font-size:12px;font-weight:600;color:var(--soft);margin-top:2px}
+.calct tr.big .cg{font-family:"Bricolage Grotesque",sans-serif;font-size:19px}.calct tr.big .cr{font-size:13px}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -1341,16 +1343,18 @@ var SHEETS={
       '<div class="acts" style="margin-top:14px"><button class="btn go" data-costs-save>Save changes</button></div>'};},
   leftcalc:function(){var p=S.profile,m=month(),fx=+p.fx||129;
     function row(a,b,c,cls){return '<tr class="'+(cls||'')+'"><th scope="row">'+a+(c?'<small>'+c+'</small>':'')+'</th><td>'+b+'</td></tr>';}
-    var inr2=function(v){return v>0?inr(v)+' ≈ ':'';};
+    /* pounds on top, rupees underneath */
+    function cur(g,r){r=r==null?g*fx:r;return '<span class="cv"><span class="cg">'+gbp(g)+'</span><span class="cr">'+inr(Math.max(0,r))+'</span></span>';}
     return {title:'How “Left to save” is worked out',body:'<p class="small soft">Money that comes into your account this month, minus everything that goes out.</p><table class="calct">'+
-      row(m.th.actual?'Salary credited':'Estimated take-home pay',gbp(m.th.month),m.th.actual?'From Spending → Money in':'After tax, NI and pension. Add your real salary in Spending')+
-      (m.carry>0?row('+ Carried from last month',gbp(m.carry)):'')+
-      row('= Money in',gbp(m.moneyIn),'','tot')+
-      row('− Rent',gbp(+p.rent||0))+row('− Bills',gbp(+p.bills||0),'Council tax, energy, water, internet, phone')+
-      row('− Personal spending',gbp(m.personal),m.spent>(+p.everyday||0)?'What you’ve spent so far ('+gbp(m.spent)+'), as it’s above your '+gbp(+p.everyday||0)+' budget':'Your monthly budget of '+gbp(+p.everyday||0)+' (spent so far: '+gbp(m.spent)+')')+
-      indiaLines(p).filter(function(l){return l.src!=='in';}).map(function(l){return row('− '+esc(l.name),inr2(l.amt)+gbp(l.amt/fx),l.kind==='loan'?'Loan repayment, sent from your UK money':l.kind==='invest'?'An investment, so it’s already working towards your goals':'Sent from your UK money');}).join('')+
-      row('= Left to save',gbp(m.left)+'<small>≈ '+inr(Math.max(0,m.left)*fx)+'</small>','','tot big')+
-      '</table>'+inAccountBox(p)+'<p class="small soft">Rupee amounts use today’s rate of ₹'+fx.toFixed(2)+' = £1.</p><div class="acts" style="flex-wrap:wrap"><button class="btn go" data-sheet="costs">Change these figures</button><button class="btn" data-tab="spend">Add this month’s salary</button></div>'};},
+      row(m.th.actual?'Salary credited':'Estimated take-home pay',cur(m.th.month),m.th.actual?'From Spending → Money in':'After tax, NI and pension. Add your real salary in Spending')+
+      (m.carry>0?row('+ Carried from last month',cur(m.carry)):'')+
+      row('= Money in',cur(m.moneyIn),'','tot')+
+      row('− Rent',cur(+p.rent||0))+row('− Bills',cur(+p.bills||0),'Council tax, energy, water, internet, phone')+
+      row('− Personal spending',cur(m.personal),m.spent>(+p.everyday||0)?'What you’ve spent so far ('+gbp(m.spent)+'), as it’s above your '+gbp(+p.everyday||0)+' budget':'Your monthly budget of '+gbp(+p.everyday||0)+' (spent so far: '+gbp(m.spent)+')')+
+      indiaLines(p).filter(function(l){return l.src!=='in';}).map(function(l){return row('− '+esc(l.name),cur(l.amt/fx,l.amt),l.kind==='loan'?'Loan repayment, sent from your UK money':l.kind==='invest'?'An investment, so it’s already working towards your goals':'Sent from your UK money');}).join('')+
+      row('= Left to save',cur(m.left,Math.max(0,m.left)*fx),'','tot big')+
+      '</table>'+inAccountBox(p)+'<p class="small soft">Pounds on top, rupees underneath, at today’s rate of ₹'+fx.toFixed(2)+' = £1.</p><div class="acts" style="flex-wrap:wrap"><button class="btn go" data-sheet="costs">Change these figures</button><button class="btn" data-tab="spend">Add this month’s salary</button></div>'};},
+
   emails:function(){return {title:'Email drafts',body:'<p class="small soft">Ready-to-send emails for common jobs when you move. Open one, edit it, then copy it into any email service.</p><div class="list">'+Object.keys(EMAILS).map(function(k){return '<button class="li" data-email="'+k+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(EMAILS[k].title)+'</b><span class="small soft">To: '+esc(EMAILS[k].to)+'</span></span><span class="chev">›</span></button>';}).join('')+'</div>'};},
   budgets:function(){return {title:'Spending budgets',body:'<p class="small soft">Tap a category to change how much you plan to spend on it each month.</p><div class="list">'+cats().map(function(c){var k=cc(c.k);return '<button class="li" data-cat-edit="'+c.k+'"><span class="grow" style="display:flex;align-items:center;gap:10px"><i class="bdot" style="background:'+k[0]+'"></i><b style="font-weight:700">'+esc(c.label)+'</b></span><span class="f" style="font-weight:800">'+gbp(c.budget)+'</span></button>';}).join('')+'</div>'};},
   install:function(){return {title:'Add Setu to your home screen',body:(isIOS?'<ol class="steps"><li>Tap the <b>Share</b> button at the bottom of Safari (the square with an arrow).</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. Setu now opens like an app.</li></ol>':'<ol class="steps"><li>Open your browser menu (⋮ or ⋯).</li><li>Choose <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Confirm. Setu now opens like an app.</li></ol>')+'<p class="small soft">Installed, Setu works offline and your data is safer. On iPhone, Safari can clear data from websites you haven’t opened for a while, but home-screen apps are kept.</p>'};},
