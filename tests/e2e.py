@@ -90,7 +90,7 @@ try:
     pg.fill('#sq','oys');pg.wait_for_timeout(150);check('Search filters',pg.locator('tr[data-item]').count()==1);pg.fill('#sq','')
     with pg.expect_download() as dl: pg.click('[data-csv="month"]')
     txt=open(dl.value.path()).read();check('CSV export valid',txt.startswith('Date,What') and txt.count('\n')>=2)
-    pg.click('[data-month]');pg.wait_for_timeout(200);check('Previous month navigation',pg.locator('.mhead .small').inner_text()!='September 2026')
+    pg.click('[data-month]');pg.wait_for_timeout(200);check('Previous month navigation','August' in pg.inner_text('.mlabel'),pg.inner_text('.mlabel'))
     pg.locator('[data-month]').nth(1).click();pg.wait_for_timeout(200)
     pg.click('.mimid');pg.wait_for_timeout(200);pg.fill('[data-cost="rent"]','1200');pg.fill('[data-cost="everyday"]','500');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
     P=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")
@@ -103,6 +103,9 @@ try:
     P3=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")['profile']
     check('India payment can be paid from the Indian account',P3['indiaItems'][-1].get('src')=='in' and 'Indian account' in pg.inner_text('.moneyin') or P3['indiaItems'][-1].get('src')=='in')
     check('Personal spending equals category budgets',abs(sum(c['budget'] for c in P['cats'])-P['profile']['everyday'])<1)
+    pg.click('.mlabel');pg.wait_for_timeout(200);pg.select_option('[data-f="payday"]','25');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
+    check('Month can start on pay day',' – ' in pg.inner_text('.mlabel') and pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile.payday")==25,pg.inner_text('.mlabel'))
+    pg.click('.mlabel');pg.wait_for_timeout(200);pg.select_option('[data-f="payday"]','1');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
     # --- Goals ---
