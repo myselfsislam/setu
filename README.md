@@ -1,5 +1,7 @@
 # Setu
 
+**🌐 Use Setu free: [myselfsislam.github.io/setu](https://myselfsislam.github.io/setu/)** · [Guides for Indians in the UK](https://myselfsislam.github.io/setu/guides/)
+
 **Your money bridge from India to the UK.** A free, private money planner for people moving from India to the UK.
 
 ![Setu preview](preview.png)
