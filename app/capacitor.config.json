@@ -1,0 +1,13 @@
+{
+  "appId": "io.github.myselfsislam.setu",
+  "appName": "Setu",
+  "webDir": "www",
+  "backgroundColor": "#F4F2FB",
+  "ios": { "contentInset": "never", "limitsNavigationsToAppBoundDomains": false },
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "SplashScreen": { "launchAutoHide": false, "launchShowDuration": 1500, "backgroundColor": "#4B3BE0", "showSpinner": false },
+    "LocalNotifications": { "smallIcon": "ic_stat_setu", "iconColor": "#4B3BE0" },
+    "StatusBar": { "overlaysWebView": false }
+  }
+}

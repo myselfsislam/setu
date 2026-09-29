@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://cloudflareinsights.com https://api.frankfurter.dev https://open.er-api.com https://api.mfapi.in https://api.gdeltproject.org https://www.gov.uk; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://myselfsislam.github.io https://cloudflareinsights.com https://api.frankfurter.dev https://open.er-api.com https://api.mfapi.in https://api.gdeltproject.org https://www.gov.uk; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Setu: free money planner for Indians moving to the UK</title>
 <meta name="description" content="Free money planner for Indians in the UK: take-home pay in £ and ₹, spending tracker, first-90-days NRI checklist, and goals in India. No sign-up.">
@@ -463,6 +463,8 @@ main::-webkit-scrollbar{width:10px}main::-webkit-scrollbar-thumb{background:var(
 @media (min-width:880px){.v-goals .goal.solo{grid-column:1/-1}}
 .calct .cv{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}.calct .cg{font-weight:800}.calct .cr{font-size:12px;font-weight:600;color:var(--soft);margin-top:2px}
 .calct tr.big .cg{font-family:"Bricolage Grotesque",sans-serif;font-size:19px}.calct tr.big .cr{font-size:13px}
+body.app-locked #app{filter:blur(18px);pointer-events:none}body.app-locked::before{content:"Setu is locked";position:fixed;inset:0;display:grid;place-items:center;z-index:99;font:800 20px 'Bricolage Grotesque',sans-serif;color:var(--ink);background:rgba(244,242,251,.6)}
+.is-app .tabbar{padding-bottom:max(6px,env(safe-area-inset-bottom))}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -565,11 +567,18 @@ var MONEY_CFG={
   tipLink:'',             // your tip-jar page, e.g. https://ko-fi.com/yourname
   sponsor:null            // e.g. {name:'ABC Tax Advisers', text:'UK–India tax returns for NRIs', url:'https://example.com'}
 };
+/* ===== Native app (iOS / Android via Capacitor) ===== */
+var CAP=window.Capacitor,IS_APP=!!(CAP&&CAP.isNativePlatform&&CAP.isNativePlatform()),APP_OS=IS_APP&&CAP.getPlatform?CAP.getPlatform():'web';
+var SITE_URL='https://myselfsislam.github.io/setu/';
+function plug(n){return IS_APP&&CAP.Plugins?CAP.Plugins[n]:null;}
+if(IS_APP)document.documentElement.classList.add('is-app','os-'+APP_OS);
+/* App stores require their own payment systems for tips, so the tip jar is website-only */
+if(IS_APP)MONEY_CFG.tipLink='';
 /* ===== Site settings ===== */
 var SITE_CFG={
   cfBeaconToken:'7e9e4c80e7b2452fa72ee68caac0c878'        // Cloudflare Web Analytics token: counts visits with no cookies and no personal data
 };
-if(SITE_CFG.cfBeaconToken&&/^https?:$/.test(location.protocol)&&!/claude\.ai|claudeusercontent/.test(location.hostname)){try{var cfb=document.createElement('script');cfb.defer=true;cfb.src='https://static.cloudflareinsights.com/beacon.min.js';cfb.setAttribute('data-cf-beacon',JSON.stringify({token:SITE_CFG.cfBeaconToken,spa:true}));document.head.appendChild(cfb);}catch(e){}}
+if(SITE_CFG.cfBeaconToken&&!IS_APP&&/^https?:$/.test(location.protocol)&&!/claude\.ai|claudeusercontent/.test(location.hostname)){try{var cfb=document.createElement('script');cfb.defer=true;cfb.src='https://static.cloudflareinsights.com/beacon.min.js';cfb.setAttribute('data-cf-beacon',JSON.stringify({token:SITE_CFG.cfBeaconToken,spa:true}));document.head.appendChild(cfb);}catch(e){}}
 var KEY='setu-v1',storageOK=true;
 function load(){try{var v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.v===1)return v;}catch(e){storageOK=false;}return {v:1,profile:null,checks:{},items:[],cats:null};}
 function migrate(p){if(!p||p.emi!=null)return p;
@@ -592,6 +601,9 @@ function indiaLines(p){var out=[];DEBTS.forEach(function(x){var v=(p.debts||{})[
   ensureIndiaItems(p).indiaItems.forEach(function(x){if(+x.amt>0)out.push({key:'item:'+x.id,name:x.name,amt:+x.amt,kind:x.kind,src:x.src==='in'?'in':'uk'});});return out;}
 function indiaFromUK(p){return sum(indiaLines(p).filter(function(l){return l.src!=='in';}).map(function(l){return l.amt;}));}
 function indiaFromIN(p){return sum(indiaLines(p).filter(function(l){return l.src==='in';}).map(function(l){return l.amt;}));}
+/* app: write the file, then open the share sheet (Files, Mail, WhatsApp, Drive...) */
+function shareFile(name,text){var FS=plug('Filesystem'),SH=plug('Share');if(!FS||!SH){toast('Sharing isn’t available');return;}
+  FS.writeFile({path:name,data:text,directory:'CACHE',encoding:'utf8'}).then(function(r){return SH.share({title:name,files:[r.uri]});}).catch(function(e){if(!/cancel/i.test(String(e&&e.message||e)))toast('Couldn’t share the file');});}
 var S=load();S.profile=ensureIndiaItems(syncDebts(migrate(S.profile)));
 /* Ask the browser to protect saved data (helps against Safari clearing unused site data). */
 var persisted=null;function askPersist(){try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persisted().then(function(v){if(v){persisted=true;return;}return navigator.storage.persist().then(function(g){persisted=!!g;});}).catch(function(){});}}catch(e){}}
@@ -599,9 +611,9 @@ var isStandalone=(window.matchMedia&&window.matchMedia('(display-mode: standalon
 var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 var installEvt=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();installEvt=e;});
 window.addEventListener('appinstalled',function(){installEvt=null;isStandalone=true;toast('Setu is installed');});
-function canInstall(){return !isStandalone&&(installEvt||isIOS);}
+function canInstall(){return !IS_APP&&!isStandalone&&(installEvt||isIOS);}
 function doInstall(){if(installEvt){installEvt.prompt();installEvt.userChoice.then(function(){installEvt=null;render();});return;}openSheet(function(){return SHEETS.install();});}
-if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&!/claude\.ai|claudeusercontent|anthropic/.test(location.hostname)){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+if(!IS_APP&&'serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&!/claude\.ai|claudeusercontent|anthropic/.test(location.hostname)){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 /* Live GBP to INR rate: fetched automatically, cached for the day, never typed by the user */
 var FX=S.fxRate||{rate:(S.profile&&+S.profile.fx)||129,at:null,src:null};
 function fxNow(){return +FX.rate||129;}
@@ -656,7 +668,7 @@ function fetchFxMulti(){var t=new Date().toISOString().slice(0,10);if(fxmBusy||(
   fetch('https://api.frankfurter.dev/v1/'+st+'..?base=GBP&symbols=INR,USD,EUR',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
     var d=Object.keys(j.rates||{}).sort();if(d.length<5)throw 0;FXM={at:t,days:d,rates:j.rates};S.fxMulti=FXM;save();}).catch(function(){}).then(function(){refreshRail();});}
 function fxLabel(){return '₹'+fxNow().toFixed(2)+' = £1'+(FX.at?', updated '+new Date(FX.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):', last known rate');}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));storageOK=true;if(persisted===null){persisted=false;askPersist();}}catch(e){storageOK=false;}}
+function save(){try{var js=JSON.stringify(S);localStorage.setItem(KEY,js);storageOK=true;var PR=plug('Preferences');if(PR)PR.set({key:KEY,value:js}).catch(function(){});if(persisted===null){persisted=false;askPersist();}}catch(e){storageOK=false;}}
 var tab='home',phase=null,addCat='groceries',viewMonth=null,sheetFn=null,wz=null;
 try{tab=sessionStorage.getItem('setu-tab')||'home';}catch(e){}
 var QS=(function(){var o={};try{new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;});}catch(e){}return o;})();
@@ -899,7 +911,7 @@ function closeSheet(){sheetFn=null;render();}
 function refreshSheet(){var el=document.querySelector('.sheet');if(!sheetFn||!el)return;var top=el.scrollTop,s0=sheetFn();
   var body=el.querySelector('.sbody');if(body){body.innerHTML=s0.body;el.scrollTop=top;}else render();}
 var toastT;function toast(msg){var old=document.querySelector('.toast');if(old)old.remove();var d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=msg;document.body.appendChild(d);clearTimeout(toastT);toastT=setTimeout(function(){d.remove();},2300);}
-function buzz(){try{if(navigator.vibrate)navigator.vibrate(12);}catch(e){}}
+function buzz(){try{var H=plug('Haptics');if(H){H.impact({style:'LIGHT'}).catch(function(){});return;}if(navigator.vibrate)navigator.vibrate(12);}catch(e){}}
 function confetti(){if(reduce)return;var cols=['#FFB020','#EE3F86','#4B3BE0','#12B5A6','#1FB98F'];for(var i=0;i<34;i++){var d=document.createElement('div');d.className='cf';d.style.left=(10+Math.random()*80)+'%';d.style.background=cols[i%cols.length];d.style.setProperty('--dx',(Math.random()*160-80)+'px');d.style.setProperty('--r',(Math.random()*720-360)+'deg');d.style.animationDelay=(Math.random()*.25)+'s';document.body.appendChild(d);setTimeout(function(x){return function(){x.remove();};}(d),1600);}}
 
 /* ---------- friendly nudges ---------- */
@@ -1012,7 +1024,7 @@ function refreshTable(){var card=document.querySelector('.tblcard');if(!card)ret
   var keepQ=document.getElementById('sq'),sel=keepQ&&keepQ.selectionStart;card.querySelector('.tblwrap').replaceWith(nw.querySelector('.tblwrap'));
   var hd=card.querySelector('.row-b .small');var nhd=nw.querySelector('.row-b .small');if(hd&&nhd)hd.textContent=nhd.textContent;else if(hd&&!nhd)hd.textContent='';sizeTable();}
 function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
-function downloadFile(name,text,type){try{var b=new Blob([text],{type:type||'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},500);return true;}catch(e){return false;}}
+function downloadFile(name,text,type){if(IS_APP){shareFile(name,text);return true;}try{var b=new Blob([text],{type:type||'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},500);return true;}catch(e){return false;}}
 function exportCSV(which){var C=cats(),fx=fxNow(),vm=viewMonth||mKey(),list=which==='all'?S.items.slice():spendRows(logItems(vm),C);
   list.sort(function(a,b){return a.date<b.date?-1:1;});var rows=[['Date','What','Category','Amount (GBP)','Approx INR','Repeating']].concat(list.map(function(x){var c=C.find(function(y){return y.k===x.cat;});return [x.date,x.note||'',c?c.label:x.cat,(+x.amt).toFixed(2),Math.round(x.amt*fx),x.rid?'Yes':''];}));
   var ok=downloadFile('setu-spending-'+(which==='all'?'all':vm)+'.csv',rows.map(function(r){return r.map(csvCell).join(',');}).join('\n'),'text/csv');toast(ok?'CSV downloaded':'Download isn’t available here');}
@@ -1218,7 +1230,7 @@ function fetchT(url,ms,opt){var c=window.AbortController?new AbortController():n
 function getJSON(url,ms){return fetchT(url,ms||9000,{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.text();}).then(function(t){return JSON.parse(t);});}
 function cleanArts(j){var seen={};return ((j&&j.articles)||[]).filter(function(a){var k=(a.title||'').toLowerCase().slice(0,60);if(!a.title||seen[k])return false;seen[k]=1;return true;}).map(function(a){return {t:a.title.replace(/\s+/g,' ').trim(),u:a.url,d:a.domain||'',at:a.seendate||''};});}
 var newsRaw=null;
-function loadNewsFile(){return fetchT('news.json?t='+Math.floor(Date.now()/6e4),5000,{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.json();}).then(function(j){if(!j||!j.topics)throw 0;newsRaw=j;deriveNews(j);return true;});}
+function loadNewsFile(){return fetchT((IS_APP?SITE_URL:'')+'news.json?t='+Math.floor(Date.now()/6e4),5000,{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.json();}).then(function(j){if(!j||!j.topics)throw 0;newsRaw=j;deriveNews(j);return true;});}
 function deriveNews(j){var ids=newsTopics(),seen={},per={};
   ids.forEach(function(id){per[id]=[];(j.topics[id]||[]).slice().sort(function(a,b){return a.at<b.at?1:-1;}).forEach(function(a){if(!a.t||per[id].length>=4||!isInvest(a.t,id))return;
     var low=a.t.toLowerCase(),k=/(gold|silver) (rate|price)/.test(low)&&/today|\d{1,2}(st|nd|rd|th)|\d{4}/.test(low)?'daily-metal-rate':low.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(Boolean).slice(0,4).join(' ');
@@ -1327,7 +1339,7 @@ var SHEETS={
   task:function(id){var t=TASKS.find(function(x){return x.id===id;}),on=!!S.checks[id],dd=dueDate(t);return {title:t.title,body:(dd?'<p class="small soft">Try to finish by '+dLabel(dd)+'</p>':'')+'<p>'+esc(t.text)+'</p><div class="acts" style="margin-top:16px"><button class="btn '+(on?'':'go')+'" data-tick="'+id+'" data-close-after>'+(on?'Mark as not done':'Mark as done')+'</button></div>'};},
   items:function(){var vm=viewMonth||mKey(),C=cats(),it=S.items.filter(function(x){return pKey(x.date)===vm;}).sort(function(a,b){return a.date<b.date?1:-1;});
     return {title:'Spending in '+mLabel(vm),body:it.length?'<div class="list">'+it.map(function(x){var c=C.find(function(y){return y.k===x.cat;});return '<button class="li" data-item="'+x.id+'"><span class="grow"><b style="display:block;font-weight:600">'+esc(x.note||(c?c.label:'Spending'))+'</b><span class="small soft">'+esc(c?c.label:'')+', '+dLabel(new Date(x.date+'T12:00'))+'</span></span><span class="f" style="font-weight:700">'+gbp2(x.amt)+'</span></button>';}).join('')+'</div><p class="fine">Tap an item to edit or delete it.</p>':'<p class="soft">Nothing logged for '+mLabel(vm)+' yet. Add spending from the Spending tab.</p>'};},
-  settings:function(){var p=S.profile;if(!p)return SHEETS.about();return {title:'Settings',body:'<div class="list">'+[['setup','Edit my setup','Pay, rent, loans and savings'],['fx','Rupee rate',fxLabel()+'. Tap to refresh.'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['backup','Back up your data',S.lastBackup?'Last backup '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago':'Not backed up yet'],['transfer','Check a money transfer','See what your bank really charges to send money home'],['csvall','Download all spending (CSV)','Open it in Excel or Google Sheets'],['payday','Your month starts on',payDay()===1?'1st of the month (calendar months)':payDay()+(payDay()===2||payDay()===22?'nd':payDay()===3||payDay()===23?'rd':payDay()===21||payDay()===31?'st':'th')+' of the month, your pay day'],['costs','Your monthly costs','Rent, bills, personal spending, India payments and loans'],['emails','Email drafts','Ready-to-send emails for your bank, lenders, council and HR'],['budgets','Spending budgets',gbp(sum(cats().map(function(c){return c.budget;})))+' a month across '+cats().length+' categories'],['recur','Repeating spending',S.recur.length+' set up']].concat(canInstall()?[['install','Install Setu as an app','Works offline and keeps your data safer']]:[]).concat([['guides','Money guides','Checklist, take-home pay in rupees, NRO vs NRE'],['privacy','Privacy','No accounts, no tracking. Your data stays on this device'],['terms','Terms of use','Guidance only, not advice'],['earn','How Setu makes money','Free, no ads, clearly labelled referrals'],['about','About Setu','What Setu is, and what it isn’t']]).concat(MONEY_CFG.tipLink?[['tip','☕ Support Setu','Tip the maker if Setu helps you']]:[]).map(function(r){return '<button class="li" data-set="'+r[0]+'"><span class="grow"><b style="display:block;font-weight:600">'+r[1]+'</b><span class="small soft">'+esc(r[2])+'</span></span><span class="chev">›</span></button>';}).join('')+'<button class="li" data-set="reset"><span class="grow"><b style="display:block;font-weight:600;color:var(--rust)">Start over</b><span class="small soft">Delete everything on this device</span></span></button></div>'+(storageOK?'':'<p class="small bad">This browser is blocking storage, so your data will be lost when you close the page.</p>')};},
+  settings:function(){var p=S.profile;if(!p)return SHEETS.about();return {title:'Settings',body:'<div class="list">'+[['setup','Edit my setup','Pay, rent, loans and savings'],['fx','Rupee rate',fxLabel()+'. Tap to refresh.'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['backup','Back up your data',S.lastBackup?'Last backup '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago':'Not backed up yet'],['transfer','Check a money transfer','See what your bank really charges to send money home'],['csvall','Download all spending (CSV)','Open it in Excel or Google Sheets'],['payday','Your month starts on',payDay()===1?'1st of the month (calendar months)':payDay()+(payDay()===2||payDay()===22?'nd':payDay()===3||payDay()===23?'rd':payDay()===21||payDay()===31?'st':'th')+' of the month, your pay day'],['costs','Your monthly costs','Rent, bills, personal spending, India payments and loans'],['emails','Email drafts','Ready-to-send emails for your bank, lenders, council and HR'],['budgets','Spending budgets',gbp(sum(cats().map(function(c){return c.budget;})))+' a month across '+cats().length+' categories'],['recur','Repeating spending',S.recur.length+' set up']].concat(canInstall()?[['install','Install Setu as an app','Works offline and keeps your data safer']]:[]).concat([['guides','Money guides','Checklist, take-home pay in rupees, NRO vs NRE'],['privacy','Privacy','No accounts, no tracking. Your data stays on this device'],['terms','Terms of use','Guidance only, not advice'],['earn','How Setu makes money','Free, no ads, clearly labelled referrals'],['about','About Setu','What Setu is, and what it isn’t']]).concat(IS_APP?[['applock',(S.lock?'✓ ':'')+'Lock with Face ID or fingerprint',S.lock?'On. Setu asks to unlock when you open it':'Off. Keep your money private on a shared phone'],['remind',(S.remind?'✓ ':'')+'Monthly reminders',S.remind?'On: pay day and backup reminders':'Off']]:[]).concat(MONEY_CFG.tipLink?[['tip','☕ Support Setu','Tip the maker if Setu helps you']]:[]).map(function(r){return '<button class="li" data-set="'+r[0]+'"><span class="grow"><b style="display:block;font-weight:600">'+r[1]+'</b><span class="small soft">'+esc(r[2])+'</span></span><span class="chev">›</span></button>';}).join('')+'<button class="li" data-set="reset"><span class="grow"><b style="display:block;font-weight:600;color:var(--rust)">Start over</b><span class="small soft">Delete everything on this device</span></span></button></div>'+(storageOK?'':'<p class="small bad">This browser is blocking storage, so your data will be lost when you close the page.</p>')};},
   backup:function(){var since=S.lastBackup?Math.floor((Date.now()-S.lastBackup)/864e5):null;
     return {title:'Back up your data',body:'<p class="small soft">Setu keeps everything on this device only. Save a backup file somewhere safe, like email or cloud storage. To move to a new phone, open Setu there and restore the file.</p>'+
       '<div class="acts"><button class="btn go" data-bkfile>Download backup file</button><label class="btn filebtn">Restore from file<input type="file" id="bkin" accept=".json,application/json" hidden></label></div>'+
@@ -1426,6 +1438,10 @@ document.addEventListener('click',function(e){
   if(d.set){var s=d.set;
     if(s==='setup'){sheetFn=null;startWizard();return;}
     if(s==='payday'){formSheet('Your month starts on',[{k:'payday',label:'Pick the day your salary usually arrives. Setu counts each month from this day to the day before it next month.',options:[['1','1st (calendar months)']].concat(Array.from({length:30},function(_,i){var n=i+2;return [String(n),n+(n===2||n===22?'nd':n===3||n===23?'rd':n===21||n===31?'st':'th')+' of the month'];}))}],{payday:String(payDay())},function(o){S.profile.payday=+o.payday||1;viewMonth=null;toast('Your month now starts on the '+S.profile.payday+(S.profile.payday===1?'st':''));});return;}
+    if(s==='applock'){var B0=plug('BiometricAuthNative');if(!B0)return;if(S.lock){S.lock=false;save();refreshSheet();toast('Lock turned off');return;}
+      B0.checkBiometry().then(function(r){if(!r||(!r.isAvailable&&!r.deviceIsSecure)){toast('Set up Face ID, fingerprint or a passcode on your phone first');return;}return B0.internalAuthenticate({reason:'Turn on the Setu lock',cancelTitle:'Cancel',allowDeviceCredential:true,androidTitle:'Turn on the Setu lock'}).then(function(){S.lock=true;save();refreshSheet();toast('Setu will ask to unlock when you open it');});}).catch(function(){});return;}
+    if(s==='remind'){var L0=plug('LocalNotifications');if(!L0)return;if(S.remind){S.remind=false;save();window.setuScheduleReminders&&window.setuScheduleReminders();refreshSheet();toast('Reminders off');return;}
+      L0.requestPermissions().then(function(r){if(r&&r.display==='granted'){S.remind=true;save();window.setuScheduleReminders&&window.setuScheduleReminders();refreshSheet();toast('Reminders on');}else toast('Allow notifications for Setu in your phone’s settings');}).catch(function(){});return;}
     if(s==='csvall'){exportCSV('all');return;}
     if(s==='guides'){location.href='guides/';return;}
     if(s==='tip'){window.open(MONEY_CFG.tipLink,'_blank','noopener');return;}
@@ -1479,6 +1495,35 @@ render();
 if(QS.open==='transfer'){setTimeout(function(){openSheet(function(){return SHEETS.transfer();});},200);}
 fetchFx(false).then(function(ch){if(ch)render();});
 fetchFxHist().then(function(ch){if(ch)render();});
+/* ===== Native app wiring ===== */
+if(IS_APP){
+  var APPP=plug('App'),PR=plug('Preferences'),BR=plug('Browser'),SB=plug('StatusBar'),SS=plug('SplashScreen'),LN=plug('LocalNotifications'),BIO=plug('BiometricAuthNative');
+  /* 1. if the web storage was cleared by the system, restore from the native copy */
+  if(PR&&!localStorage.getItem(KEY))PR.get({key:KEY}).then(function(r){if(r&&r.value){try{var o=JSON.parse(r.value);if(o&&o.v===1){localStorage.setItem(KEY,r.value);location.reload();}}catch(e){}}}).catch(function(){});
+  else if(PR&&S.profile)PR.set({key:KEY,value:JSON.stringify(S)}).catch(function(){});
+  /* 2. links to websites open in an in-app browser; guides point at the website */
+  document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var h=a.getAttribute('href')||'';if(/^(mailto:|tel:|#|blob:|data:)/.test(h))return;
+    var url=/^https?:/.test(h)?h:(/^(guides\/|\.\/guides\/|privacy|support)/.test(h)?SITE_URL+h.replace(/^\.\//,''):null);if(!url)return;e.preventDefault();if(BR)BR.open({url:url,presentationStyle:'popover'});else window.open(url,'_blank');},true);
+  /* 3. Android back button: close a panel, then go Home, then leave */
+  if(APPP)APPP.addListener('backButton',function(){if(sheetFn){closeSheet();return;}if(wz&&S.profile){wz=null;render();return;}if(tab!=='home'){tab='home';render();return;}APPP.minimizeApp?APPP.minimizeApp():APPP.exitApp();});
+  /* 4. status bar follows light/dark */
+  function sbStyle(){if(!SB)return;var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;SB.setStyle({style:dark?'DARK':'LIGHT'}).catch(function(){});if(APP_OS==='android'){SB.setBackgroundColor({color:dark?'#0F0C24':'#F4F2FB'}).catch(function(){});}}
+  sbStyle();if(window.matchMedia)matchMedia('(prefers-color-scheme: dark)').addEventListener('change',sbStyle);
+  if(SS)setTimeout(function(){SS.hide().catch(function(){});},250);
+  /* 5. Face ID / fingerprint lock */
+  var lockedAt=0,unlocking=false;
+  function showLock(){if(!S.lock||!BIO||unlocking)return;unlocking=true;document.body.classList.add('app-locked');
+    BIO.internalAuthenticate({reason:'Unlock Setu',cancelTitle:'Cancel',allowDeviceCredential:true,iosFallbackTitle:'Use passcode',androidTitle:'Unlock Setu',androidSubtitle:'Your money stays private',androidConfirmationRequired:false})
+      .then(function(){document.body.classList.remove('app-locked');}).catch(function(){}).then(function(){unlocking=false;});}
+  if(APPP)APPP.addListener('appStateChange',function(st){if(!st.isActive){lockedAt=Date.now();return;}sbStyle();if(S.lock&&lockedAt&&Date.now()-lockedAt>30000)showLock();fetchFx(false);});
+  if(S.lock)showLock();
+  /* 6. monthly reminders (pay day, backup) */
+  window.setuScheduleReminders=function(){if(!LN)return Promise.resolve();return LN.cancel({notifications:[{id:101},{id:102}]}).catch(function(){}).then(function(){if(!S.remind||!S.profile)return;var pd=payDay(),n=[];
+      n.push({id:101,title:'Pay day',body:'Add this month’s salary in Setu and see what’s left to save.',schedule:{on:{day:Math.min(pd,28),hour:9,minute:0},allowWhileIdle:true}});
+      n.push({id:102,title:'Back up Setu',body:'Save a backup of your data, so it’s safe if you change phone.',schedule:{on:{day:Math.min(pd,28)+ (pd>20?-7:7),hour:19,minute:0},allowWhileIdle:true}});
+      return LN.schedule({notifications:n});}).catch(function(){});};
+  if(S.remind)window.setuScheduleReminders();
+}
 })();
 </script>
 </body>

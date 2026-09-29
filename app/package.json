@@ -1,0 +1,32 @@
+{
+  "name": "setu-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Setu for iOS and Android (Capacitor wrapper around the Setu web app)",
+  "scripts": {
+    "www": "node scripts/build-www.mjs",
+    "assets": "npx @capacitor/assets generate --iconBackgroundColor '#4B3BE0' --iconBackgroundColorDark '#1B1740' --splashBackgroundColor '#4B3BE0' --splashBackgroundColorDark '#0F0C24'",
+    "sync": "npm run www && npx cap sync",
+    "android": "npm run sync && npx cap open android",
+    "ios": "npm run sync && npx cap open ios"
+  },
+  "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^9.1.2",
+    "@capacitor/android": "^7.4.0",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/browser": "^7.0.0",
+    "@capacitor/core": "^7.4.0",
+    "@capacitor/filesystem": "^7.0.0",
+    "@capacitor/haptics": "^7.0.0",
+    "@capacitor/ios": "^7.4.0",
+    "@capacitor/local-notifications": "^7.0.0",
+    "@capacitor/preferences": "^7.0.0",
+    "@capacitor/share": "^7.0.0",
+    "@capacitor/splash-screen": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.4.0"
+  }
+}
