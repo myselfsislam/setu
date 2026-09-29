@@ -465,6 +465,7 @@ main::-webkit-scrollbar{width:10px}main::-webkit-scrollbar-thumb{background:var(
 .calct tr.big .cg{font-family:"Bricolage Grotesque",sans-serif;font-size:19px}.calct tr.big .cr{font-size:13px}
 body.app-locked #app{filter:blur(18px);pointer-events:none}body.app-locked::before{content:"Setu is locked";position:fixed;inset:0;display:grid;place-items:center;z-index:99;font:800 20px 'Bricolage Grotesque',sans-serif;color:var(--ink);background:rgba(244,242,251,.6)}
 .is-app .tabbar{padding-bottom:max(6px,env(safe-area-inset-bottom))}
+.trackfrom{margin:2px 0 0}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -604,6 +605,9 @@ function indiaFromIN(p){return sum(indiaLines(p).filter(function(l){return l.src
 /* app: write the file, then open the share sheet (Files, Mail, WhatsApp, Drive...) */
 function shareFile(name,text){var FS=plug('Filesystem'),SH=plug('Share');if(!FS||!SH){toast('Sharing isn’t available');return;}
   FS.writeFile({path:name,data:text,directory:'CACHE',encoding:'utf8'}).then(function(r){return SH.share({title:name,files:[r.uri]});}).catch(function(e){if(!/cancel/i.test(String(e&&e.message||e)))toast('Couldn’t share the file');});}
+/* Spending is only kept and shown from the day you started using Setu. */
+function startDay(){return S.startDate||today();}
+function startLabel(){return new Date(startDay()+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
 var S=load();S.profile=ensureIndiaItems(syncDebts(migrate(S.profile)));
 /* Ask the browser to protect saved data (helps against Safari clearing unused site data). */
 var persisted=null;function askPersist(){try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persisted().then(function(v){if(v){persisted=true;return;}return navigator.storage.persist().then(function(g){persisted=!!g;});}).catch(function(){});}}catch(e){}}
@@ -719,7 +723,7 @@ function moneyIn(k){var x=(S.months||{})[k]||{};return {salary:+x.salary||0,carr
 function month(){
   var p=S.profile,th=takeHome(p.salary,p.pension),mi=moneyIn(mKey());if(mi.salary>0)th=Object.assign({},th,{month:mi.salary,actual:true});var india=indiaFromUK(p)/(+p.fx||129),indiaIN=indiaFromIN(p);
   /* Personal spending: your budget, or what you've actually spent this month if that's already higher */
-  var spent=sum((S.items||[]).filter(function(x){return pKey(x.date)===mKey();}).map(function(x){return +x.amt||0;})),personal=Math.max(+p.everyday||0,spent);
+  var spent=sum((S.items||[]).filter(function(x){return x.date>=startDay()&&pKey(x.date)===mKey();}).map(function(x){return +x.amt||0;})),personal=Math.max(+p.everyday||0,spent);
   var parts=[['Rent',+p.rent||0,'--s-rent'],['Bills',+p.bills||0,'--s-bills'],['Personal',personal,'--s-day'],['India',india,'--s-india']];
   /* Left to save = money in (salary + carried from last month) - rent - bills - personal spending - India payments (EMIs, family & insurance, SIPs) */
   var moneyInAmt=th.month+mi.carry,left=moneyInAmt-sum(parts.map(function(x){return x[1];}));
@@ -981,7 +985,7 @@ function vCheck(){
 S.recur=S.recur||[];
 function applyRecurring(){if(!S.profile||!S.recur.length)return 0;var added=0,now=new Date(),cur=calKey(now);
   S.recur.forEach(function(r){var k=r.start||cur;while(k<=cur){var p2=k.split('-'),dim=new Date(+p2[0],+p2[1],0).getDate(),day=Math.min(+r.day||1,dim),dt=k+'-'+String(day).padStart(2,'0');
-      if(dt<=today()&&!S.items.some(function(x){return x.rid===r.id&&x.date.slice(0,7)===k;})){S.items.push({id:uid(),date:dt,cat:r.cat,amt:+r.amt||0,note:r.name,rid:r.id});added++;}
+      if(dt<=today()&&dt>=startDay()&&!S.items.some(function(x){return x.rid===r.id&&x.date.slice(0,7)===k;})){S.items.push({id:uid(),date:dt,cat:r.cat,amt:+r.amt||0,note:r.name,rid:r.id});added++;}
       k=calKey(new Date(+p2[0],+p2[1],1));}});
   if(added)save();return added;}
 function syncEveryday(){if(S.profile&&S.cats)S.profile.everyday=sum(S.cats.map(function(c){return +c.budget||0;}));}
@@ -1013,8 +1017,8 @@ function spendTable(items,C){
   shown.forEach(function(x){var c=C.find(function(y){return y.k===x.cat;}),k=cc(x.cat),d=new Date(x.date+'T12:00');
     if(x.date!==lastD){lastD=x.date;var isT=x.date===today();h+='<tr class="dayrow"><th colspan="2" scope="rowgroup">'+(isT?'Today':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}))+'</th><td class="tnum">'+gbp2(byDay[x.date])+'</td></tr>';}
     h+='<tr data-item="'+x.id+'" tabindex="0"><td class="twhat">'+esc(x.note||(c?c.label:'Spending'))+'</td><td><span class="tcat" style="--cc:'+k[0]+'"><i></i>'+esc(c?c.label:'')+'</span></td><td class="tnum"><b>'+gbp2(x.amt)+'</b><small>'+inr(x.amt*fx)+'</small></td></tr>';});
-  var RO=[['cycle','This month'],['7','Last 7 days'],['30','Last 30 days'],['90','Last 3 months'],['year','This year'],['all','All time'],['custom','Choose dates…']];
-  var tools='<div class="ttools rtools"><select id="sr" aria-label="Date range">'+RO.map(function(o){return '<option value="'+o[0]+'"'+(spendRange.mode===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+(spendRange.mode==='custom'?'<label class="small soft" for="sfrom">From</label><input id="sfrom" type="date" max="'+today()+'" value="'+esc(spendRange.from)+'"><label class="small soft" for="sto">to</label><input id="sto" type="date" max="'+today()+'" value="'+esc(spendRange.to)+'">':'')+'</div><div class="ttools"><input id="sq" type="search" placeholder="Search spending" aria-label="Search spending" value="'+esc(spendQ)+'"><select id="sf" aria-label="Filter by category"><option value="">All</option>'+C.map(function(c){return '<option value="'+c.k+'"'+(spendF===c.k?' selected':'')+'>'+esc(c.label)+'</option>';}).join('')+'</select><button class="btn sm" data-csv="month" aria-label="Download these items as CSV">CSV</button></div>';
+  var RO=[['cycle','This month'],['7','Last 7 days'],['30','Last 30 days'],['90','Last 3 months'],['year','This year'],['all','Since you started'],['custom','Choose dates…']];
+  var tools='<p class="small soft trackfrom">Tracking since '+startLabel()+'</p><div class="ttools rtools"><select id="sr" aria-label="Date range">'+RO.map(function(o){return '<option value="'+o[0]+'"'+(spendRange.mode===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+(spendRange.mode==='custom'?'<label class="small soft" for="sfrom">From</label><input id="sfrom" type="date" min="'+startDay()+'" max="'+today()+'" value="'+esc(spendRange.from)+'"><label class="small soft" for="sto">to</label><input id="sto" type="date" min="'+startDay()+'" max="'+today()+'" value="'+esc(spendRange.to)+'">':'')+'</div><div class="ttools"><input id="sq" type="search" placeholder="Search spending" aria-label="Search spending" value="'+esc(spendQ)+'"><select id="sf" aria-label="Filter by category"><option value="">All</option>'+C.map(function(c){return '<option value="'+c.k+'"'+(spendF===c.k?' selected':'')+'>'+esc(c.label)+'</option>';}).join('')+'</select><button class="btn sm" data-csv="month" aria-label="Download these items as CSV">CSV</button></div>';
   if(!rows.length)return '<section class="card tblcard"><div class="row-b"><h3>Your spending log</h3></div>'+tools+'<div class="tblwrap"><p class="small soft" style="padding:10px 2px">Nothing matches your search.</p></div></section>';
   return '<section class="card tblcard"><div class="row-b"><h3>Your spending log</h3><span class="small soft">'+rows.length+' item'+(rows.length>1?'s':'')+', '+gbp2(tot)+(spendRange.mode!=='cycle'?', '+rangeLabel():'')+'</span></div>'+tools+
     '<div class="tblwrap"><table class="stbl"><colgroup><col class="cw"><col class="cc"><col class="ca"></colgroup><thead><tr><th scope="col">What</th><th scope="col">Category</th><th scope="col" class="tnum">Amount</th></tr></thead><tbody>'+h+(more>0?'<tr class="morerow"><td colspan="3"><button class="link" data-showall>Show all '+rows.length+' items ↓</button></td></tr>':'')+'</tbody><tfoot><tr><th colspan="2" scope="row">'+(spendQ||spendF||spendRange.mode!=='cycle'?'Total shown':'Total this month')+'</th><td class="tnum"><b>'+gbp2(tot)+'</b><small>'+inr(tot*fx)+'</small></td></tr></tfoot></table></div><p class="fine" style="margin-top:6px">Tap a row to edit or delete it.</p></section>';
@@ -1025,7 +1029,7 @@ function refreshTable(){var card=document.querySelector('.tblcard');if(!card)ret
   var hd=card.querySelector('.row-b .small');var nhd=nw.querySelector('.row-b .small');if(hd&&nhd)hd.textContent=nhd.textContent;else if(hd&&!nhd)hd.textContent='';sizeTable();}
 function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
 function downloadFile(name,text,type){if(IS_APP){shareFile(name,text);return true;}try{var b=new Blob([text],{type:type||'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},500);return true;}catch(e){return false;}}
-function exportCSV(which){var C=cats(),fx=fxNow(),vm=viewMonth||mKey(),list=which==='all'?S.items.slice():spendRows(logItems(vm),C);
+function exportCSV(which){var C=cats(),fx=fxNow(),vm=viewMonth||mKey(),list=which==='all'?S.items.filter(function(x){return x.date>=startDay();}):spendRows(logItems(vm),C);
   list.sort(function(a,b){return a.date<b.date?-1:1;});var rows=[['Date','What','Category','Amount (GBP)','Approx INR','Repeating']].concat(list.map(function(x){var c=C.find(function(y){return y.k===x.cat;});return [x.date,x.note||'',c?c.label:x.cat,(+x.amt).toFixed(2),Math.round(x.amt*fx),x.rid?'Yes':''];}));
   var ok=downloadFile('setu-spending-'+(which==='all'?'all':vm)+'.csv',rows.map(function(r){return r.map(csvCell).join(',');}).join('\n'),'text/csv');toast(ok?'CSV downloaded':'Download isn’t available here');}
 function sizeTable(){var w=document.querySelector('.tblwrap'),m=document.getElementById('main');if(!w||!m)return;w.style.maxHeight='';return;
@@ -1043,22 +1047,22 @@ function costsCard(){var p=S.profile,fx=+p.fx||129,ind=indiaMonthly(p),emi=+p.em
   var total=(+p.rent||0)+(+p.bills||0)+(+p.everyday||0)+indiaFromUK(p)/fx,inIN=indiaFromIN(p);
   return '<section class="card costs desk opt" data-prio="1"><button class="costhead" data-sheet="costs" aria-label="Edit your monthly costs"><span><b>Your monthly costs</b><span class="small soft"> '+gbp(total)+' a month from UK money'+(inIN>0?' + '+inr(inIN)+' from your Indian account':'')+'</span></span><span class="dadd">Edit ›</span></button><div class="costchips">'+chips.map(function(c){return '<button class="cchip'+(c[4]?' fromin':'')+'" data-sheet="costs" style="--cc:'+c[3]+'"><span>'+c[0]+'</span><b>'+c[1]+'</b>'+(c[2]?'<small>'+c[2]+'</small>':'')+'</button>';}).join('')+'</div></section>';}
 function isoD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function addDefaultDate(vm){if(vm===mKey())return today();var r=periodRange(vm),d=new Date(r.start.getTime()+Math.floor(r.days/2)*864e5);return isoD(d);}
+function addDefaultDate(vm){if(vm===mKey())return today();var r=periodRange(vm),d=isoD(new Date(r.start.getTime()+Math.floor(r.days/2)*864e5));return d<startDay()?startDay():d;}
 var spendRange={mode:'cycle',from:'',to:''};
 function rangeBounds(){var t=new Date(),td=isoD(t),m=spendRange.mode;if(m==='cycle')return null;
   if(m==='all')return ['0000-01-01',td];if(m==='year')return [t.getFullYear()+'-01-01',td];if(m==='custom')return [spendRange.from||'0000-01-01',spendRange.to||td];
   return [isoD(new Date(t.getTime()-(+m-1)*864e5)),td];}
-function logItems(vm){var b=rangeBounds();if(!b)return S.items.filter(function(x){return pKey(x.date)===vm;});return S.items.filter(function(x){return x.date>=b[0]&&x.date<=b[1];});}
-function rangeLabel(){var m=spendRange.mode;return m==='cycle'?'this month':m==='all'?'all time':m==='year'?'this year':m==='custom'?'your chosen dates':'the last '+m+' days';}
+function logItems(vm){var st=startDay(),b=rangeBounds();if(!b)return S.items.filter(function(x){return x.date>=st&&pKey(x.date)===vm;});var lo=b[0]<st?st:b[0];return S.items.filter(function(x){return x.date>=lo&&x.date<=b[1];});}
+function rangeLabel(){var m=spendRange.mode;return m==='cycle'?'this month':m==='all'?'since '+startLabel():m==='year'?'this year':m==='custom'?'your chosen dates':'the last '+m+' days';}
 function vSpend(){
-  var C=cats(),cur=mKey(),vm=viewMonth||cur,items=S.items.filter(function(x){return pKey(x.date)===vm;}),tot=sum(items.map(function(x){return x.amt;})),bud=sum(C.map(function(c){return c.budget;})),left=bud-tot,used=pct(tot,bud);
+  var C=cats(),cur=mKey(),vm=viewMonth||cur;if(vm<mKey(startDay()))vm=viewMonth=mKey(startDay());var items=S.items.filter(function(x){return x.date>=startDay()&&pKey(x.date)===vm;}),tot=sum(items.map(function(x){return x.amt;})),bud=sum(C.map(function(c){return c.budget;})),left=bud-tot,used=pct(tot,bud);
   var R=38,L=2*Math.PI*R,off=(L*(1-used/100)).toFixed(1);
-  var h='<section class="card"><div class="mhead"><button class="navb" data-month="'+shiftMonth(vm,-1)+'" aria-label="Previous month">‹</button><button class="mlabel" data-set="payday" title="Change the day your month starts" aria-label="'+mLabel(vm)+'. Change the day your month starts">'+mLabel(vm)+(payDay()>1?'':' <span aria-hidden="true">⚙</span>')+'</button><button class="navb" data-month="'+shiftMonth(vm,1)+'" aria-label="Next month"'+(vm>=cur?' disabled':'')+'>›</button></div>'+
+  var h='<section class="card"><div class="mhead"><button class="navb" data-month="'+shiftMonth(vm,-1)+'" aria-label="Previous month"'+(vm<=mKey(startDay())?' disabled':'')+'>‹</button><button class="mlabel" data-set="payday" title="Change the day your month starts" aria-label="'+mLabel(vm)+'. Change the day your month starts">'+mLabel(vm)+(payDay()>1?'':' <span aria-hidden="true">⚙</span>')+'</button><button class="navb" data-month="'+shiftMonth(vm,1)+'" aria-label="Next month"'+(vm>=cur?' disabled':'')+'>›</button></div>'+
     '<div class="ringrow"><div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="'+R+'" stroke="var(--rule)"/><circle class="rv" cx="50" cy="50" r="'+R+'" stroke="'+(left<0?'var(--coral)':'var(--indigo)')+'" stroke-linecap="round" stroke-dasharray="'+L.toFixed(1)+'" data-len="'+L.toFixed(1)+'" data-off="'+off+'" style="stroke-dashoffset:'+off+'"/></svg><b data-count="'+Math.round(used)+'" data-fmt="pct" data-key="ring'+vm+'">'+Math.round(used)+'%</b></div>'+
     '<div><div class="small soft">Spent so far</div><div class="mid" data-count="'+Math.round(tot)+'" data-key="spent'+vm+'">'+gbp(tot)+'</div><span class="leftchip'+(left<0?' over':'')+'">'+(left<0?gbp(-left)+' over budget':gbp(left)+' left to spend')+'</span> <button class="link seeall" data-sheet="items">See all ('+items.length+') ›</button>'+paceLine(vm,tot,bud)+'</div></div>'+moneyInRow(vm,tot)+'</section>';
   h+='<section class="card"><div class="chips">'+C.map(function(c){var k=cc(c.k);return '<button class="chip" data-cat="'+c.k+'" aria-pressed="'+(addCat===c.k)+'" style="--cc:'+k[0]+'"><i>'+gl(k[1])+'</i>'+esc(c.label)+'</button>';}).join('')+'<button class="chip rchip" data-sheet="recur" style="--cc:var(--ink)"><i>↻</i>Repeating'+(S.recur.length?' ('+S.recur.length+')':'')+'</button></div>'+
     '<div class="inrow"><input id="amt" class="a" type="number" inputmode="decimal" step="any" placeholder="£ 0.00" aria-label="Amount in pounds"><input id="note" placeholder="What was it?" aria-label="What was it"><button class="btn go" data-add style="padding:12px 18px">Add</button></div>'+
-    '<div class="daterow"><label for="sdt" class="small soft">When</label><input id="sdt" type="date" max="'+today()+'" value="'+addDefaultDate(vm)+'"><button class="dchip" data-sdt="0">Today</button><button class="dchip" data-sdt="1">Yesterday</button></div>';
+    '<div class="daterow"><label for="sdt" class="small soft">When</label><input id="sdt" type="date" min="'+startDay()+'" max="'+today()+'" value="'+addDefaultDate(vm)+'"><button class="dchip" data-sdt="0">Today</button>'+(isoD(new Date(Date.now()-864e5))>=startDay()?'<button class="dchip" data-sdt="1">Yesterday</button>':'')+'</div>';
   var la=lastAdded(),lc=la&&C.find(function(c){return c.k===la.cat;});if(la)h+='<div class="undo"><span>Added '+esc(la.note||(lc?lc.label:'spending'))+' '+gbp2(la.amt)+'</span><button class="link bad" data-undo="'+la.id+'">Undo</button></div>';
   h+='</section>'+costsCard()+'<section class="tiles'+(items.length?' opt" data-prio="0':'')+'">';
   C.forEach(function(c){var v=sum(items.filter(function(x){return x.cat===c.k;}).map(function(x){return x.amt;})),pcc=c.budget?v/c.budget*100:(v?100:0),k=cc(c.k);
@@ -1324,7 +1328,7 @@ function wizardAction(a){
   if(a==='back'){wz.step=Math.max(1,wz.step-1);render();return;}
   if(a==='cancel'){wz=null;render();return;}
   if(a==='finish'){var d=wz.d;d.homeOn=String(d.homeOn)==='true';['age','salary','rent','bills','everyday','indiaOther','fx','invested','sip','savedUK','retireAge','retireSpend','homeCost','homeYear','homeSaved'].forEach(function(k){d[k]=d[k]===''?0:+d[k];});d.fx=fxNow();if(!d.moved)d.moved=today();delete d.india;delete d.debt;delete d.debtINR;if(Array.isArray(d.indiaItems))applyIndiaTotals(d,d.indiaOther,d.sip);else ensureIndiaItems(d);d.pension=(d.pension===''||d.pension==null)?'':+d.pension;d.scot=String(d.scot)==='true';syncDebts(d);
-    var first=!S.profile,oldEv=S.profile?+S.profile.everyday||0:null;S.profile=d;if(S.cats&&oldEv!==null&&Math.round(+d.everyday||0)!==Math.round(oldEv))scaleBudgets(+d.everyday||0);wz=null;tab='home';lastTab=null;save();render();toast(first?'Your plan is ready':'Setup saved');if(first)setTimeout(confetti,250);}
+    var first=!S.profile,oldEv=S.profile?+S.profile.everyday||0:null;if(first)S.startDate=today();S.profile=d;if(S.cats&&oldEv!==null&&Math.round(+d.everyday||0)!==Math.round(oldEv))scaleBudgets(+d.everyday||0);wz=null;tab='home';lastTab=null;save();render();toast(first?'Your plan is ready':'Setup saved');if(first)setTimeout(confetti,250);}
 }
 
 /* ---------- sheets ---------- */
@@ -1456,8 +1460,8 @@ document.addEventListener('click',function(e){
   if(d.month){if(t.disabled)return;viewMonth=d.month;render();return;}
   if(d.sdt!=null){var dd0=new Date();dd0.setDate(dd0.getDate()-(+d.sdt));var el0=document.getElementById('sdt');if(el0)el0.value=isoD(dd0);return;}
   if(t.hasAttribute('data-add')){var am=parseFloat(document.getElementById('amt').value);if(!(am>0)){document.getElementById('amt').focus();return;}
-    var vm=viewMonth||mKey(),dsel=(document.getElementById('sdt')||{}).value,dt=/^\d{4}-\d{2}-\d{2}$/.test(dsel||'')?dsel:addDefaultDate(vm);if(dt>today())dt=today();var otherCycle=pKey(dt)!==vm;
-    S.items.push({id:uid(),date:dt,cat:addCat,amt:Math.round(am*100)/100,note:document.getElementById('note').value.trim(),created:Date.now()});save();buzz();if(otherCycle)viewMonth=pKey(dt);render();toast('Added '+gbp2(am)+(otherCycle?' to '+mLabel(pKey(dt)):''));return;}
+    var vm=viewMonth||mKey(),dsel=(document.getElementById('sdt')||{}).value,dt=/^\d{4}-\d{2}-\d{2}$/.test(dsel||'')?dsel:addDefaultDate(vm);if(dt>today())dt=today();var early=dt<startDay();if(early)dt=startDay();var otherCycle=pKey(dt)!==vm;
+    S.items.push({id:uid(),date:dt,cat:addCat,amt:Math.round(am*100)/100,note:document.getElementById('note').value.trim(),created:Date.now()});save();buzz();if(otherCycle)viewMonth=pKey(dt);render();toast(early?'Setu tracks spending from '+startLabel()+', so it’s been added on that day':'Added '+gbp2(am)+(otherCycle?' to '+mLabel(pKey(dt)):''));return;}
   if(d.undo){var u=d.undo;S.items=S.items.filter(function(x){return x.id!==u;});save();render();toast('Removed');return;}
   if(d.catEdit){var fromB=sheetFn&&(sheetFn().title==='Spending budgets'),c=cats().find(function(x){return x.k===d.catEdit;});formSheet('Budget for '+c.label,[{k:'budget',label:'Budget each month (£)'}],c,function(o){c.budget=Math.max(0,o.budget||0);syncEveryday();if(fromB)setTimeout(function(){openSheet(function(){return SHEETS.budgets();});},10);});return;}
   if(d.item){var X=S.items.find(function(x){return x.id===d.item;});formDelete=function(){S.items=S.items.filter(function(y){return y!==X;});};
@@ -1480,7 +1484,7 @@ function tfCalc(){var out=document.getElementById('tfOut');if(!out)return;var A=
     (MONEY_CFG.transferLink&&costPct>=0.8?'<div class="refbox"><b>Compare before your next transfer</b><p class="small" style="margin:4px 0 8px">Check how many rupees '+esc(MONEY_CFG.transferName)+' would deliver for the same '+gbp(A)+', and compare it with the figure above. Pick whichever gives your family more.</p><a class="btn go sm" href="'+esc(MONEY_CFG.transferLink)+'" target="_blank" rel="sponsored noopener noreferrer" data-ref="transfer">See '+esc(MONEY_CFG.transferName)+'’s price ↗</a><p class="reflabel">Referral link: Setu may earn a fee if you open an account. It doesn’t change the price you pay. <button class="link" data-sheet="earn" style="font-size:11.5px;padding:0">How Setu makes money</button></p></div>':'');}
 document.addEventListener('change',function(e){if(e.target&&e.target.id==='bkin'){var f=e.target.files&&e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var o=JSON.parse(rd.result);if(!o||o.v!==1||!o.profile)throw 0;if(!confirm('Replace the data on this device with this backup?'))return;S=o;save();sheetFn=null;wz=null;lastTab=null;render();toast('Backup restored');}catch(err){alert('That file isn’t a Setu backup.');}};rd.readAsText(f);}});
 document.addEventListener('change',function(e){if(e.target&&e.target.id==='sf'){spendF=e.target.value;refreshTable();}
-  if(e.target&&e.target.id==='sr'){spendRange.mode=e.target.value;spendAll=false;if(spendRange.mode==='custom'&&!spendRange.from){var t0=new Date();spendRange.to=isoD(t0);spendRange.from=isoD(new Date(t0.getFullYear(),t0.getMonth()-1,t0.getDate()));}var y=(document.getElementById('main')||{}).scrollTop;render();var mm=document.getElementById('main');if(mm)mm.scrollTop=y;var s2=document.getElementById('sr');if(s2)s2.focus();}
+  if(e.target&&e.target.id==='sr'){spendRange.mode=e.target.value;spendAll=false;if(spendRange.mode==='custom'&&!spendRange.from){var t0=new Date();spendRange.to=isoD(t0);var f0=isoD(new Date(t0.getFullYear(),t0.getMonth()-1,t0.getDate()));spendRange.from=f0<startDay()?startDay():f0;}var y=(document.getElementById('main')||{}).scrollTop;render();var mm=document.getElementById('main');if(mm)mm.scrollTop=y;var s2=document.getElementById('sr');if(s2)s2.focus();}
   if(e.target&&(e.target.id==='sfrom'||e.target.id==='sto')){spendRange[e.target.id==='sfrom'?'from':'to']=e.target.value;if(spendRange.from&&spendRange.to&&spendRange.from>spendRange.to){var tt=spendRange.from;spendRange.from=spendRange.to;spendRange.to=tt;}refreshTable();}});
 document.addEventListener('keydown',function(e){
   if((e.key==='ArrowRight'||e.key==='ArrowLeft')&&e.target&&e.target.dataset&&e.target.dataset.rtab){e.preventDefault();railTab=railTab==='news'?'markets':'news';try{sessionStorage.setItem('setu-rail',railTab);}catch(err){}refreshRail();var nb2=document.getElementById('rt-'+railTab);if(nb2)nb2.focus();return;}
@@ -1489,6 +1493,7 @@ document.addEventListener('keydown',function(e){
   if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.dataset&&(e.target.dataset.monthin||e.target.dataset.item)){e.preventDefault();e.target.click();return;}
   if(e.key==='Enter'&&e.target&&(e.target.id==='amt'||e.target.id==='note')){e.preventDefault();var b=document.querySelector('[data-add]');if(b)b.click();}
 });
+if(S.profile&&!S.startDate){var first0=S.items.map(function(x){return x.date;}).sort()[0];S.startDate=first0&&first0<today()?first0:today();save();}
 if(S.profile&&S.cats){syncEveryday();save();}
 applyRecurring();
 render();
