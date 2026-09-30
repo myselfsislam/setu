@@ -127,11 +127,12 @@ try:
     check('Goals has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     # --- Investments ---
     pg.locator('[data-tab="wealth"]:visible').first.click();pg.wait_for_timeout(300)
-    pg.click('[data-hadd="uk"]');pg.fill('[data-f="name"]','Test ISA');pg.fill('[data-f="value"]','1100');pg.fill('[data-f="paid"]','1000');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
+    pg.click('[data-hadd="uk"]');pg.wait_for_timeout(200);pg.click('[data-hnew="manual:uk"]');pg.wait_for_timeout(200);pg.fill('[data-f="name"]','Test ISA');pg.fill('[data-f="value"]','1100');pg.fill('[data-f="paid"]','1000');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     check('Investment holding can be added with growth shown','▲ £100' in pg.inner_text('main') and pg.locator('.whold').count()==2)
     hid=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).holdings.find(h=>h.name==='Test ISA').id")
     pg.click(f'[data-hval="{hid}"]');pg.fill('[data-f="value"]','1250');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     check('Holding value can be updated',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).holdings.find(h=>h.name==='Test ISA').value")==1250)
+    pg.click('[data-hadd="in"]');pg.wait_for_timeout(200);check('Live tracking options offered',pg.locator('[data-hnew="mf"]').count()==1 and pg.locator('[data-hnew="manual:in"]').count()==1);pg.click('[data-close]');pg.wait_for_timeout(200)
     # --- Settings ---
     pg.click('[data-sheet="settings"]:visible');pg.wait_for_timeout(200);rows=pg.locator('[data-set]').count();check('Settings rows',rows>=8,rows)
     pg.click('[data-set="transfer"]');pg.wait_for_timeout(300);pg.fill('#tfA','500');pg.fill('#tfF','3');pg.fill('#tfR','120');pg.wait_for_timeout(100)

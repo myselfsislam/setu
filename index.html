@@ -482,6 +482,13 @@ body.app-locked #app{filter:blur(18px);pointer-events:none}body.app-locked::befo
 .hacts{display:flex;gap:8px;margin-top:8px}.hacts .btn{flex:1}
 @media (min-width:880px){.v-wealth .whero,.v-wealth .wlink,.v-wealth .wchartcard,.v-wealth .fine{grid-column:1/-1}.v-wealth .wchart{max-height:none}.v-wealth .whold{grid-column:auto;align-self:start}}
 .wg.ok{color:#096B51}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .wg.ok{color:#6FE3BF}}
+.livebadge{display:inline-block;font-style:normal;font-size:10.5px;font-weight:800;color:#096B51;background:var(--t-mint);border-radius:6px;padding:1px 6px;vertical-align:1px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .livebadge{color:#6FE3BF}}
+.pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.pgrid div{background:var(--bg);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column}.pgrid span{font-size:11.5px;color:var(--soft);font-weight:600}.pgrid b{font-size:17px;font-family:"Bricolage Grotesque",sans-serif}.pgrid small{font-size:11.5px;color:var(--soft)}
+@media (min-width:560px){.pgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.txlist{display:flex;flex-direction:column}.txrow{display:grid;grid-template-columns:1fr auto 36px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--rule);font-size:14px}.txrow:first-child{border-top:0}.txrow span:nth-child(2){text-align:right;font-weight:700}.txrow small{display:block;font-weight:500;font-size:11.5px;color:var(--soft)}.txrow em{font-style:normal;font-size:11px}
+.pgrid .ok,.whold .ok{color:#096B51}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pgrid .ok,:root:not([data-theme="light"]) .whold .ok{color:#6FE3BF}}
+.pgrid b span{font-size:inherit;font-weight:inherit}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -1119,13 +1126,44 @@ function holdings(){if(!Array.isArray(S.holdings)){var p=S.profile||{},t=startDa
     if(+p.invested>0)H.push({id:uid(),name:'Mutual funds and shares',cty:'in',type:'mf',value:+p.invested,paid:+p.invested,hist:[[t,+p.invested]]});
     if(+p.savedUK>0)H.push({id:uid(),name:'UK savings',cty:'uk',type:'savings',value:+p.savedUK,paid:+p.savedUK,hist:[[t,+p.savedUK]]});
     S.holdings=H;}return S.holdings;}
+/* ---------- Live prices: Indian mutual funds (mfapi.in, daily NAV) and UK ETFs (weekly, from the site's data file) ---------- */
+S.px=S.px||{};var pxBusy={};
+function pxPts(k){var o=S.px[k];return o&&o.pts||[];}
+function pxOn(k,d){var P=pxPts(k);if(!P.length)return null;for(var i=0;i<P.length;i++){if(P[i][0]>=d)return P[i][1];}return P[P.length-1][1];}
+function pxBefore(k,d){var P=pxPts(k),v=null;for(var i=0;i<P.length;i++){if(P[i][0]<=d)v=P[i][1];else break;}return v;}
+function pxLast(k){var P=pxPts(k);return P.length?P[P.length-1]:null;}
+function thin(pts){var cut=isoD(new Date(Date.now()-120*864e5)),out=[],lastW='';pts.forEach(function(x){if(x[0]>=cut){out.push(x);return;}var d=new Date(x[0]+'T12:00'),w=d.getFullYear()+'-'+Math.floor((d-new Date(d.getFullYear(),0,1))/6048e5);if(w!==lastW){out.push(x);lastW=w;}});return out.slice(-700);}
+function loadMFpx(code,force){var k='mf:'+code,o=S.px[k];if(pxBusy[k]||(!force&&o&&Date.now()-o.at<12*36e5))return Promise.resolve(false);pxBusy[k]=1;
+  return fetchT('https://api.mfapi.in/mf/'+code,9000,{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){var pts=(j.data||[]).map(function(d){var a=String(d.date).split('-');return [a[2]+'-'+a[1]+'-'+a[0],+d.nav];}).filter(function(x){return x[1]>0&&/^\d{4}-\d{2}-\d{2}$/.test(x[0]);}).sort(function(a,b){return a[0]<b[0]?-1:1;});
+    if(pts.length<2)return false;S.px[k]={at:Date.now(),name:(j.meta&&j.meta.scheme_name)||'',cur:'INR',pts:thin(pts)};save();return true;}).catch(function(){return false;}).then(function(v){pxBusy[k]=0;return v;});}
+var etfBusy=false;
+function loadETFpx(force){if(etfBusy||(!force&&S.etfAt&&Date.now()-S.etfAt<6*36e5))return Promise.resolve(false);etfBusy=true;
+  return fetchT((IS_APP?SITE_URL:'')+'news.json?t='+Math.floor(Date.now()/6e4),6000,{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){var P=j&&j.prices;if(!P||!Object.keys(P).length)return false;S.etfList=[];
+    Object.keys(P).forEach(function(sym){var o=P[sym];if(!o||!o.pts||o.cur!=='GBP')return;S.px['etf:'+sym]={at:Date.now(),name:o.name,cur:'GBP',pts:o.pts};S.etfList.push([sym,o.name]);});S.etfAt=Date.now();save();return true;}).catch(function(){return false;}).then(function(v){etfBusy=false;return v;});}
+function hLinked(h){return h&&(h.src==='mf'||h.src==='etf');}
+function hKey(h){return h.src+':'+h.code;}
+function monthlyDates(start,day,end){var out=[],d=new Date(start+'T12:00');d.setDate(1);var e=end||today();while(true){var dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),dt=isoD(new Date(d.getFullYear(),d.getMonth(),Math.min(day,dim),12));if(dt>e)break;if(dt>=start)out.push(dt);d.setMonth(d.getMonth()+1);if(out.length>600)break;}return out;}
+/* keep monthly SIP purchases up to date */
+function extendSIP(h){if(!h.sip)return;monthlyDates(h.sip.start,h.sip.day,today()).forEach(function(dt){var id='sip-'+dt.slice(0,7);if(!h.tx.some(function(t){return t.id===id;}))h.tx.push({id:id,d:dt,amt:+h.sip.amt,sip:1});});h.tx.sort(function(a,b){return a.d<b.d?-1:1;});}
+function hCalc(h){if(!hLinked(h))return {value:+h.value||0,paid:+h.paid||0};extendSIP(h);var k=hKey(h),last=pxLast(k);if(!last)return {value:+h.value||0,paid:sum((h.tx||[]).map(function(t){return +t.amt||0;})),stale:true};
+  var units=0,paid=0;(h.tx||[]).forEach(function(t){var pz=pxOn(k,t.d);if(pz&&t.d<=last[0]){t.px=pz;t.units=t.amt/pz;}if(t.units){units+=t.units;paid+=+t.amt;}});
+  return {value:units*last[1],paid:paid,units:units,last:last};}
+function refreshLinked(){holdings().forEach(function(h){if(hLinked(h)){var c=hCalc(h);h.value=c.value;h.paid=c.paid;}});}
+/* annualised return from dated cash flows */
+function xirr(fl){if(fl.length<2)return null;var t0=new Date(fl[0][0]+'T12:00').getTime();var yrs=fl.map(function(c){return (new Date(c[0]+'T12:00').getTime()-t0)/31557600000;});
+  if(yrs[yrs.length-1]<0.08)return null;var r=0.1;for(var i=0;i<60;i++){var f=0,df=0;fl.forEach(function(c,j){var b=Math.pow(1+r,yrs[j]);f+=c[1]/b;df-=yrs[j]*c[1]/(b*(1+r));});if(!isFinite(f)||!df)return null;var nr=r-f/df;if(nr<=-0.99)nr=-0.9;if(Math.abs(nr-r)<1e-7)return nr;r=nr;}return null;}
+function hPerf(h){var c=hCalc(h),k=hKey(h),out={c:c};if(!c.last)return out;var L=c.last,prev=pxBefore(k,isoD(new Date(new Date(L[0]+'T12:00').getTime()-864e5)));
+  var y1=pxBefore(k,isoD(new Date(new Date(L[0]+'T12:00').getTime()-365*864e5))),m1=pxBefore(k,isoD(new Date(new Date(L[0]+'T12:00').getTime()-30*864e5)));
+  out.d1=prev?(L[1]/prev-1)*100:null;out.m1=m1?(L[1]/m1-1)*100:null;out.y1=y1?(L[1]/y1-1)*100:null;
+  var fl=(h.tx||[]).filter(function(t){return t.units;}).map(function(t){return [t.d,-t.amt];});if(fl.length){fl.push([L[0],c.value]);out.xirr=xirr(fl);}return out;}
 function hTypeLabel(h){var L=(HTYPES[h.cty]||[]).find(function(x){return x[0]===h.type;});return L?L[1]:'Investment';}
 function toGBP(h,v){return h.cty==='in'?v/fxNow():v;}
 function fmtH(h,v){return h.cty==='in'?inr(v):gbp(v);}
 /* value of every holding on a date (last recorded value on or before it) */
 function valueOn(h,d){var v=null;h.hist.forEach(function(x){if(x[0]<=d)v=x[1];});return v;}
-function wealthSeries(){var H=holdings(),dates={};H.forEach(function(h){h.hist.forEach(function(x){dates[x[0]]=1;});});var ds=Object.keys(dates).sort();
-  return ds.map(function(d){var uk=0,inr0=0;H.forEach(function(h){var v=valueOn(h,d);if(v==null)return;if(h.cty==='in')inr0+=v;else uk+=v;});return {d:d,uk:uk,in:inr0,tot:uk+inr0/fxNow()};});}
+function linkedValueOn(h,d){var k=hKey(h),pz=pxBefore(k,d);if(!pz)return null;var u=0,any=false;(h.tx||[]).forEach(function(t){if(t.d<=d&&t.units){u+=t.units;any=true;}});return any?u*pz:null;}
+function wealthSeries(){var H=holdings(),dates={};H.forEach(function(h){if(hLinked(h)){var f=(h.tx||[])[0];if(!f)return;pxPts(hKey(h)).forEach(function(x){if(x[0]>=f.d)dates[x[0]]=1;});}else h.hist.forEach(function(x){dates[x[0]]=1;});});var ds=Object.keys(dates).sort();if(ds.length>160){var st=Math.ceil(ds.length/160);ds=ds.filter(function(_,i){return i%st===0||i===ds.length-1;});}
+  return ds.map(function(d){var uk=0,inr0=0;H.forEach(function(h){var v=hLinked(h)?linkedValueOn(h,d):valueOn(h,d);if(v==null)return;if(h.cty==='in')inr0+=v;else uk+=v;});return {d:d,uk:uk,in:inr0,tot:uk+inr0/fxNow()};});}
 function lineChart(series){if(series.length<2)return '<div class="wempty small soft">'+gl('chart')+'<span>Update your values from time to time and your growth will show here.</span></div>';
   var W=innerWidth>=880?760:360,H=170,pad=22,xs=series.map(function(_,i){return pad+i*(W-2*pad)/(series.length-1);}),mx=Math.max.apply(null,series.map(function(s0){return s0.tot;}))*1.08||1;
   function y(v){return H-pad-(v/mx)*(H-2*pad);}
@@ -1136,7 +1174,7 @@ function lineChart(series){if(series.length<2)return '<div class="wempty small s
     '<path d="'+area+'" fill="url(#wg)"/><path d="'+path('tot')+'" fill="none" stroke="var(--indigo)" stroke-width="3" stroke-linejoin="round"/><path d="'+path('uk')+'" fill="none" stroke="#0C7F60" stroke-width="2" stroke-dasharray="5 4"/><path d="'+path('in')+'" fill="none" stroke="var(--marigold)" stroke-width="2" stroke-dasharray="5 4"/>'+
     '<text x="'+xs[xs.length-1]+'" y="'+(y(series[series.length-1].tot)-8).toFixed(1)+'" class="wlab wtop" text-anchor="end">'+gbp(series[series.length-1].tot)+'</text><text x="'+xs[0]+'" y="'+(y(series[0].tot)-8).toFixed(1)+'" class="wlab">'+gbp(series[0].tot)+'</text><text x="'+xs[0]+'" y="'+(H-6)+'" class="wlab">'+lab(0)+'</text><text x="'+xs[xs.length-1]+'" y="'+(H-6)+'" class="wlab" text-anchor="end">'+lab(series.length-1)+'</text></svg>'+
     '<div class="wkey"><span><i style="background:var(--indigo)"></i>Total</span><span><i style="background:#0C7F60"></i>UK</span><span><i style="background:var(--marigold)"></i>India</span></div>';}
-function vWealth(){var H=holdings(),fx=fxNow(),uk=H.filter(function(h){return h.cty==='uk';}),ind=H.filter(function(h){return h.cty==='in';});
+function vWealth(){loadWealthPx();refreshLinked();var H=holdings(),fx=fxNow(),uk=H.filter(function(h){return h.cty==='uk';}),ind=H.filter(function(h){return h.cty==='in';});
   var ukV=sum(uk.map(function(h){return h.value;})),ukP=sum(uk.map(function(h){return h.paid;})),inV=sum(ind.map(function(h){return h.value;})),inP=sum(ind.map(function(h){return h.paid;}));
   var tot=ukV+inV/fx,totP=ukP+inP/fx,gain=tot-totP,gp=totP>0?gain/totP*100:0;
   function g(v,p0,cur){var d=v-p0,pc0=p0>0?d/p0*100:0;return '<span class="wg '+(d>=0?'ok':'bad')+'">'+(d>=0?'▲ ':'▼ ')+cur(Math.abs(d))+' ('+Math.abs(pc0).toFixed(1)+'%)</span>';}
@@ -1150,11 +1188,40 @@ function vWealth(){var H=holdings(),fx=fxNow(),uk=H.filter(function(h){return h.
   [['uk','🇬🇧 In the UK',uk],['in','🇮🇳 In India',ind]].forEach(function(sec){h+='<section class="card whold"><div class="row-b"><h3>'+sec[1]+'</h3><button class="link" data-hadd="'+sec[0]+'">+ Add</button></div>';
     if(!sec[2].length)h+='<p class="small soft" style="margin:6px 0">Nothing here yet. Add an ISA, pension, mutual fund, EPF, PPF or deposit.</p>';
     else h+='<div class="hlist">'+sec[2].map(function(x){var last=x.hist.length?x.hist[x.hist.length-1][0]:'';var age=last?Math.floor((Date.now()-new Date(last+'T12:00'))/864e5):0;
-      return '<div class="hrow"><button class="hmain" data-hedit="'+x.id+'"><span class="grow"><b>'+esc(x.name)+'</b><span class="small soft">'+esc(hTypeLabel(x))+(last?' · updated '+(age<1?'today':age+' day'+(age>1?'s':'')+' ago'):'')+'</span></span><span class="hval"><b class="f">'+fmtH(x,x.value)+'</b>'+(x.paid>0?g(x.value,x.paid,x.cty==='in'?inr:gbp):'')+'</span></button>'+
-        '<div class="hacts"><button class="btn sm" data-hval="'+x.id+'">Update value</button><button class="btn sm" data-hpay="'+x.id+'">Add money</button></div></div>';}).join('')+'</div>';
+      var pf=hLinked(x)?hPerf(x):null,sub=pf?(pf.c.last?'<span class="livebadge">Live</span> '+(x.cty==='in'?'NAV ':'Price ')+(x.cty==='in'?'₹'+pf.c.last[1].toFixed(2):gbp2(pf.c.last[1]))+' · '+new Date(pf.c.last[0]+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})+(pf.y1!=null?' · 1Y '+(pf.y1>=0?'+':'')+pf.y1.toFixed(1)+'%':''):'Fetching live prices…'):esc(hTypeLabel(x))+(last?' · updated '+(age<1?'today':age+' day'+(age>1?'s':'')+' ago'):'');
+      return '<div class="hrow"><button class="hmain" data-'+(hLinked(x)?'hdet':'hedit')+'="'+x.id+'"><span class="grow"><b>'+esc(x.name)+'</b><span class="small soft">'+sub+'</span></span><span class="hval"><b class="f">'+fmtH(x,x.value)+'</b>'+(x.paid>0?g(x.value,x.paid,x.cty==='in'?inr:gbp):'')+'</span></button>'+
+        '<div class="hacts">'+(hLinked(x)?'<button class="btn sm" data-hdet="'+x.id+'">Performance</button><button class="btn sm" data-hbuy="'+x.id+'">Add purchase</button>':'<button class="btn sm" data-hval="'+x.id+'">Update value</button><button class="btn sm" data-hpay="'+x.id+'">Add money</button>')+'</div></div>';}).join('')+'</div>';
     h+='</section>';});
   var sipM=+S.profile.sip||0;h+='<p class="fine">Values are what you enter, so update them now and then (for example from your ISA or fund app).'+(sipM>0?' Your SIPs add about '+inr(sipM)+' a month in India.':'')+' Past growth doesn’t guarantee future returns.</p>';
   return h;}
+var wealthLoading=false;
+function loadWealthPx(){if(wealthLoading)return;var H=holdings(),jobs=[];H.forEach(function(h){if(h.src==='mf')jobs.push(loadMFpx(h.code));});if(H.some(function(h){return h.src==='etf';}))jobs.push(loadETFpx());if(!jobs.length)return;wealthLoading=true;
+  Promise.all(jobs).then(function(r){wealthLoading=false;if(r.some(Boolean)&&tab==='wealth'&&!sheetFn){var y=(document.getElementById('main')||{}).scrollTop;render();var m=document.getElementById('main');if(m)m.scrollTop=y;}});}
+/* ---------- adding a tracked investment ---------- */
+SHEETS_EXTRA={
+ hnew:function(cty){return {title:cty==='in'?'Add an investment in India':'Add an investment in the UK',body:'<p class="small soft">Choose how Setu should track it.</p><div class="list">'+
+   (cty==='in'?'<button class="li" data-hnew="mf"><span class="grow"><b style="display:block;font-weight:700">Mutual fund or SIP</b><span class="small soft">Live NAV every day. Track performance and annual returns automatically.</span></span><span class="livebadge">Live</span></button><button class="li" data-hnew="manual:in"><span class="grow"><b style="display:block;font-weight:700">EPF, PPF, FD, NPS, shares or gold</b><span class="small soft">Enter its value yourself now and then.</span></span><span class="chev">›</span></button>'
+   :'<button class="li" data-hnew="etf"><span class="grow"><b style="display:block;font-weight:700">Index fund or ETF (in an ISA)</b><span class="small soft">Popular trackers with live prices. Track performance automatically.</span></span><span class="livebadge">Live</span></button><button class="li" data-hnew="manual:uk"><span class="grow"><b style="display:block;font-weight:700">Pension, cash ISA, savings or other</b><span class="small soft">Enter its value yourself now and then.</span></span><span class="chev">›</span></button>')+'</div>'};},
+ mfsearch:function(){return {title:'Find your mutual fund',body:'<label class="field"><span>Fund name</span><input id="mfq" type="search" placeholder="e.g. Parag Parikh Flexi Cap" autocomplete="off"></label><p class="small soft" style="margin:4px 0 8px">Pick the plan you hold, usually “Direct Plan - Growth”.</p><div id="mfres" class="list" aria-live="polite"></div>'};},
+ etfpick:function(){var L=S.etfList||[];return {title:'Pick your fund or ETF',body:(L.length?'<div class="list">'+L.map(function(x){var lp=pxLast('etf:'+x[0]);return '<button class="li" data-etfpick="'+esc(x[0])+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(x[1])+'</b><span class="small soft">'+esc(x[0].replace('.L',''))+(lp?' · '+gbp2(lp[1]):'')+'</span></span><span class="chev">›</span></button>';}).join('')+'</div><p class="fine">Prices update a few times a day. Not listed? Add it as “Other” and enter its value yourself.</p>':'<p class="small">Live UK prices will appear after the next price update. Meanwhile, add it as “Other” and enter its value yourself.</p>')};},
+ hdet:function(id){var h=holdings().find(function(x){return x.id===id;});if(!h)return {title:'Investment',body:''};var pf=hPerf(h),c=pf.c,cur=h.cty==='in'?inr:gbp,cur2=h.cty==='in'?function(v){return '₹'+(+v).toFixed(2);}:gbp2;
+   function pc(v){return v==null?'<span class="soft">–</span>':'<span class="'+(v>=0?'ok':'bad')+'">'+(v>=0?'+':'')+v.toFixed(1)+'%</span>';}
+   var k=hKey(h),first=(h.tx||[])[0],ser=first?pxPts(k).filter(function(x){return x[0]>=first.d;}).map(function(x){return linkedValueOn(h,x[0])||0;}):[];
+   return {title:h.name,body:(c.last?'<div class="bigrow"><div class="mid f">'+cur(c.value)+'</div>'+(h.cty==='in'?'':'<span class="soft small">≈ '+inr(c.value*fxNow())+'</span>')+'</div>'+
+     '<div class="pgrid"><div><span>You put in</span><b>'+cur(c.paid)+'</b></div><div><span>Gain</span><b class="'+(c.value>=c.paid?'ok':'bad')+'">'+(c.value>=c.paid?'+':'−')+cur(Math.abs(c.value-c.paid))+'</b><small>'+(c.paid?((c.value/c.paid-1)*100).toFixed(1)+'%':'')+'</small></div><div><span>Yearly return (XIRR)'+tip('xirr','Your return per year, allowing for when each purchase was made. Shown after about a month.',true)+'</span><b>'+(pf.xirr!=null?pc(pf.xirr*100):'<span class="soft">–</span>')+'</b></div><div><span>Units</span><b>'+(c.units||0).toFixed(3)+'</b></div></div>'+
+     (ser.length>2?'<div class="fsp">'+spark(ser,300,48)+'<span class="small soft">Your holding’s value since '+new Date(first.d+'T12:00').toLocaleDateString('en-GB',{month:'short',year:'numeric'})+'</span></div>':'')+
+     '<h3 class="csub">How the fund is doing</h3><div class="pgrid"><div><span>Latest price</span><b>'+cur2(c.last[1])+'</b><small>'+new Date(c.last[0]+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})+'</small></div><div><span>1 day</span><b>'+pc(pf.d1)+'</b></div><div><span>1 month</span><b>'+pc(pf.m1)+'</b></div><div><span>1 year</span><b>'+pc(pf.y1)+'</b></div></div>'
+     :'<p class="small soft">Fetching live prices… Open this again in a moment.</p>')+
+     (h.sip?'<p class="small" style="margin:10px 0 0">🔁 SIP of '+cur(h.sip.amt)+' on the '+h.sip.day+(h.sip.day==1||h.sip.day==21||h.sip.day==31?'st':h.sip.day==2||h.sip.day==22?'nd':h.sip.day==3||h.sip.day==23?'rd':'th')+' of each month, added automatically. <button class="link" data-sipstop="'+h.id+'" style="font-size:13px">Stop SIP</button></p>':'')+
+     '<h3 class="csub">Purchases</h3><div class="txlist">'+(h.tx||[]).slice().reverse().slice(0,24).map(function(t){return '<div class="txrow"><span>'+new Date(t.d+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+(t.sip?' <em class="soft">SIP</em>':'')+'</span><span>'+cur(t.amt)+(t.px?'<small>@ '+cur2(t.px)+'</small>':'')+'</span>'+(t.sip?'':'<button class="irm" data-txdel="'+h.id+'|'+t.id+'" aria-label="Delete purchase on '+t.d+'">×</button>')+'</div>';}).join('')+'</div>'+
+     '<div class="acts" style="margin-top:12px;flex-wrap:wrap"><button class="btn go" data-hbuy="'+h.id+'">Add purchase</button><button class="btn warn" data-hremove="'+h.id+'">Remove</button></div><p class="fine">Prices from '+(h.src==='mf'?'AMFI via mfapi.in':'London Stock Exchange data')+'. Past performance doesn’t guarantee future returns.</p>'};}
+};
+function buyForm(h,isNew){var cur=h.cty==='in'?'₹':'£';
+  formSheet(isNew?'How much have you invested?':'Add a purchase',[{k:'mode',label:'Type',options:[['lump','One-off purchase'],['sip','Monthly SIP']]},{k:'amt',label:'Amount ('+cur+')'},{k:'d',label:'Date (for a SIP, the first instalment)',text:true,date:true}].concat(isNew?[{k:'name',label:'Name',text:true}]:[]),
+    {mode:'lump',amt:'',d:today(),name:h.name},function(o){var a=Math.max(0,o.amt||0),d=/^\d{4}-\d{2}-\d{2}$/.test(o.d||'')?o.d:today();if(d>today())d=today();if(!a)return;
+      if(isNew){h.name=String(o.name||h.name).slice(0,60);holdings().push(h);}
+      if(o.mode==='sip'){h.sip={amt:a,day:new Date(d+'T12:00').getDate(),start:d};extendSIP(h);}else h.tx.push({id:uid(),d:d,amt:a});h.tx.sort(function(x,y){return x.d<y.d?-1:1;});
+      refreshLinked();setTimeout(function(){(h.src==='mf'?loadMFpx(h.code,true):loadETFpx(true)).then(function(){refreshLinked();save();render();});},10);toast(isNew?'Tracking '+h.name:'Purchase added');});}
 function hForm(hh,cty){var isNew=!hh;hh=hh||{id:uid(),name:'',cty:cty,type:HTYPES[cty][0][0],value:'',paid:'',hist:[]};var cur=hh.cty==='in'?'₹':'£';
   formDelete=isNew?null:function(){S.holdings=holdings().filter(function(x){return x.id!==hh.id;});};
   formSheet(isNew?'Add an investment':'Edit '+hh.name,[{k:'name',label:'Name (e.g. Vanguard ISA, HDFC Flexi Cap SIP)',text:true},{k:'type',label:'Type',options:HTYPES[hh.cty]},{k:'value',label:'What it’s worth today ('+cur+')'},{k:'paid',label:'Total you’ve put in so far ('+cur+')'}],
@@ -1407,6 +1474,7 @@ function formSheet(title,fields,obj,onSave,extra){
   formSave=function(){var o={};fields.forEach(function(f){var el=document.querySelector('[data-f="'+f.k+'"]');o[f.k]=f.text||f.options?el.value:(parseFloat(el.value)||0);});onSave(o);save();closeSheet();};
 }
 var formSave=null,formDelete=null;
+var SHEETS_EXTRA=SHEETS_EXTRA||{};
 var SHEETS={
   plan:function(i){if(i==='debt'){var L=split().filter(function(x){return x.title==='Clear the credit card'||x.title==='Pay down personal loans';}),fx=+S.profile.fx||129,tot=sum(L.map(function(x){return x.amt;}));return {title:'Pay off expensive debt',body:'<p class="guidelead">Clear the credit card first, then prepay personal loans.</p>'+L.map(function(x){return '<p class="small soft" style="margin:14px 0 2px">'+esc(x.title)+'</p><p style="margin:0 0 4px"><b>'+esc(x.where)+'.</b> '+esc(x.why)+'</p>';}).join('')+'<p class="fine">This is general guidance, not financial advice. For advice on your own situation, talk to a qualified adviser.</p>'};}var x=split()[i];if(!x)return null;return {title:x.title,body:'<p class="guidelead">'+esc(x.guide||'')+'</p>'+(x.title==='Long-term investing'?'<p style="margin:4px 0 10px"><button class="btn sm go" data-tab="goals">See a suggested mix in Goals ›</button></p>':'')+'<p class="small soft" style="margin:14px 0 2px">Where</p><p>'+esc(x.where)+'</p><p class="small soft" style="margin:6px 0 2px">Why</p><p>'+esc(x.why)+'</p><p class="fine">This is general guidance, not financial advice. For advice on your own situation, talk to a qualified adviser.</p>'};},
   task:function(id){var t=TASKS.find(function(x){return x.id===id;}),on=!!S.checks[id],dd=dueDate(t);return {title:t.title,body:(dd?'<p class="small soft">Try to finish by '+dLabel(dd)+'</p>':'')+'<p>'+esc(t.text)+'</p><div class="acts" style="margin-top:16px"><button class="btn '+(on?'':'go')+'" data-tick="'+id+'" data-close-after>'+(on?'Mark as not done':'Mark as done')+'</button></div>'};},
@@ -1485,7 +1553,17 @@ document.addEventListener('click',function(e){
   if(t.hasAttribute('data-iadd')){var box=document.getElementById('iitems');if(box){var tmp=document.createElement('div');tmp.innerHTML=iRow({id:uid(),name:'',amt:'',kind:'cost'});var row=tmp.firstChild;box.appendChild(row);row.querySelector('.iname').focus();}return;}
   if(d.irm){var r0=t.closest('.irow');if(r0){var nx=r0.nextElementSibling||r0.previousElementSibling;r0.remove();toast('Removed. Save to keep the change');var f0=nx&&nx.querySelector('.iname');if(f0)f0.focus();}return;}
   if(d.risk){S.profile.risk=d.risk;save();var y1=(document.getElementById('main')||{}).scrollTop;render();var m1=document.getElementById('main');if(m1)m1.scrollTop=y1;return;}
-  if(d.hadd){hForm(null,d.hadd);return;}
+  if(d.hadd){var c9=d.hadd;openSheet(function(){return SHEETS_EXTRA.hnew(c9);});return;}
+  if(d.hnew){var hn=d.hnew;if(hn==='mf'){openSheet(function(){return SHEETS_EXTRA.mfsearch();});setTimeout(function(){var q=document.getElementById('mfq');if(q)q.focus();},80);return;}
+    if(hn==='etf'){loadETFpx().then(function(){openSheet(function(){return SHEETS_EXTRA.etfpick();});});openSheet(function(){return SHEETS_EXTRA.etfpick();});return;}
+    closeSheet();hForm(null,hn.split(':')[1]);return;}
+  if(d.mfpick){var pa=d.mfpick.split('|');var hm={id:uid(),name:pa.slice(1).join('|').replace(/\s*-\s*(Direct|Regular)\s*Plan.*$/i,''),cty:'in',type:'mf',src:'mf',code:pa[0],tx:[],hist:[],value:0,paid:0};loadMFpx(pa[0]);buyForm(hm,true);return;}
+  if(d.etfpick){var nm=(S.etfList||[]).find(function(x){return x[0]===d.etfpick;});var he={id:uid(),name:nm?nm[1]:d.etfpick,cty:'uk',type:'isa',src:'etf',code:d.etfpick,tx:[],hist:[],value:0,paid:0};buyForm(he,true);return;}
+  if(d.hdet){var hid9=d.hdet;openSheet(function(){return SHEETS_EXTRA.hdet(hid9);});var h9=holdings().find(function(x){return x.id===hid9;});if(h9&&h9.src==='mf')loadMFpx(h9.code).then(function(ch){if(ch){refreshLinked();refreshSheet();}});return;}
+  if(d.hbuy){var hb=holdings().find(function(x){return x.id===d.hbuy;});if(hb)buyForm(hb,false);return;}
+  if(d.txdel){var tp=d.txdel.split('|'),ht=holdings().find(function(x){return x.id===tp[0];});if(ht){ht.tx=ht.tx.filter(function(t){return t.id!==tp[1];});refreshLinked();save();refreshSheet();toast('Purchase removed');}return;}
+  if(d.sipstop){var hs=holdings().find(function(x){return x.id===d.sipstop;});if(hs){hs.sip=null;save();refreshSheet();toast('SIP stopped. Past instalments are kept');}return;}
+  if(d.hremove){if(!confirm('Remove this investment from Setu?'))return;S.holdings=holdings().filter(function(x){return x.id!==d.hremove;});save();closeSheet();toast('Removed');return;}
   if(d.hedit){var H1=holdings().find(function(x){return x.id===d.hedit;});if(H1)hForm(H1);return;}
   if(d.hval){var H2=holdings().find(function(x){return x.id===d.hval;});if(!H2)return;var c2=H2.cty==='in'?'₹':'£';
     formSheet('Update '+H2.name,[{k:'value',label:'What it’s worth today ('+c2+')'}],{value:H2.value},function(o){var t=today(),v=Math.max(0,o.value||0);H2.value=v;H2.hist=H2.hist.filter(function(x){return x[0]!==t;});H2.hist.push([t,v]);toast('Updated. '+(v>=H2.paid?'Up ':'Down ')+fmtH(H2,Math.abs(v-H2.paid))+' on what you put in');});return;}
@@ -1551,6 +1629,10 @@ function goalsSheet(){
 }
 function emRefresh(){var t=document.getElementById('emTo'),s0=document.getElementById('emSub'),b0=document.getElementById('emBody'),o=document.getElementById('emOpen'),h=document.getElementById('emHint');if(!s0||!b0)return;if(o)o.href=mailtoHref(t?t.value:'',s0.value,b0.value);if(h){var n=placeholders(s0.value+b0.value);h.textContent=n?'✏️ Fill in the '+n+' part'+(n>1?'s':'')+' in [square brackets] before sending.':'✓ Ready to send.';h.classList.toggle('ready',!n);}}
 document.addEventListener('input',function(e){if(e.target&&/^em(To|Sub|Body)$/.test(e.target.id))emRefresh();});
+var mfT=null;document.addEventListener('input',function(e){if(!e.target||e.target.id!=='mfq')return;var q=e.target.value.trim(),box=document.getElementById('mfres');clearTimeout(mfT);if(q.length<3){if(box)box.innerHTML='';return;}
+  mfT=setTimeout(function(){if(box)box.innerHTML='<p class="small soft">Searching…</p>';fetchT('https://api.mfapi.in/mf/search?q='+encodeURIComponent(q),8000).then(function(r){return r.json();}).then(function(L){var b=document.getElementById('mfres');if(!b)return;L=(L||[]).slice(0,25);
+    L.sort(function(a,c){var s1=/direct/i.test(a.schemeName)&&/growth/i.test(a.schemeName)?0:1,s2=/direct/i.test(c.schemeName)&&/growth/i.test(c.schemeName)?0:1;return s1-s2;});
+    b.innerHTML=L.length?L.map(function(x){return '<button class="li" data-mfpick="'+esc(String(x.schemeCode)+'|'+x.schemeName)+'"><span class="grow"><b style="display:block;font-weight:600;font-size:14px">'+esc(x.schemeName)+'</b></span><span class="chev">›</span></button>';}).join(''):'<p class="small soft">No funds found. Try a shorter name.</p>';}).catch(function(){var b=document.getElementById('mfres');if(b)b.innerHTML='<p class="small bad">Couldn’t search right now. Check your connection and try again.</p>';});},350);});
 document.addEventListener('input',function(e){if(e.target&&e.target.id==='sq'){spendQ=e.target.value;refreshTable();}if(e.target&&/^tf[AFR]$/.test(e.target.id))tfCalc();});
 function tfCalc(){var out=document.getElementById('tfOut');if(!out)return;var A=parseFloat(document.getElementById('tfA').value)||0,F=parseFloat(document.getElementById('tfF').value)||0,R=parseFloat(document.getElementById('tfR').value)||0,mid=fxNow();
   var fq=+((document.querySelector('[data-tff][aria-checked="true"]')||{}).dataset||{}).tff||12;
