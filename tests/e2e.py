@@ -113,6 +113,8 @@ try:
     pg.select_option('#sr','all');pg.wait_for_timeout(300);check('Date range filter shows everything since you started',pg.locator('tr[data-item]').count()>=3 and 'since' in pg.inner_text('.tblcard .row-b'))
     pg.select_option('#sr','cycle');pg.wait_for_timeout(200)
     check('Category buttons need no sideways scrolling',pg.evaluate("(()=>{const c=document.querySelector('.v-spend .chips');return c.scrollWidth<=c.clientWidth})()"))
+    sp0=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length");pg.click('.chips [data-cat="invest"]');pg.fill('#amt','200');pg.fill('#note','ISA');pg.click('[data-add]');pg.wait_for_timeout(300)
+    check('Investments can be logged and are not counted as spending',pg.locator('.invline').count()==1 and pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.some(x=>x.cat==='invest')"))
     check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
     # --- Goals ---
