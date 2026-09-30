@@ -469,6 +469,19 @@ body.app-locked #app{filter:blur(18px);pointer-events:none}body.app-locked::befo
 .invline{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#0C7F60;margin-top:5px}.invline svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .invline{color:#6FE3BF}}
 .invtile{box-shadow:inset 0 0 0 1.5px rgba(12,127,96,.25)}
+.whero .big{font-size:40px}.whero .inr{font-size:16px;color:var(--soft);font-weight:700}
+.wsplit{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 10px}.wsplit>div{background:var(--bg);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:1px}.wsplit b{font-size:20px}.wsplit small{font-size:12px}
+.wg{font-size:12.5px;font-weight:800}.wbar{display:flex;height:8px;border-radius:8px;overflow:hidden;gap:2px}.wbar i{display:block;height:100%}
+.wchart{width:100%;height:auto;display:block;margin-top:6px;max-height:260px}.wtop{font-weight:800;fill:var(--ink)}.wlab{font:600 11px Figtree,sans-serif;fill:var(--soft)}
+.wkey{display:flex;gap:14px;font-size:12px;color:var(--soft);font-weight:600;margin-top:4px}.wkey i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.wempty{display:flex;align-items:center;gap:10px;padding:14px 4px}.wempty svg{width:26px;height:26px;flex-shrink:0;fill:none;stroke:var(--indigo);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wlink{display:flex;align-items:center;gap:12px;background:var(--t-mint)}.wlink .grow{display:flex;flex-direction:column}
+.hlist{display:flex;flex-direction:column}.hrow{border-top:1px solid var(--rule);padding:10px 0}.hrow:first-child{border-top:0}
+.hmain{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:0;text-align:left;cursor:pointer;font:inherit;color:inherit}.hmain .grow{display:flex;flex-direction:column;min-width:0}.hmain b{font-size:15px}
+.hval{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0}.hval b{font-size:17px}
+.hacts{display:flex;gap:8px;margin-top:8px}.hacts .btn{flex:1}
+@media (min-width:880px){.v-wealth .whero,.v-wealth .wlink,.v-wealth .wchartcard,.v-wealth .fine{grid-column:1/-1}.v-wealth .wchart{max-height:none}.v-wealth .whold{grid-column:auto;align-self:start}}
+.wg.ok{color:#096B51}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .wg.ok{color:#6FE3BF}}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -679,9 +692,9 @@ function save(){try{var js=JSON.stringify(S);localStorage.setItem(KEY,js);storag
 var tab='home',phase=null,addCat='groceries',viewMonth=null,sheetFn=null,wz=null;
 try{tab=sessionStorage.getItem('setu-tab')||'home';}catch(e){}
 var QS=(function(){var o={};try{new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;});}catch(e){}return o;})();
-if(['home','check','spend','goals'].indexOf(QS.tab)>=0)tab=QS.tab;
+if(['home','check','spend','wealth','goals'].indexOf(QS.tab)>=0)tab=QS.tab;
 function tabURL(t){try{var u=new URL(location.href);u.searchParams.set('tab',t);u.searchParams.delete('open');history.pushState({tab:t},'',u.pathname+u.search);}catch(e){}}
-window.addEventListener('popstate',function(e){var t=(e.state&&e.state.tab)||(new URLSearchParams(location.search).get('tab'))||'home';if(['home','check','spend','goals'].indexOf(t)>=0){tab=t;sheetFn=null;render();}});
+window.addEventListener('popstate',function(e){var t=(e.state&&e.state.tab)||(new URLSearchParams(location.search).get('tab'))||'home';if(['home','check','spend','wealth','goals'].indexOf(t)>=0){tab=t;sheetFn=null;render();}});
 
 /* ---------- helpers ---------- */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -845,8 +858,8 @@ function bridgeSVG(p,big){
 var LOGO='<svg viewBox="0 0 40 40" role="img" aria-label="Setu logo"><path d="M9.5 30.5 C9.5 19 30.5 21 30.5 9.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.1 6.4"/><circle cx="9.5" cy="30.5" r="7" fill="var(--india)"/><circle cx="30.5" cy="9.5" r="7" fill="var(--uk)"/></svg>';
 
 /* ---------- render ---------- */
-var ICON={home:'<path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/>',check:'<circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><path d="M5 16.5C5 11 19 13 19 7.5" stroke-dasharray="0.1 3.4" stroke-width="2.4"/>',spend:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/>',goals:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>'};
-var TABS=[['home','Home'],['check','Checklist'],['spend','Spending'],['goals','Goals']];
+var ICON={home:'<path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/>',check:'<circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><path d="M5 16.5C5 11 19 13 19 7.5" stroke-dasharray="0.1 3.4" stroke-width="2.4"/>',spend:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/>',goals:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',wealth:'<path d="M4 19h16"/><path d="M6 15l4-4 3 3 6-7"/><path d="M15 7h4v4"/>'};
+var TABS=[['home','Home'],['check','Checklist'],['spend','Spending'],['wealth','Investments'],['goals','Goals']];
 var GEAR='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
 var GL={home:'<path d="M4 11l8-6 8 6v8H4z"/><path d="M10 19v-5h4v5"/>',shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',chart:'<path d="M5 19V11M12 19V5M19 19v-6"/>',spark:'<path d="M12 3v5M12 16v5M3 12h5M16 12h5M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3"/>',card:'<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10h18"/>',rupee:'<path d="M7 5h10M7 9h10M9 5c4 0 6 1.5 6 4s-2 4-6 4l6 6"/>',basket:'<path d="M4 10h16l-1.5 9h-13z"/><path d="M8 10l3-5M16 10l-3-5"/>',bus:'<rect x="5" y="3.5" width="14" height="14" rx="3"/><path d="M5 11h14M8 21v-3M16 21v-3"/>',fork:'<path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M16 3c-2 1-2.5 4-2.5 7h2.5v11"/>',bag:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',dots:'<circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/>',chart:'<path d="M4 19h16"/><path d="M6 15l4-4 3 3 6-7"/><path d="M15 7h4v4"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/>',ext:'<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',car:'<path d="M5 16h14v-4l-2-5H7l-2 5z"/><path d="M5 12h14"/><circle cx="8" cy="16.5" r="1.6"/><circle cx="16" cy="16.5" r="1.6"/>',cash:'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9v6M17.5 9v6"/>',list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/>'};
 function gl(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+GL[k]+'</svg>';}
@@ -865,12 +878,12 @@ var ILL={
 function greet(){var h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening';}
 function whenTxt(){var d=daysSince(S.profile.moved);return d<0?'You move in '+(-d)+' day'+(d===-1?'':'s'):'Day '+(d+1)+' in the UK';}
 function pageHead(){var p=S.profile;
-  return ({home:[greet()+(p.name?', '+p.name:''),whenTxt()],check:['Your first 90 days','Things to sort out in India and the UK'],spend:['Spending',mLabel(viewMonth||mKey())],goals:['Goals','Your home and retirement in India']})[tab];}
+  return ({home:[greet()+(p.name?', '+p.name:''),whenTxt()],check:['Your first 90 days','Things to sort out in India and the UK'],spend:['Spending',mLabel(viewMonth||mKey())],goals:['Goals','Your home and retirement in India'],wealth:['Your investments','How your money is growing in the UK and India']})[tab];}
 var lastTab=null,lastTicked=null,countFrom={};
 function render(){
   var app=document.getElementById('app'),anim=sheetAnim;sheetAnim=false;var sh0=document.querySelector('.sheet'),shTop=sh0&&sheetFn?sh0.scrollTop:0;
   if(!S.profile||wz){app.innerHTML='<div class="wzshell"><div class="wzcard">'+vWizard()+'</div></div>'+(sheetFn?sheetHTML(anim):'');bindWizard();bindSheet();return;}
-  var V={home:vHome,check:vCheck,spend:vSpend,goals:vGoals};if(!V[tab])tab='home';
+  var V={home:vHome,check:vCheck,spend:vSpend,wealth:vWealth,goals:vGoals};if(!V[tab])tab='home';
   var enter=lastTab!==tab,m=document.getElementById('main'),keep=(!enter&&m)?m.scrollTop:0;lastTab=tab;
   var ph=pageHead(),p=S.profile,navBtn=function(t,cls){return '<button class="'+cls+'" data-tab="'+t[0]+'"'+(tab===t[0]?' aria-current="page"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true">'+ICON[t[0]]+'</svg><span>'+t[1]+'</span></button>';};
   var mh=tab==='home'?'<div class="ava" aria-hidden="true">'+esc((p.name||'S').charAt(0).toUpperCase())+'</div><div class="hi"><b>'+esc(p.name?'Hey '+p.name:greet())+'</b><span>'+esc(whenTxt())+'</span></div>':'<h1 class="ptitle">'+esc(ph[0])+'</h1>';
@@ -889,7 +902,7 @@ function balanceTiles(){document.querySelectorAll('.costchips').forEach(function
   k.forEach(function(e){e.style.flex='1 1 calc((100% - '+(per-1)*gap+'px) / '+per+')';});});}
 window.addEventListener('resize',function(){balanceTiles();});
 function fitOptional(){balanceTiles();var m=document.getElementById('main');if(!m)return;var cc=m.querySelector('.costchips');if(cc)cc.style.display='';var o=[].slice.call(m.querySelectorAll('.opt'));o.forEach(function(e){e.style.display='';});
-  if(m.classList.contains('v-spend')||m.classList.contains('v-goals'))return;
+  if(m.classList.contains('v-spend')||m.classList.contains('v-goals')||m.classList.contains('v-wealth'))return;
   if(cc&&m.scrollHeight>m.clientHeight+2)cc.style.display='none';
   o.sort(function(a,b){return (+a.dataset.prio)-(+b.dataset.prio);});while(m.scrollHeight>m.clientHeight+2&&o.length){o.shift().style.display='none';}}
 window.addEventListener('resize',function(){sizeTable();fitOptional();sizeTable();fitRail();});
@@ -1099,6 +1112,54 @@ function extraCard(lt){var p=S.profile,x=extraMonthly(lt);if(x<25)return '';var 
   var rows=Object.keys(w).filter(function(k){return w[k]>0;}).map(function(k){var a=Math.round(x*w[k]/100);return '<li style="--cc:'+I[k][2]+'"><div class="xr"><b>'+I[k][0]+'</b><span class="xp">'+w[k]+'%</span></div><div class="xbar"><i style="width:'+w[k]+'%"></i></div><p>'+I[k][1]+' <span class="soft">About '+gbp(a)+' a month.</span></p></li>';}).join('');
   return '<section class="card xcard"><div class="row-b"><h3>Where to put your extra money</h3><span class="small soft">≈ '+gbp(x)+' a month</span></div><p class="small soft" style="margin:4px 0 10px">After your emergency fund, debts and goals are covered, you still have some left each month. Here’s a suggested mix.</p>'+
     '<div class="seg xseg" role="radiogroup" aria-label="How much risk are you comfortable with?">'+Object.keys(MIXES).map(function(k){return '<button role="radio" aria-checked="'+(k===risk)+'" data-risk="'+k+'">'+MIXES[k].label+'</button>';}).join('')+'</div><p class="small soft" style="margin:6px 0 8px">'+M.note+'</p><ul class="xlist">'+rows+'</ul><p class="fine">These are types of investment, not recommendations of a product. General guidance, not financial advice.</p></section>';}
+/* ---------- Investments: holdings in the UK (£) and India (₹), with a value history ---------- */
+var HTYPES={uk:[['isa','Stocks & shares ISA'],['cashisa','Cash ISA'],['pension','Workplace pension'],['sipp','Personal pension (SIPP)'],['savings','Savings account'],['pb','Premium Bonds'],['shares','Shares or funds'],['other','Other']],
+  in:[['mf','Mutual funds / SIPs'],['epf','EPF'],['ppf','PPF'],['fd','Fixed deposit (NRE/NRO)'],['shares','Shares'],['nps','NPS'],['gold','Gold'],['other','Other']]};
+function holdings(){if(!Array.isArray(S.holdings)){var p=S.profile||{},t=startDay(),H=[];
+    if(+p.invested>0)H.push({id:uid(),name:'Mutual funds and shares',cty:'in',type:'mf',value:+p.invested,paid:+p.invested,hist:[[t,+p.invested]]});
+    if(+p.savedUK>0)H.push({id:uid(),name:'UK savings',cty:'uk',type:'savings',value:+p.savedUK,paid:+p.savedUK,hist:[[t,+p.savedUK]]});
+    S.holdings=H;}return S.holdings;}
+function hTypeLabel(h){var L=(HTYPES[h.cty]||[]).find(function(x){return x[0]===h.type;});return L?L[1]:'Investment';}
+function toGBP(h,v){return h.cty==='in'?v/fxNow():v;}
+function fmtH(h,v){return h.cty==='in'?inr(v):gbp(v);}
+/* value of every holding on a date (last recorded value on or before it) */
+function valueOn(h,d){var v=null;h.hist.forEach(function(x){if(x[0]<=d)v=x[1];});return v;}
+function wealthSeries(){var H=holdings(),dates={};H.forEach(function(h){h.hist.forEach(function(x){dates[x[0]]=1;});});var ds=Object.keys(dates).sort();
+  return ds.map(function(d){var uk=0,inr0=0;H.forEach(function(h){var v=valueOn(h,d);if(v==null)return;if(h.cty==='in')inr0+=v;else uk+=v;});return {d:d,uk:uk,in:inr0,tot:uk+inr0/fxNow()};});}
+function lineChart(series){if(series.length<2)return '<div class="wempty small soft">'+gl('chart')+'<span>Update your values from time to time and your growth will show here.</span></div>';
+  var W=innerWidth>=880?760:360,H=170,pad=22,xs=series.map(function(_,i){return pad+i*(W-2*pad)/(series.length-1);}),mx=Math.max.apply(null,series.map(function(s0){return s0.tot;}))*1.08||1;
+  function y(v){return H-pad-(v/mx)*(H-2*pad);}
+  function path(k){return series.map(function(s0,i){return (i?'L':'M')+xs[i].toFixed(1)+','+y(k==='in'?s0.in/fxNow():s0[k]).toFixed(1);}).join(' ');}
+  var area=path('tot')+' L'+xs[xs.length-1].toFixed(1)+','+(H-pad)+' L'+xs[0].toFixed(1)+','+(H-pad)+' Z';
+  var lab=function(i){return new Date(series[i].d+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});};
+  return '<svg class="wchart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Total investments grew from '+gbp(series[0].tot)+' to '+gbp(series[series.length-1].tot)+'"><defs><linearGradient id="wg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--indigo)" stop-opacity=".25"/><stop offset="1" stop-color="var(--indigo)" stop-opacity="0"/></linearGradient></defs>'+
+    '<path d="'+area+'" fill="url(#wg)"/><path d="'+path('tot')+'" fill="none" stroke="var(--indigo)" stroke-width="3" stroke-linejoin="round"/><path d="'+path('uk')+'" fill="none" stroke="#0C7F60" stroke-width="2" stroke-dasharray="5 4"/><path d="'+path('in')+'" fill="none" stroke="var(--marigold)" stroke-width="2" stroke-dasharray="5 4"/>'+
+    '<text x="'+xs[xs.length-1]+'" y="'+(y(series[series.length-1].tot)-8).toFixed(1)+'" class="wlab wtop" text-anchor="end">'+gbp(series[series.length-1].tot)+'</text><text x="'+xs[0]+'" y="'+(y(series[0].tot)-8).toFixed(1)+'" class="wlab">'+gbp(series[0].tot)+'</text><text x="'+xs[0]+'" y="'+(H-6)+'" class="wlab">'+lab(0)+'</text><text x="'+xs[xs.length-1]+'" y="'+(H-6)+'" class="wlab" text-anchor="end">'+lab(series.length-1)+'</text></svg>'+
+    '<div class="wkey"><span><i style="background:var(--indigo)"></i>Total</span><span><i style="background:#0C7F60"></i>UK</span><span><i style="background:var(--marigold)"></i>India</span></div>';}
+function vWealth(){var H=holdings(),fx=fxNow(),uk=H.filter(function(h){return h.cty==='uk';}),ind=H.filter(function(h){return h.cty==='in';});
+  var ukV=sum(uk.map(function(h){return h.value;})),ukP=sum(uk.map(function(h){return h.paid;})),inV=sum(ind.map(function(h){return h.value;})),inP=sum(ind.map(function(h){return h.paid;}));
+  var tot=ukV+inV/fx,totP=ukP+inP/fx,gain=tot-totP,gp=totP>0?gain/totP*100:0;
+  function g(v,p0,cur){var d=v-p0,pc0=p0>0?d/p0*100:0;return '<span class="wg '+(d>=0?'ok':'bad')+'">'+(d>=0?'▲ ':'▼ ')+cur(Math.abs(d))+' ('+Math.abs(pc0).toFixed(1)+'%)</span>';}
+  var h='<section class="card whero"><div class="small soft">All your investments</div><div class="bigrow"><div class="big f">'+gbp(tot)+'</div><div class="inr f">≈ '+inr(tot*fx)+'</div></div>'+
+    '<div class="small">'+(totP>0?'You put in '+gbp(totP)+' · '+g(tot,totP,gbp):'Add what you’ve invested to track growth')+'</div>'+
+    '<div class="wsplit"><div><span class="small soft">🇬🇧 UK</span><b class="f">'+gbp(ukV)+'</b>'+(ukP>0?g(ukV,ukP,gbp):'')+'</div><div><span class="small soft">🇮🇳 India</span><b class="f">'+inr(inV)+'</b><small class="soft">≈ '+gbp(inV/fx)+'</small>'+(inP>0?g(inV,inP,inr):'')+'</div></div>'+
+    '<div class="wbar" aria-hidden="true"><i style="width:'+(tot>0?ukV/tot*100:50).toFixed(1)+'%;background:#0C7F60"></i><i style="flex:1;background:var(--marigold)"></i></div></section>';
+  h+='<section class="card wchartcard"><div class="row-b"><h3>Growth over time</h3><span class="small soft">in £, at today’s rate</span></div>'+lineChart(wealthSeries())+'</section>';
+  var un=S.items.filter(function(x){return isInv(x)&&!x.hid&&x.date>=startDay();});
+  if(un.length&&H.length)h+='<section class="card wlink"><div class="grow"><b>'+gbp(sum(un.map(function(x){return x.amt;})))+' logged in Spending</b><span class="small soft">'+un.length+' investment'+(un.length>1?'s':'')+' not yet added to a holding</span></div><button class="btn sm go" data-hassign>Add to a holding</button></section>';
+  [['uk','🇬🇧 In the UK',uk],['in','🇮🇳 In India',ind]].forEach(function(sec){h+='<section class="card whold"><div class="row-b"><h3>'+sec[1]+'</h3><button class="link" data-hadd="'+sec[0]+'">+ Add</button></div>';
+    if(!sec[2].length)h+='<p class="small soft" style="margin:6px 0">Nothing here yet. Add an ISA, pension, mutual fund, EPF, PPF or deposit.</p>';
+    else h+='<div class="hlist">'+sec[2].map(function(x){var last=x.hist.length?x.hist[x.hist.length-1][0]:'';var age=last?Math.floor((Date.now()-new Date(last+'T12:00'))/864e5):0;
+      return '<div class="hrow"><button class="hmain" data-hedit="'+x.id+'"><span class="grow"><b>'+esc(x.name)+'</b><span class="small soft">'+esc(hTypeLabel(x))+(last?' · updated '+(age<1?'today':age+' day'+(age>1?'s':'')+' ago'):'')+'</span></span><span class="hval"><b class="f">'+fmtH(x,x.value)+'</b>'+(x.paid>0?g(x.value,x.paid,x.cty==='in'?inr:gbp):'')+'</span></button>'+
+        '<div class="hacts"><button class="btn sm" data-hval="'+x.id+'">Update value</button><button class="btn sm" data-hpay="'+x.id+'">Add money</button></div></div>';}).join('')+'</div>';
+    h+='</section>';});
+  var sipM=+S.profile.sip||0;h+='<p class="fine">Values are what you enter, so update them now and then (for example from your ISA or fund app).'+(sipM>0?' Your SIPs add about '+inr(sipM)+' a month in India.':'')+' Past growth doesn’t guarantee future returns.</p>';
+  return h;}
+function hForm(hh,cty){var isNew=!hh;hh=hh||{id:uid(),name:'',cty:cty,type:HTYPES[cty][0][0],value:'',paid:'',hist:[]};var cur=hh.cty==='in'?'₹':'£';
+  formDelete=isNew?null:function(){S.holdings=holdings().filter(function(x){return x.id!==hh.id;});};
+  formSheet(isNew?'Add an investment':'Edit '+hh.name,[{k:'name',label:'Name (e.g. Vanguard ISA, HDFC Flexi Cap SIP)',text:true},{k:'type',label:'Type',options:HTYPES[hh.cty]},{k:'value',label:'What it’s worth today ('+cur+')'},{k:'paid',label:'Total you’ve put in so far ('+cur+')'}],
+    {name:hh.name,type:hh.type,value:hh.value,paid:hh.paid},function(o){var t=today();hh.name=String(o.name||hTypeLabel({cty:hh.cty,type:o.type})).slice(0,40);hh.type=o.type;var v=Math.max(0,o.value||0);hh.paid=Math.max(0,o.paid||v);
+      if(v!==hh.value||isNew){hh.value=v;hh.hist=hh.hist.filter(function(x){return x[0]!==t;});hh.hist.push([t,v]);hh.hist.sort(function(a,b){return a[0]<b[0]?-1:1;});}if(isNew)holdings().push(hh);},isNew?'':'<button class="btn warn" data-form="delete">Remove</button>');}
 function vGoals(){
   var p=S.profile,fx=+p.fx||129,plan=split(),lt=(plan.find(function(x){return x.title==='Long-term investing';})||{amt:0}).amt,h='';
   var top='<div class="gtop">'+ratesCard().replace(' opt"','"')+marketCard().replace(' opt"','"')+'</div>';
@@ -1424,6 +1485,14 @@ document.addEventListener('click',function(e){
   if(t.hasAttribute('data-iadd')){var box=document.getElementById('iitems');if(box){var tmp=document.createElement('div');tmp.innerHTML=iRow({id:uid(),name:'',amt:'',kind:'cost'});var row=tmp.firstChild;box.appendChild(row);row.querySelector('.iname').focus();}return;}
   if(d.irm){var r0=t.closest('.irow');if(r0){var nx=r0.nextElementSibling||r0.previousElementSibling;r0.remove();toast('Removed. Save to keep the change');var f0=nx&&nx.querySelector('.iname');if(f0)f0.focus();}return;}
   if(d.risk){S.profile.risk=d.risk;save();var y1=(document.getElementById('main')||{}).scrollTop;render();var m1=document.getElementById('main');if(m1)m1.scrollTop=y1;return;}
+  if(d.hadd){hForm(null,d.hadd);return;}
+  if(d.hedit){var H1=holdings().find(function(x){return x.id===d.hedit;});if(H1)hForm(H1);return;}
+  if(d.hval){var H2=holdings().find(function(x){return x.id===d.hval;});if(!H2)return;var c2=H2.cty==='in'?'₹':'£';
+    formSheet('Update '+H2.name,[{k:'value',label:'What it’s worth today ('+c2+')'}],{value:H2.value},function(o){var t=today(),v=Math.max(0,o.value||0);H2.value=v;H2.hist=H2.hist.filter(function(x){return x[0]!==t;});H2.hist.push([t,v]);toast('Updated. '+(v>=H2.paid?'Up ':'Down ')+fmtH(H2,Math.abs(v-H2.paid))+' on what you put in');});return;}
+  if(d.hpay){var H3=holdings().find(function(x){return x.id===d.hpay;});if(!H3)return;var c3=H3.cty==='in'?'₹':'£';
+    formSheet('Add money to '+H3.name,[{k:'amt',label:'Amount you added ('+c3+')'}],{amt:''},function(o){var a=Math.max(0,o.amt||0),t=today();if(!a)return;H3.paid+=a;H3.value+=a;H3.hist=H3.hist.filter(function(x){return x[0]!==t;});H3.hist.push([t,H3.value]);toast('Added '+fmtH(H3,a));});return;}
+  if(t.hasAttribute('data-hassign')){var UN=S.items.filter(function(x){return isInv(x)&&!x.hid&&x.date>=startDay();}),HS=holdings();
+    formSheet('Add logged investments to a holding',[{k:'hid',label:'Which holding? ('+gbp(sum(UN.map(function(x){return x.amt;})))+' from Spending)',options:HS.map(function(x){return [x.id,x.name+(x.cty==='in'?' (India)':' (UK)')];})}],{hid:HS[0].id},function(o){var H4=HS.find(function(x){return x.id===o.hid;});if(!H4)return;var a=sum(UN.map(function(x){return x.amt;})),add=H4.cty==='in'?a*fxNow():a,t=today();H4.paid+=add;H4.value+=add;H4.hist=H4.hist.filter(function(x){return x[0]!==t;});H4.hist.push([t,H4.value]);UN.forEach(function(x){x.hid=H4.id;});toast('Added '+fmtH(H4,add)+' to '+H4.name);});return;}
   if(d.email){var eid=d.email;openSheet(function(){return emailSheet(eid);});return;}
   if(d.copy){var es=document.getElementById('emSub'),eb=document.getElementById('emBody');if(!es||!eb)return;copyText(d.copy==='sub'?es.value:d.copy==='body'?eb.value:'Subject: '+es.value+'\n\n'+eb.value);return;}
   if(d.monthin){var mk=d.monthin;S.months=S.months||{};var cur0=S.months[mk]||{},exp0=takeHome(S.profile.salary,S.profile.pension).month;

@@ -24,7 +24,7 @@ try:
         scan(pg,tag+' step3');pg.click('[data-wz="next"]');scan(pg,tag+' step4');pg.click('[data-wz="next"]');pg.click('[data-seg="homeOn"][data-v="true"]');pg.fill('[data-k="homeCost"]','7500000');pg.fill('[data-k="retireAge"]','50');scan(pg,tag+' step5')
         pg.click('.foot [data-wz="finish"].go');pg.wait_for_timeout(1500)
         pg.evaluate("()=>{const S0=JSON.parse(localStorage.getItem('setu-v1'));for(let d=1;d<=10;d++)S0.items.push({id:'s'+d,date:'2026-09-'+String(d).padStart(2,'0'),cat:'groceries',amt:10+d,note:'Shop '+d});localStorage.setItem('setu-v1',JSON.stringify(S0));}");pg.reload();pg.wait_for_timeout(1200)
-        for t in ['home','check','spend','goals']:
+        for t in ['home','check','spend','wealth','goals']:
             pg.locator(f'[data-tab="{t}"]:visible').first.click();pg.wait_for_timeout(900);scan(pg,tag+' '+t)
         pg.locator('[data-tab="goals"]:visible').first.click();pg.click('[data-funds="retire"]');pg.wait_for_timeout(500);scan(pg,tag+' funds sheet');pg.click('[data-close]')
         pg.click('[data-sheet="settings"]:visible');pg.wait_for_timeout(300);scan(pg,tag+' settings');pg.click('[data-set="transfer"]');pg.wait_for_timeout(300);scan(pg,tag+' transfer');pg.click('[data-close]')

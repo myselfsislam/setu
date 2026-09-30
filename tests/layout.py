@@ -18,13 +18,13 @@ with sync_playwright() as p:
         pg.evaluate("""()=>{const S0=JSON.parse(localStorage.getItem('setu-v1'));const cats=['groceries','transport','eating','shopping','other'];for(let d=1;d<=27;d++){S0.items.push({id:'s'+d,date:'2026-09-'+String(d).padStart(2,'0'),cat:cats[d%5],amt:5+(d*7)%40,note:'Item '+d});}S0.months={'2026-09':{salary:3150,carry:420}};localStorage.setItem('setu-v1',JSON.stringify(S0));}""")
         pg.reload();pg.wait_for_timeout(900)
         res=['wz2:'+('ok' if wz2<=2 else '+'+str(wz2))]
-        for t in ['home','check','spend','goals']:
+        for t in ['home','check','spend','wealth','goals']:
             pg.locator(f'[data-tab="{t}"]:visible').first.click();pg.wait_for_timeout(450)
             r=pg.evaluate("""(()=>{const m=document.querySelector('main');const els=[...m.children].filter(e=>getComputedStyle(e).display!=='none');
               const bx=els.map(e=>{const r=e.getBoundingClientRect();return {t:r.top,b:r.bottom,l:r.left,r:r.right}});let ov=0;
               for(let i=0;i<bx.length;i++)for(let j=i+1;j<bx.length;j++){const a=bx[i],c=bx[j];if(a.l<c.r-2&&c.l<a.r-2&&a.t<c.b-2&&c.t<a.b-2)ov++;}
               return [ov,m.scrollHeight-m.clientHeight,document.documentElement.scrollWidth-window.innerWidth]})()""")
-            res.append(t+':'+('OVERLAP ' if r[0] else '')+('ok' if (r[1]<=2 or t in ('spend','goals')) else '+'+str(r[1]))+(' HSCROLL' if r[2]>0 else ''))
+            res.append(t+':'+('OVERLAP ' if r[0] else '')+('ok' if (r[1]<=2 or t in ('spend','goals','wealth')) else '+'+str(r[1]))+(' HSCROLL' if r[2]>0 else ''))
             pass
         print(w,h,res,errs);FAIL+=sum(1 for r in res if not r.endswith('ok'))+len(errs);ctx.close()
     b.close()
