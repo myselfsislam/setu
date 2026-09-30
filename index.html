@@ -489,6 +489,13 @@ body.app-locked #app{filter:blur(18px);pointer-events:none}body.app-locked::befo
 .txlist{display:flex;flex-direction:column}.txrow{display:grid;grid-template-columns:1fr auto 36px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--rule);font-size:14px}.txrow:first-child{border-top:0}.txrow span:nth-child(2){text-align:right;font-weight:700}.txrow small{display:block;font-weight:500;font-size:11.5px;color:var(--soft)}.txrow em{font-style:normal;font-size:11px}
 .pgrid .ok,.whold .ok{color:#096B51}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pgrid .ok,:root:not([data-theme="light"]) .whold .ok{color:#6FE3BF}}
 .pgrid b span{font-size:inherit;font-weight:inherit}
+.gwrap{display:flex;flex-direction:column;gap:14px}.gtrack{border-top:1px solid var(--rule);padding-top:12px}.gwrap .row-b+.gtrack{border-top:0;padding-top:0}
+.gst{font-size:12px;font-weight:800;border-radius:999px;padding:3px 9px}.gst.ok{background:var(--t-mint);color:#096B51}.gst.bad{background:var(--t-rani);color:#B21E5F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .gst.ok{color:#6FE3BF}:root:not([data-theme="light"]) .gst.bad{color:#FF8FB8}}
+.gnums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 6px}.gnums span{display:flex;flex-direction:column}.gnums small{font-size:11.5px;color:var(--soft);font-weight:600}.gnums b{font-size:16px}
+.gbar{height:8px;border-radius:8px;background:var(--rule);overflow:hidden}.gbar i{display:block;height:100%;background:linear-gradient(90deg,var(--indigo),#0C7F60);border-radius:8px}
+.gchart{width:100%;height:auto;display:block;margin-top:8px}.hgoal{display:block;font-size:11.5px;color:var(--soft);font-weight:600;margin-top:1px}
+@media (min-width:880px){.v-wealth .gwrap{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}.v-wealth .gwrap>.row-b{grid-column:1/-1}.v-wealth .gwrap .gtrack{border-top:0;padding-top:0}}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -1156,6 +1163,42 @@ function hPerf(h){var c=hCalc(h),k=hKey(h),out={c:c};if(!c.last)return out;var L
   var y1=pxBefore(k,isoD(new Date(new Date(L[0]+'T12:00').getTime()-365*864e5))),m1=pxBefore(k,isoD(new Date(new Date(L[0]+'T12:00').getTime()-30*864e5)));
   out.d1=prev?(L[1]/prev-1)*100:null;out.m1=m1?(L[1]/m1-1)*100:null;out.y1=y1?(L[1]/y1-1)*100:null;
   var fl=(h.tx||[]).filter(function(t){return t.units;}).map(function(t){return [t.d,-t.amt];});if(fl.length){fl.push([L[0],c.value]);out.xirr=xirr(fl);}return out;}
+var GOALDEF=[['retire','Retirement in India'],['home','Home in India'],['emergency','Emergency fund'],['none','Not for a goal']];
+function goalOf(h){if(h.goal)return h.goal;var t=h.type;if(h.cty==='uk'&&(t==='savings'||t==='cashisa'||t==='pb'))return 'emergency';if(h.cty==='in'&&t==='fd')return 'home';return 'retire';}
+function goalName(g){var x=GOALDEF.find(function(y){return y[0]===g;});return x?x[1]:'';}
+/* ---------- goal tracking: now, the path ahead, and the target ---------- */
+function goalTracks(){var p=S.profile,fx=fxNow(),plan=split(),H=holdings(),out=[];function amt(t){var x=plan.find(function(y){return y.title===t;});return x?x.amt:0;}
+  function held(g,inINR){return sum(H.filter(function(h){return goalOf(h)===g;}).map(function(h){var v=+h.value||0;return inINR?(h.cty==='in'?v:v*fx):(h.cty==='in'?v/fx:v);}));}
+  var hasAny=function(g){return H.some(function(h){return goalOf(h)===g;});};
+  if(+p.retireAge&&+p.retireSpend){var lt=amt('Long-term investing'),r=retire(lt),n=Math.max(1,Math.round(((+p.retireAge||50)-(+p.age||30))*12));
+    out.push({k:'retire',title:'Retirement in India at '+p.retireAge,cur:'in',now:hasAny('retire')?held('retire',true):+p.invested||0,target:r.needT,monthly:lt*fx+(+p.sip||0),rate:(+p.ret||10)/100,months:n,assumed:!hasAny('retire')});}
+  if(p.homeOn&&+p.homeCost){var hc=homeCalc(),hm=Math.max(1,Math.round((new Date((+p.homeYear||new Date().getFullYear()+5)+'-07-01')-new Date())/2629800000));
+    out.push({k:'home',title:'Home in India, '+p.homeYear,cur:'in',now:hasAny('home')?held('home',true):+p.homeSaved||0,target:hc.cost,monthly:amt('Home in India')*fx,rate:(+p.homeRet||8)/100,months:hm,assumed:!hasAny('home')});}
+  var m0=month(),efT=(p.efMonths||4)*m0.ukCosts;
+  out.push({k:'emergency',title:'Emergency fund ('+(p.efMonths||4)+' months)',cur:'uk',now:hasAny('emergency')?held('emergency',false):+p.savedUK||0,target:efT,monthly:amt('Emergency savings'),rate:0.03,months:24,assumed:!hasAny('emergency')});
+  out.forEach(function(g){var mr=Math.pow(1+g.rate,1/12)-1,v=g.now,pts=[[0,v]],hit=g.now>=g.target?0:null;for(var m=1;m<=g.months;m++){v=v*(1+mr)+g.monthly;if(hit===null&&v>=g.target)hit=m;if(m%Math.max(1,Math.round(g.months/48))===0||m===g.months)pts.push([m,v]);}
+    if(g.k==='emergency'&&hit!=null&&hit<g.months){g.months=Math.max(hit,3);pts=pts.filter(function(x){return x[0]<=g.months;});v=pts[pts.length-1][1];}
+    g.proj=pts;g.end=v;g.hit=hit;g.pct=g.target>0?Math.min(100,g.now/g.target*100):0;});
+  return out;}
+function goalChart(g,past){var W=innerWidth>=880?560:340,H=150,pad=18,money=g.cur==='in'?inr:gbp;
+  var pastPts=(past||[]).map(function(x){return [x.m,x.v];}),all=pastPts.concat(g.proj),minM=pastPts.length?pastPts[0][0]:0,maxM=g.months,mx=Math.max(g.target,g.end,g.now)*1.1||1;
+  function X(m){return pad+(m-minM)/((maxM-minM)||1)*(W-2*pad);}function Y(v){return H-pad-(v/mx)*(H-2*pad);}
+  var pp=pastPts.length>1?'<path d="'+pastPts.map(function(x,i){return (i?'L':'M')+X(x[0]).toFixed(1)+','+Y(x[1]).toFixed(1);}).join(' ')+'" fill="none" stroke="var(--indigo)" stroke-width="3"/>':'';
+  var fut='<path d="'+g.proj.map(function(x,i){return (i?'L':'M')+X(x[0]).toFixed(1)+','+Y(x[1]).toFixed(1);}).join(' ')+'" fill="none" stroke="var(--indigo)" stroke-width="2.5" stroke-dasharray="6 5" opacity=".75"/>';
+  var ty=Y(g.target).toFixed(1),hitM=g.hit!=null&&g.hit>0?'<circle cx="'+X(g.hit).toFixed(1)+'" cy="'+ty+'" r="5" fill="#0C7F60"/>':'';
+  var endLab=g.cur==='in'?'':'';
+  return '<svg class="gchart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(g.title)+': '+money(g.now)+' now, target '+money(g.target)+', projected '+money(g.end)+'">'+
+    '<line x1="'+pad+'" x2="'+(W-pad)+'" y1="'+ty+'" y2="'+ty+'" stroke="#0C7F60" stroke-width="1.5" stroke-dasharray="3 4"/><text x="'+(W-pad)+'" y="'+(+ty-6)+'" text-anchor="end" class="wlab" style="fill:#0C7F60;font-weight:800">Target '+money(g.target)+'</text>'+
+    pp+fut+hitM+'<circle cx="'+X(0).toFixed(1)+'" cy="'+Y(g.now).toFixed(1)+'" r="4.5" fill="var(--indigo)"/>'+
+    '<text x="'+pad+'" y="'+(H-3)+'" class="wlab">'+(pastPts.length?new Date(past[0].d+'T12:00').toLocaleDateString('en-GB',{month:'short',year:'numeric'}):'Now')+'</text><text x="'+(W-pad)+'" y="'+(H-3)+'" text-anchor="end" class="wlab">'+new Date(Date.now()+g.months*2629800000).toLocaleDateString('en-GB',{month:'short',year:'numeric'})+'</text></svg>';}
+function goalPast(k,inINR){var H=holdings().filter(function(h){return goalOf(h)===k;});if(!H.length)return [];var dates={};H.forEach(function(h){if(hLinked(h)){var f=(h.tx||[])[0];if(f)pxPts(hKey(h)).forEach(function(x){if(x[0]>=f.d)dates[x[0]]=1;});}else h.hist.forEach(function(x){dates[x[0]]=1;});});
+  var ds=Object.keys(dates).sort();if(ds.length>60){var st=Math.ceil(ds.length/60);ds=ds.filter(function(_,i){return i%st===0||i===ds.length-1;});}var fx=fxNow(),now=Date.now();
+  return ds.map(function(d){var v=0;H.forEach(function(h){var x=hLinked(h)?linkedValueOn(h,d):valueOn(h,d);if(x==null)return;v+=inINR?(h.cty==='in'?x:x*fx):(h.cty==='in'?x/fx:x);});return {d:d,m:-(now-new Date(d+'T12:00'))/2629800000,v:v};});}
+function goalsSection(){var G=goalTracks();if(!G.length)return '';
+  return '<section class="card gwrap"><div class="row-b"><h3>Towards your goals</h3><span class="small soft">Solid: so far · Dashed: expected</span></div>'+G.map(function(g){var money=g.cur==='in'?inr:gbp,st=g.now>=g.target?'<span class="gst ok">✓ Reached</span>':g.hit!=null?'<span class="gst ok">On track · reached by '+new Date(Date.now()+g.hit*2629800000).toLocaleDateString('en-GB',{month:'short',year:'numeric'})+'</span>':'<span class="gst bad">Short by '+money(Math.max(0,g.target-g.end))+'</span>';
+    return '<div class="gtrack"><div class="row-b"><b>'+esc(g.title)+'</b>'+st+'</div><div class="gnums"><span><small>Now</small><b class="f">'+money(g.now)+'</b></span><span><small>Target</small><b class="f">'+money(g.target)+'</b></span><span><small>Expected</small><b class="f">'+money(g.end)+'</b></span></div>'+
+      '<div class="gbar" aria-hidden="true"><i style="width:'+g.pct.toFixed(1)+'%"></i></div>'+goalChart(g,goalPast(g.k,g.cur==='in'))+
+      '<p class="small soft" style="margin:4px 0 0">'+(g.assumed?'Using the figure from your setup. Set “Counts towards” on your investments to track this goal from them. ':'')+'Adding about '+money(g.monthly)+' a month at '+Math.round(g.rate*100)+'% a year.</p></div>';}).join('')+'</section>';}
 function hTypeLabel(h){var L=(HTYPES[h.cty]||[]).find(function(x){return x[0]===h.type;});return L?L[1]:'Investment';}
 function toGBP(h,v){return h.cty==='in'?v/fxNow():v;}
 function fmtH(h,v){return h.cty==='in'?inr(v):gbp(v);}
@@ -1183,13 +1226,14 @@ function vWealth(){loadWealthPx();refreshLinked();var H=holdings(),fx=fxNow(),uk
     '<div class="wsplit"><div><span class="small soft">🇬🇧 UK</span><b class="f">'+gbp(ukV)+'</b>'+(ukP>0?g(ukV,ukP,gbp):'')+'</div><div><span class="small soft">🇮🇳 India</span><b class="f">'+inr(inV)+'</b><small class="soft">≈ '+gbp(inV/fx)+'</small>'+(inP>0?g(inV,inP,inr):'')+'</div></div>'+
     '<div class="wbar" aria-hidden="true"><i style="width:'+(tot>0?ukV/tot*100:50).toFixed(1)+'%;background:#0C7F60"></i><i style="flex:1;background:var(--marigold)"></i></div></section>';
   h+='<section class="card wchartcard"><div class="row-b"><h3>Growth over time</h3><span class="small soft">in £, at today’s rate</span></div>'+lineChart(wealthSeries())+'</section>';
+  h+=goalsSection();
   var un=S.items.filter(function(x){return isInv(x)&&!x.hid&&x.date>=startDay();});
   if(un.length&&H.length)h+='<section class="card wlink"><div class="grow"><b>'+gbp(sum(un.map(function(x){return x.amt;})))+' logged in Spending</b><span class="small soft">'+un.length+' investment'+(un.length>1?'s':'')+' not yet added to a holding</span></div><button class="btn sm go" data-hassign>Add to a holding</button></section>';
   [['uk','🇬🇧 In the UK',uk],['in','🇮🇳 In India',ind]].forEach(function(sec){h+='<section class="card whold"><div class="row-b"><h3>'+sec[1]+'</h3><button class="link" data-hadd="'+sec[0]+'">+ Add</button></div>';
     if(!sec[2].length)h+='<p class="small soft" style="margin:6px 0">Nothing here yet. Add an ISA, pension, mutual fund, EPF, PPF or deposit.</p>';
     else h+='<div class="hlist">'+sec[2].map(function(x){var last=x.hist.length?x.hist[x.hist.length-1][0]:'';var age=last?Math.floor((Date.now()-new Date(last+'T12:00'))/864e5):0;
       var pf=hLinked(x)?hPerf(x):null,sub=pf?(pf.c.last?'<span class="livebadge">Live</span> '+(x.cty==='in'?'NAV ':'Price ')+(x.cty==='in'?'₹'+pf.c.last[1].toFixed(2):gbp2(pf.c.last[1]))+' · '+new Date(pf.c.last[0]+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})+(pf.y1!=null?' · 1Y '+(pf.y1>=0?'+':'')+pf.y1.toFixed(1)+'%':''):'Fetching live prices…'):esc(hTypeLabel(x))+(last?' · updated '+(age<1?'today':age+' day'+(age>1?'s':'')+' ago'):'');
-      return '<div class="hrow"><button class="hmain" data-'+(hLinked(x)?'hdet':'hedit')+'="'+x.id+'"><span class="grow"><b>'+esc(x.name)+'</b><span class="small soft">'+sub+'</span></span><span class="hval"><b class="f">'+fmtH(x,x.value)+'</b>'+(x.paid>0?g(x.value,x.paid,x.cty==='in'?inr:gbp):'')+'</span></button>'+
+      return '<div class="hrow"><button class="hmain" data-'+(hLinked(x)?'hdet':'hedit')+'="'+x.id+'"><span class="grow"><b>'+esc(x.name)+'</b><span class="small soft">'+sub+'</span>'+(goalOf(x)!=='none'?'<span class="hgoal">🎯 '+esc(goalName(goalOf(x)))+'</span>':'')+'</span><span class="hval"><b class="f">'+fmtH(x,x.value)+'</b>'+(x.paid>0?g(x.value,x.paid,x.cty==='in'?inr:gbp):'')+'</span></button>'+
         '<div class="hacts">'+(hLinked(x)?'<button class="btn sm" data-hdet="'+x.id+'">Performance</button><button class="btn sm" data-hbuy="'+x.id+'">Add purchase</button>':'<button class="btn sm" data-hval="'+x.id+'">Update value</button><button class="btn sm" data-hpay="'+x.id+'">Add money</button>')+'</div></div>';}).join('')+'</div>';
     h+='</section>';});
   var sipM=+S.profile.sip||0;h+='<p class="fine">Values are what you enter, so update them now and then (for example from your ISA or fund app).'+(sipM>0?' Your SIPs add about '+inr(sipM)+' a month in India.':'')+' Past growth doesn’t guarantee future returns.</p>';
@@ -1213,19 +1257,20 @@ SHEETS_EXTRA={
      '<h3 class="csub">How the fund is doing</h3><div class="pgrid"><div><span>Latest price</span><b>'+cur2(c.last[1])+'</b><small>'+new Date(c.last[0]+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})+'</small></div><div><span>1 day</span><b>'+pc(pf.d1)+'</b></div><div><span>1 month</span><b>'+pc(pf.m1)+'</b></div><div><span>1 year</span><b>'+pc(pf.y1)+'</b></div></div>'
      :'<p class="small soft">Fetching live prices… Open this again in a moment.</p>')+
      (h.sip?'<p class="small" style="margin:10px 0 0">🔁 SIP of '+cur(h.sip.amt)+' on the '+h.sip.day+(h.sip.day==1||h.sip.day==21||h.sip.day==31?'st':h.sip.day==2||h.sip.day==22?'nd':h.sip.day==3||h.sip.day==23?'rd':'th')+' of each month, added automatically. <button class="link" data-sipstop="'+h.id+'" style="font-size:13px">Stop SIP</button></p>':'')+
+     '<label class="field" style="margin-top:12px"><span>Counts towards</span><select class="hgoalsel" data-hg="'+h.id+'">'+GOALDEF.map(function(g0){return '<option value="'+g0[0]+'"'+(goalOf(h)===g0[0]?' selected':'')+'>'+g0[1]+'</option>';}).join('')+'</select></label>'+
      '<h3 class="csub">Purchases</h3><div class="txlist">'+(h.tx||[]).slice().reverse().slice(0,24).map(function(t){return '<div class="txrow"><span>'+new Date(t.d+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+(t.sip?' <em class="soft">SIP</em>':'')+'</span><span>'+cur(t.amt)+(t.px?'<small>@ '+cur2(t.px)+'</small>':'')+'</span>'+(t.sip?'':'<button class="irm" data-txdel="'+h.id+'|'+t.id+'" aria-label="Delete purchase on '+t.d+'">×</button>')+'</div>';}).join('')+'</div>'+
      '<div class="acts" style="margin-top:12px;flex-wrap:wrap"><button class="btn go" data-hbuy="'+h.id+'">Add purchase</button><button class="btn warn" data-hremove="'+h.id+'">Remove</button></div><p class="fine">Prices from '+(h.src==='mf'?'AMFI via mfapi.in':'London Stock Exchange data')+'. Past performance doesn’t guarantee future returns.</p>'};}
 };
 function buyForm(h,isNew){var cur=h.cty==='in'?'₹':'£';
-  formSheet(isNew?'How much have you invested?':'Add a purchase',[{k:'mode',label:'Type',options:[['lump','One-off purchase'],['sip','Monthly SIP']]},{k:'amt',label:'Amount ('+cur+')'},{k:'d',label:'Date (for a SIP, the first instalment)',text:true,date:true}].concat(isNew?[{k:'name',label:'Name',text:true}]:[]),
-    {mode:'lump',amt:'',d:today(),name:h.name},function(o){var a=Math.max(0,o.amt||0),d=/^\d{4}-\d{2}-\d{2}$/.test(o.d||'')?o.d:today();if(d>today())d=today();if(!a)return;
+  formSheet(isNew?'How much have you invested?':'Add a purchase',[{k:'mode',label:'Type',options:[['lump','One-off purchase'],['sip','Monthly SIP']]},{k:'amt',label:'Amount ('+cur+')'},{k:'d',label:'Date (for a SIP, the first instalment)',text:true,date:true}].concat(isNew?[{k:'name',label:'Name',text:true},{k:'goal',label:'Counts towards',options:GOALDEF}]:[]),
+    {mode:'lump',amt:'',d:today(),name:h.name,goal:goalOf(h)},function(o){if(isNew)h.goal=o.goal;var a=Math.max(0,o.amt||0),d=/^\d{4}-\d{2}-\d{2}$/.test(o.d||'')?o.d:today();if(d>today())d=today();if(!a)return;
       if(isNew){h.name=String(o.name||h.name).slice(0,60);holdings().push(h);}
       if(o.mode==='sip'){h.sip={amt:a,day:new Date(d+'T12:00').getDate(),start:d};extendSIP(h);}else h.tx.push({id:uid(),d:d,amt:a});h.tx.sort(function(x,y){return x.d<y.d?-1:1;});
       refreshLinked();setTimeout(function(){(h.src==='mf'?loadMFpx(h.code,true):loadETFpx(true)).then(function(){refreshLinked();save();render();});},10);toast(isNew?'Tracking '+h.name:'Purchase added');});}
 function hForm(hh,cty){var isNew=!hh;hh=hh||{id:uid(),name:'',cty:cty,type:HTYPES[cty][0][0],value:'',paid:'',hist:[]};var cur=hh.cty==='in'?'₹':'£';
   formDelete=isNew?null:function(){S.holdings=holdings().filter(function(x){return x.id!==hh.id;});};
-  formSheet(isNew?'Add an investment':'Edit '+hh.name,[{k:'name',label:'Name (e.g. Vanguard ISA, HDFC Flexi Cap SIP)',text:true},{k:'type',label:'Type',options:HTYPES[hh.cty]},{k:'value',label:'What it’s worth today ('+cur+')'},{k:'paid',label:'Total you’ve put in so far ('+cur+')'}],
-    {name:hh.name,type:hh.type,value:hh.value,paid:hh.paid},function(o){var t=today();hh.name=String(o.name||hTypeLabel({cty:hh.cty,type:o.type})).slice(0,40);hh.type=o.type;var v=Math.max(0,o.value||0);hh.paid=Math.max(0,o.paid||v);
+  formSheet(isNew?'Add an investment':'Edit '+hh.name,[{k:'name',label:'Name (e.g. Vanguard ISA, HDFC Flexi Cap SIP)',text:true},{k:'type',label:'Type',options:HTYPES[hh.cty]},{k:'value',label:'What it’s worth today ('+cur+')'},{k:'paid',label:'Total you’ve put in so far ('+cur+')'},{k:'goal',label:'Counts towards',options:GOALDEF}],
+    {name:hh.name,type:hh.type,value:hh.value,paid:hh.paid,goal:goalOf(hh)},function(o){hh.goal=o.goal;var t=today();hh.name=String(o.name||hTypeLabel({cty:hh.cty,type:o.type})).slice(0,40);hh.type=o.type;var v=Math.max(0,o.value||0);hh.paid=Math.max(0,o.paid||v);
       if(v!==hh.value||isNew){hh.value=v;hh.hist=hh.hist.filter(function(x){return x[0]!==t;});hh.hist.push([t,v]);hh.hist.sort(function(a,b){return a[0]<b[0]?-1:1;});}if(isNew)holdings().push(hh);},isNew?'':'<button class="btn warn" data-form="delete">Remove</button>');}
 function vGoals(){
   var p=S.profile,fx=+p.fx||129,plan=split(),lt=(plan.find(function(x){return x.title==='Long-term investing';})||{amt:0}).amt,h='';
@@ -1629,6 +1674,7 @@ function goalsSheet(){
 }
 function emRefresh(){var t=document.getElementById('emTo'),s0=document.getElementById('emSub'),b0=document.getElementById('emBody'),o=document.getElementById('emOpen'),h=document.getElementById('emHint');if(!s0||!b0)return;if(o)o.href=mailtoHref(t?t.value:'',s0.value,b0.value);if(h){var n=placeholders(s0.value+b0.value);h.textContent=n?'✏️ Fill in the '+n+' part'+(n>1?'s':'')+' in [square brackets] before sending.':'✓ Ready to send.';h.classList.toggle('ready',!n);}}
 document.addEventListener('input',function(e){if(e.target&&/^em(To|Sub|Body)$/.test(e.target.id))emRefresh();});
+document.addEventListener('change',function(e){if(e.target&&e.target.classList&&e.target.classList.contains('hgoalsel')){var hx=holdings().find(function(x){return x.id===e.target.dataset.hg;});if(hx){hx.goal=e.target.value;save();toast('Now counts towards '+goalName(hx.goal).toLowerCase());}}});
 var mfT=null;document.addEventListener('input',function(e){if(!e.target||e.target.id!=='mfq')return;var q=e.target.value.trim(),box=document.getElementById('mfres');clearTimeout(mfT);if(q.length<3){if(box)box.innerHTML='';return;}
   mfT=setTimeout(function(){if(box)box.innerHTML='<p class="small soft">Searching…</p>';fetchT('https://api.mfapi.in/mf/search?q='+encodeURIComponent(q),8000).then(function(r){return r.json();}).then(function(L){var b=document.getElementById('mfres');if(!b)return;L=(L||[]).slice(0,25);
     L.sort(function(a,c){var s1=/direct/i.test(a.schemeName)&&/growth/i.test(a.schemeName)?0:1,s2=/direct/i.test(c.schemeName)&&/growth/i.test(c.schemeName)?0:1;return s1-s2;});

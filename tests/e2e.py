@@ -131,6 +131,7 @@ try:
     check('Investment holding can be added with growth shown','▲ £100' in pg.inner_text('main') and pg.locator('.whold').count()==2)
     hid=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).holdings.find(h=>h.name==='Test ISA').id")
     pg.click(f'[data-hval="{hid}"]');pg.fill('[data-f="value"]','1250');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
+    check('Goals view shows progress towards each goal',pg.locator('.gtrack').count()>=1 and pg.locator('svg.gchart').count()>=1)
     check('Holding value can be updated',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).holdings.find(h=>h.name==='Test ISA').value")==1250)
     pg.click('[data-hadd="in"]');pg.wait_for_timeout(200);check('Live tracking options offered',pg.locator('[data-hnew="mf"]').count()==1 and pg.locator('[data-hnew="manual:in"]').count()==1);pg.click('[data-close]');pg.wait_for_timeout(200)
     # --- Settings ---
