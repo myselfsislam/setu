@@ -93,14 +93,14 @@ try:
     txt=open(dl.value.path()).read();check('CSV export valid',txt.startswith('Date,What') and txt.count('\n')>=2)
     check('Cannot go back before the day you started',pg.locator('[data-month]').first.is_disabled())
 
-    pg.click('.mimid');pg.wait_for_timeout(200);pg.fill('[data-cost="rent"]','1200');pg.fill('[data-cost="everyday"]','500');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
+    pg.click('.mimid');pg.wait_for_timeout(200);pg.click('.sheet [data-sheet="costs"]');pg.wait_for_timeout(200);pg.fill('[data-cost="rent"]','1200');pg.fill('[data-cost="everyday"]','500');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
     P=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")
     check('Monthly costs editor saves',P['profile']['rent']==1200 and P['profile']['everyday']==500,(P['profile']['rent'],P['profile']['everyday']))
-    pg.click('.mimid');pg.wait_for_timeout(200);pg.fill('#iitems .irow:nth-child(1) .iname','Term insurance');pg.click('[data-iadd]');pg.fill('#iitems .irow:last-child .iname','Phone bill');pg.fill('#iitems .irow:last-child .ival','500');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
+    pg.click('.mimid');pg.wait_for_timeout(200);pg.click('.sheet [data-sheet="costs"]');pg.wait_for_timeout(200);pg.fill('#iitems .irow:nth-child(1) .iname','Term insurance');pg.click('[data-iadd]');pg.fill('#iitems .irow:last-child .iname','Phone bill');pg.fill('#iitems .irow:last-child .ival','500');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
     P2=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")['profile']
     check('India payments can be renamed and added',[x['name'] for x in P2['indiaItems']][:1]==['Term insurance'] and any(x['name']=='Phone bill' and x['amt']==500 for x in P2['indiaItems']) and P2['indiaOther']==sum(x['amt'] for x in P2['indiaItems'] if x['kind']!='invest'))
     before=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")['profile']
-    pg.click('.mimid');pg.wait_for_timeout(200);pg.select_option('#iitems .irow:last-child .isrc','in');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
+    pg.click('.mimid');pg.wait_for_timeout(200);pg.click('.sheet [data-sheet="costs"]');pg.wait_for_timeout(200);pg.select_option('#iitems .irow:last-child .isrc','in');pg.click('[data-costs-save]');pg.wait_for_timeout(300)
     P3=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")['profile']
     check('India payment can be paid from the Indian account',P3['indiaItems'][-1].get('src')=='in' and 'Indian account' in pg.inner_text('.moneyin') or P3['indiaItems'][-1].get('src')=='in')
     check('Personal spending equals category budgets',abs(sum(c['budget'] for c in P['cats'])-P['profile']['everyday'])<1)
@@ -115,6 +115,10 @@ try:
     check('Category buttons need no sideways scrolling',pg.evaluate("(()=>{const c=document.querySelector('.v-spend .chips');return c.scrollWidth<=c.clientWidth})()"))
     sp0=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length");pg.click('.chips [data-cat="invest"]');pg.fill('#amt','200');pg.fill('#note','ISA');pg.click('[data-add]');pg.wait_for_timeout(300)
     check('Investments can be logged and are not counted as spending',pg.locator('.invline').count()==1 and pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.some(x=>x.cat==='invest')"))
+    pg.click('[data-cat="other"]');pg.fill('#amt','1200');pg.fill('#note','Rent');pg.click('[data-add]');pg.wait_for_timeout(300)
+    check('Logging rent warns it is already counted',pg.locator('.sheet').count()==1 and 'Already counted' in pg.inner_text('.sheet h2'));pg.click('[data-dupepay]');pg.wait_for_timeout(300)
+    pg.click('.mimid');pg.wait_for_timeout(200);check('Bills list shows this month’s regular payments',pg.locator('.sheet .brow').count()>=2)
+    pg.locator('.sheet .bmain').last.click();pg.wait_for_timeout(200);pg.click('[data-bskip]');pg.wait_for_timeout(200);check('A bill can be skipped for this month','Not paying this month' in pg.inner_text('.sheet'));pg.click('[data-close]');pg.wait_for_timeout(200)
     check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
     # --- Goals ---
