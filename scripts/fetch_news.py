@@ -122,6 +122,72 @@ def uk_prices():
         time.sleep(0.8)
     return out
 
+# ---------- Indian shares (NSE): Nifty 500 list, refreshed once a day ----------
+# Fallback list if the NSE file can't be fetched (symbol, name)
+NSE_FALLBACK = [
+ ("RELIANCE","Reliance Industries"),("TCS","Tata Consultancy Services"),("HDFCBANK","HDFC Bank"),("ICICIBANK","ICICI Bank"),("INFY","Infosys"),
+ ("BHARTIARTL","Bharti Airtel"),("SBIN","State Bank of India"),("ITC","ITC"),("HINDUNILVR","Hindustan Unilever"),("LT","Larsen & Toubro"),
+ ("KOTAKBANK","Kotak Mahindra Bank"),("AXISBANK","Axis Bank"),("BAJFINANCE","Bajaj Finance"),("HCLTECH","HCL Technologies"),("MARUTI","Maruti Suzuki"),
+ ("ASIANPAINT","Asian Paints"),("SUNPHARMA","Sun Pharmaceutical"),("TITAN","Titan Company"),("ULTRACEMCO","UltraTech Cement"),("WIPRO","Wipro"),
+ ("NTPC","NTPC"),("POWERGRID","Power Grid Corporation"),("ONGC","Oil & Natural Gas Corporation"),("IOC","Indian Oil Corporation"),("BPCL","Bharat Petroleum"),
+ ("HINDPETRO","Hindustan Petroleum"),("GAIL","GAIL (India)"),("COALINDIA","Coal India"),("TATAMOTORS","Tata Motors"),("TATASTEEL","Tata Steel"),
+ ("JSWSTEEL","JSW Steel"),("M&M","Mahindra & Mahindra"),("ADANIENT","Adani Enterprises"),("ADANIPORTS","Adani Ports"),("NESTLEIND","Nestle India"),
+ ("TECHM","Tech Mahindra"),("BAJAJFINSV","Bajaj Finserv"),("HDFCLIFE","HDFC Life Insurance"),("SBILIFE","SBI Life Insurance"),("DRREDDY","Dr. Reddy's Laboratories"),
+ ("CIPLA","Cipla"),("DIVISLAB","Divi's Laboratories"),("EICHERMOT","Eicher Motors"),("HEROMOTOCO","Hero MotoCorp"),("BAJAJ-AUTO","Bajaj Auto"),
+ ("BRITANNIA","Britannia Industries"),("GRASIM","Grasim Industries"),("HINDALCO","Hindalco Industries"),("INDUSINDBK","IndusInd Bank"),("APOLLOHOSP","Apollo Hospitals"),
+ ("TATACONSUM","Tata Consumer Products"),("ZOMATO","Zomato (Eternal)"),("IRCTC","IRCTC"),("DMART","Avenue Supermarts (DMart)"),("PIDILITIND","Pidilite Industries"),
+ ("HAL","Hindustan Aeronautics"),("BEL","Bharat Electronics"),("IRFC","Indian Railway Finance Corporation"),("PNB","Punjab National Bank"),("BANKBARODA","Bank of Baroda"),
+ ("CANBK","Canara Bank"),("VEDL","Vedanta"),("TATAPOWER","Tata Power"),("ADANIGREEN","Adani Green Energy"),("DLF","DLF"),
+ ("LICI","Life Insurance Corporation of India"),("JIOFIN","Jio Financial Services"),("TRENT","Trent"),("SIEMENS","Siemens"),("HAVELLS","Havells India"),
+ ("ITCHOTELS","ITC Hotels"),("NHPC","NHPC"),("SAIL","Steel Authority of India"),("RECLTD","REC"),("PFC","Power Finance Corporation"),
+]
+
+def nse_list():
+    try:
+        raw = get("https://archives.nseindia.com/content/indices/ind_nifty500list.csv").decode("utf-8", "ignore")
+        rows = [r.split(",") for r in raw.strip().splitlines()[1:]]
+        out = [(r[2].strip(), r[0].strip()) for r in rows if len(r) >= 3 and r[2].strip()]
+        if len(out) > 100:
+            return out
+    except Exception as e:
+        print("nse list failed", e)
+    return NSE_FALLBACK
+
+def nse_prices(old):
+    prev = (old or {}).get("stocks") or {}
+    if prev.get("day") == NOW.strftime("%Y-%m-%d") and prev.get("s"):
+        return prev  # once a day is enough
+    syms = nse_list()
+    dates, data = None, {}
+    for sym, name in syms:
+        try:
+            url = "https://query1.finance.yahoo.com/v8/finance/chart/" + urllib.parse.quote(sym + ".NS") + "?range=1y&interval=1wk"
+            j = json.loads(get(url))["chart"]["result"][0]
+            ts = j.get("timestamp") or []
+            cl = (j.get("indicators", {}).get("quote") or [{}])[0].get("close") or []
+            meta = j.get("meta") or {}
+            pts = [[datetime.datetime.fromtimestamp(t, datetime.timezone.utc).strftime("%Y-%m-%d"), round(c, 2)] for t, c in zip(ts, cl) if c]
+            if len(pts) < 5:
+                continue
+            last, pc = meta.get("regularMarketPrice"), meta.get("chartPreviousClose") or meta.get("previousClose")
+            lt = datetime.datetime.fromtimestamp(meta.get("regularMarketTime", ts[-1]), datetime.timezone.utc).strftime("%Y-%m-%d")
+            if last:
+                if pts[-1][0] >= lt: pts[-1] = [lt, round(last, 2)]
+                else: pts.append([lt, round(last, 2)])
+            data[sym] = {"n": name, "p": pts, "d1": round((last / meta.get("previousClose") - 1) * 100, 2) if last and meta.get("previousClose") else None}
+        except Exception as e:
+            print("stock failed", sym, e)
+        time.sleep(0.25)
+    if len(data) < 20:
+        return prev or {}
+    # compact: one shared list of weekly dates, closes aligned to it (null if missing), plus the latest price
+    all_dates = sorted({d for v in data.values() for d, _ in v["p"][:-1]})
+    out = {}
+    for sym, v in data.items():
+        m = {d: c for d, c in v["p"][:-1]}
+        out[sym] = {"n": v["n"], "c": [m.get(d) for d in all_dates], "l": v["p"][-1][1], "lt": v["p"][-1][0], "d1": v["d1"]}
+    return {"day": NOW.strftime("%Y-%m-%d"), "dates": all_dates, "s": out}
+
 def main():
     try:
         old = json.load(open("news.json"))
@@ -147,9 +213,13 @@ def main():
         result["prices"] = uk_prices() or old.get("prices", {})
     except Exception as e:
         print("prices failed", e); result["prices"] = old.get("prices", {})
+    try:
+        result["stocks"] = nse_prices(old)
+    except Exception as e:
+        print("stocks failed", e); result["stocks"] = old.get("stocks", {})
     with open("news.json", "w") as f:
         json.dump(result, f, ensure_ascii=False, separators=(",", ":"))
-    print("topics:", {k: len(v) for k, v in result["topics"].items()}, "uk:", len(result["uk"]), "india:", len(result["india"]), "prices:", len(result.get("prices", {})))
+    print("topics:", {k: len(v) for k, v in result["topics"].items()}, "uk:", len(result["uk"]), "india:", len(result["india"]), "prices:", len(result.get("prices", {})), "stocks:", len((result.get("stocks") or {}).get("s", {})))
 
 if __name__ == "__main__":
     main()
