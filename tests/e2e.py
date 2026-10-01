@@ -120,6 +120,9 @@ try:
     pg.click('.mimid');pg.wait_for_timeout(200);check('Bills list shows this month’s regular payments',pg.locator('.sheet .brow').count()>=2)
     pg.locator('.sheet .bmain').last.click();pg.wait_for_timeout(200);pg.click('[data-bskip]');pg.wait_for_timeout(200);check('A bill can be skipped for this month','Not paying this month' in pg.inner_text('.sheet'));pg.click('[data-close]');pg.wait_for_timeout(200)
     check('India payments paid from the Indian account are not in Still to pay',pg.evaluate("(()=>{const S0=JSON.parse(localStorage.getItem('setu-v1'));return S0.profile.indiaItems.some(x=>x.src==='in')})()"))
+    pg.click('.reclink');pg.wait_for_timeout(200);bk=pg.evaluate("document.querySelector('.calct tr.big td').textContent");pg.fill('#recval','10');pg.wait_for_timeout(200)
+    check('Bank balance can be matched',pg.locator('[data-recfix="adjust"]').count()==1);pg.click('[data-recfix="adjust"]');pg.wait_for_timeout(300)
+    check('Bank now matches what the user entered','£10.00' in pg.inner_text('.moneyin'),pg.inner_text('.moneyin .r b'))
     check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
     # --- Goals ---

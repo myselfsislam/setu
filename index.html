@@ -507,6 +507,8 @@ body.app-locked #app{filter:blur(18px);pointer-events:none}body.app-locked::befo
 .urow{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr) auto auto 36px}
 @media (max-width:700px){.urow{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 36px;margin-bottom:12px}.urow .uname{grid-column:1/3;grid-row:1}.urow .irm{grid-column:3;grid-row:1}.urow .iamt{grid-column:1;grid-row:2}.urow .uday{grid-column:2/4;grid-row:2;width:100%}.urow .ufrom{grid-column:1/4;grid-row:3;width:100%}}
 @media (max-width:879px){.nudge .grow>b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nudge .grow>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
+.reclink{display:block;margin-top:2px;font-size:11.5px;padding:0;min-height:24px;text-align:right}
+.recdiff{background:var(--t-marigold);border-radius:12px;padding:10px 12px;font-size:14px;margin:8px 0}.bopts .btn small{display:block;font-weight:600;font-size:11.5px;opacity:.85;margin-top:2px}.bopts .btn{flex-direction:column;align-items:center}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -658,6 +660,9 @@ function cState(c,vm){var o=((S.pay||{})[vm]||{})[c.key],due=dueIn(vm,c.day);if(
 /* Indian account: the balance you entered, minus payments made from it since then */
 function inAcctNow(){var p=S.profile||{},base=+p.inBalance||0;if(!base)return null;var from=p.inBalAt||startDay(),k=mKey(new Date(from+'T12:00')),end=mKey(),used=0,guard=0;
   while(k<=end&&guard++<60){billsFor(k).list.forEach(function(b){if(!cFromUK(b.c)&&b.applies&&b.paid&&b.due>=from&&b.due<=today())used+=+b.amt||0;});k=shiftKey(k,1);}return {base:base,used:used,now:base-used,from:from};}
+function bankParts(vm){var p=S.profile,mi=moneyIn(vm),exp=takeHome(p.salary,p.pension).month,sal=mi.salary||exp,BL=billsFor(vm),its=S.items.filter(function(x){return x.date>=startDay()&&pKey(x.date)===vm;}),
+    spent=sum(its.filter(function(x){return !isInv(x);}).map(function(x){return +x.amt||0;})),inv=sum(its.filter(isInv).map(function(x){return +x.amt||0;})),adj=+((S.bankAdj||{})[vm]||0);
+  return {sal:sal,estimated:!mi.salary,carry:mi.carry,moneyIn:sal+mi.carry,paid:BL.paidUK,paidList:BL.list.filter(function(b){return b.applies&&cFromUK(b.c)&&b.paid;}),unpaidList:BL.list.filter(function(b){return b.applies&&cFromUK(b.c)&&!b.paid;}),spent:spent,inv:inv,adj:adj,bank:sal+mi.carry-BL.paidUK-spent-inv+adj};}
 function setPay(vm,key,st,amt){S.pay=S.pay||{};S.pay[vm]=S.pay[vm]||{};if(st==null)delete S.pay[vm][key];else S.pay[vm][key]={st:st,amt:amt};}
 function billsFor(vm){var L=commitments(S.profile).map(function(c){var st=cState(c,vm);return {c:c,applies:cApplies(c,vm),skipped:cSkipped(c,vm),started:cStarted(c,vm),paid:st.paid,amt:st.amt,due:st.due,manual:st.manual};});
   var uk=L.filter(function(b){return b.applies&&cFromUK(b.c);});
@@ -1011,7 +1016,7 @@ function nudges(){
 /* ---------- Home ---------- */
 function vHome(){
   var p=S.profile,m=month(),plan=split(),take=Math.max(1,m.moneyIn),fx=fxNow();function rs(g){return inr(Math.max(0,g)*fx);}
-  var h='<section class="hero">'+ILL.jar+'<div class="lbl">'+(m.carry>0||m.th.actual?'Left to save this month':'Left to save each month')+' <button class="herohow" data-sheet="leftcalc" aria-label="How is this worked out?"><span class="hl">How is this worked out?</span><span class="hs">How?</span> ›</button></div><div class="bigrow"><div class="big f" data-count="'+Math.round(m.left)+'" data-key="left">'+gbp(m.left)+'</div><div class="inr f">≈ '+rs(m.left)+'</div></div><div class="sub">In your bank '+gbp(m.moneyIn-m.bl.paidUK-sum(S.items.filter(function(x){return x.date>=startDay()&&pKey(x.date)===mKey();}).map(function(x){return +x.amt||0;})))+' · To pay '+gbp(m.bl.dueUK)+'</div>'+
+  var h='<section class="hero">'+ILL.jar+'<div class="lbl">'+(m.carry>0||m.th.actual?'Left to save this month':'Left to save each month')+' <button class="herohow" data-sheet="leftcalc" aria-label="How is this worked out?"><span class="hl">How is this worked out?</span><span class="hs">How?</span> ›</button></div><div class="bigrow"><div class="big f" data-count="'+Math.round(m.left)+'" data-key="left">'+gbp(m.left)+'</div><div class="inr f">≈ '+rs(m.left)+'</div></div><div class="sub">In your bank '+gbp2(bankParts(mKey()).bank)+' · To pay '+gbp(m.bl.dueUK)+'</div>'+
     '<div class="flow">'+m.parts.concat([['Left',Math.max(0,m.left),'--s-left']]).map(function(x){return '<div data-w="'+pct(x[1],take).toFixed(1)+'" style="width:'+pct(x[1],take).toFixed(1)+'%;background:var('+x[2]+')"></div>';}).join('')+'</div>'+
     '<div class="key">'+m.parts.concat([['Left',m.left,'--s-left']]).map(function(x){return '<span style="--c:var('+x[2]+')">'+x[0]+'<b>'+gbp(x[1])+'</b><small>'+rs(x[1])+'</small></span>';}).join('')+'</div></section>';
   var N=nudges();
@@ -1070,10 +1075,10 @@ function paceLine(vm,tot,bud){var pc=paceOf(vm,tot,bud);if(!pc)return '';if(pc.e
   return '<div class="pace '+(pc.over?'bad':'ok')+'">'+(pc.over?'▲ Spending too fast: heading for '+gbp(pc.proj):'✓ On pace: about '+gbp(pc.proj)+' by '+periodRange(vm).end.toLocaleDateString('en-GB',{day:'numeric',month:'short'}))+'</div>';}
 function moneyInRow(vm,spent,inv){inv=+inv||0;
   var p=S.profile,mi=moneyIn(vm),exp=takeHome(p.salary,p.pension).month,sal=mi.salary||exp,inAmt=sal+mi.carry;
-  var BL=billsFor(vm),cash=inAmt-BL.paidUK-spent-inv,pc=paceOf(vm,spent,sum(cats().map(function(c){return c.budget;}))),endM=pc&&!pc.early?cash-BL.dueUK-Math.max(0,pc.proj-spent):null;
+  var BL=billsFor(vm),cash=bankParts(vm).bank,pc=paceOf(vm,spent,sum(cats().map(function(c){return c.budget;}))),endM=pc&&!pc.early?cash-BL.dueUK-Math.max(0,pc.proj-spent):null;
   return '<div class="moneyin"><button class="mileft" data-monthin="'+vm+'" aria-label="Edit money in for '+mLabel(vm)+'"><span class="milwrap"><span class="small soft">Money in</span><b class="f">'+gbp(inAmt)+'</b><span class="small '+(mi.salary?'soft':'addlink')+'">'+(mi.salary?'Salary'+(mi.carry?' + '+gbp(mi.carry)+' carried':''):'+ Add salary & last month')+'</span></span></button>'+
     '<button class="mimid" data-sheet="bills" aria-label="Still to pay this month: '+gbp(BL.dueUK)+'. See this month’s bills"><span class="milwrap"><span class="small soft">Still to pay</span><b class="f">'+gbp(BL.dueUK)+'</b><span class="small addlink">Bills ›</span></span></button>'+
-    '<span class="r"><span class="small soft">In your bank now'+tip('cl','Money in, minus the bills you’ve paid and what you’ve spent or invested this month. It should match your bank balance.',true)+'</span><b class="f '+(cash<0?'bad':'')+'">'+gbp(cash)+'</b><span class="small '+(endM!=null&&endM<0?'bad':'soft')+'">'+(endM!=null?'Month end ≈ '+gbp(endM):'after bills paid so far')+'</span></span></div>';
+    '<span class="r"><span class="small soft">In your bank now'+tip('cl','Money in, minus the bills you’ve paid and what you’ve spent or invested this month. It should match your bank balance.',true)+'</span><b class="f '+(cash<0?'bad':'')+'">'+gbp2(cash)+'</b><span class="small '+(endM!=null&&endM<0?'bad':'soft')+'">'+(endM!=null?'Month end ≈ '+gbp(endM):'after bills paid so far')+'</span><button class="link small reclink" data-sheet="recon">Doesn’t match your bank?</button></span></div>';
 }
 var spendQ='',spendF='';
 function spendRows(items,C){var q=spendQ.trim().toLowerCase();return items.filter(function(x){if(spendF&&x.cat!==spendF)return false;if(!q)return true;var c=C.find(function(y){return y.k===x.cat;});return (x.note||'').toLowerCase().indexOf(q)>=0||(c&&c.label.toLowerCase().indexOf(q)>=0)||String(x.amt).indexOf(q)>=0;});}
@@ -1601,6 +1606,14 @@ var SHEETS={
       row('= Left to save',cur(m.left,Math.max(0,m.left)*fx),(function(){var iv=sum(S.items.filter(function(x){return isInv(x)&&x.date>=startDay()&&pKey(x.date)===mKey();}).map(function(x){return x.amt;}));return iv>0?'You’ve logged '+gbp(iv)+' of investments so far this month':'';})(),'tot big')+
       '</table>'+(function(){var X=m.bl.list.filter(function(b){return !b.applies;});return X.length?'<p class="small soft">Not counted this month: '+X.map(function(b){return esc(b.c.name)+(b.started?' (skipped)':' (starts '+fromLabel(b.c.from)+')');}).join(', ')+'.</p>':'';})()+inAccountBox(p)+'<p class="small soft">Pounds on top, rupees underneath, at today’s rate of ₹'+fx.toFixed(2)+' = £1.</p><div class="acts" style="flex-wrap:wrap"><button class="btn go" data-sheet="costs">Change these figures</button><button class="btn" data-tab="spend">Add this month’s salary</button></div>'};},
 
+  recon:function(){var vm=viewMonth||mKey(),B=bankParts(vm);
+    function r(a,b,c,cls){return '<tr class="'+(cls||'')+'"><th scope="row">'+a+(c?'<small>'+c+'</small>':'')+'</th><td>'+b+'</td></tr>';}
+    return {title:'Match your bank balance',body:'<p class="small soft">How Setu works out “In your bank now” for '+mLabel(vm)+':</p><table class="calct">'+
+      r(B.estimated?'Estimated pay':'Salary credited',gbp(B.sal),B.estimated?'You haven’t added this month’s real salary yet':'')+(B.carry?r('+ Carried from last month',gbp(B.carry)):'')+
+      r('− Bills paid from UK money',gbp(B.paid),B.paidList.length?B.paidList.map(function(b){return esc(b.c.name);}).join(', '):'None yet')+
+      r('− Spending logged',gbp(B.spent))+(B.inv?r('− Investments logged',gbp(B.inv)):'')+(B.adj?r((B.adj<0?'− ':'+ ')+'Adjustment',gbp(Math.abs(B.adj))):'')+
+      r('= In your bank now',gbp2(B.bank),'','tot big')+'</table>'+
+      '<label class="field"><span>What your bank app shows now (£)</span><input id="recval" type="number" inputmode="decimal" step="any" placeholder="e.g. 7759.95"></label><div id="recout" aria-live="polite"></div>'};},
   bills:function(){var vm=viewMonth||mKey(),B=billsFor(vm),fx=fxNow();
     function row(b){var c=b.c,money=c.cur==='inr'?inr(b.amt)+'<small>≈ '+gbp(cGBP(c,b.amt))+'</small>':gbp(b.amt),dd=new Date(b.due+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
       var stt=!b.started?'Starts '+fromLabel(c.from):b.skipped?'Not paying this month':b.paid?'Paid'+(b.manual?'':' (due '+dd+')'):'Due '+dd;
@@ -1687,6 +1700,14 @@ document.addEventListener('click',function(e){
   if(t.hasAttribute('data-autopaid')){S.profile.autoPaid=S.profile.autoPaid===false?true:false;save();refreshSheet();render();return;}
   if(t.hasAttribute('data-dupepay')){var X=pendingAdd;if(X){setPay(X.vm,X.match.key,'paid',X.match.cur==='inr'?X.amt*fxNow():X.amt);pendingAdd=null;document.getElementById('amt')&&(document.getElementById('amt').value='');save();sheetFn=null;render();toast(X.paid?'Not added. '+X.match.name+' is already counted':X.match.name+' marked as paid. Not counted twice');}return;}
   if(t.hasAttribute('data-dupeadd')){var Y=pendingAdd;if(Y){S.items.push({id:uid(),date:addDefaultDate(Y.vm),cat:Y.cat,amt:Math.round(Y.amt*100)/100,note:Y.note,created:Date.now()});pendingAdd=null;save();sheetFn=null;render();toast('Added '+gbp2(Y.amt));}return;}
+  if(d.recfix){var vmR=viewMonth||mKey(),out=document.getElementById('recout'),D=+(out&&out.dataset.diff||0),fx0=fxNow(),f=d.recfix;
+    if(f==='bills'){var paidN=0;bankParts(vmR).unpaidList.forEach(function(b){setPay(vmR,b.c.key,'paid',b.amt);paidN++;});var act=out.dataset.actual;save();render();var i0=document.getElementById('recval');if(i0&&act){i0.value=act;i0.dispatchEvent(new Event('input',{bubbles:true}));}toast(paidN+' bill'+(paidN>1?'s':'')+' marked as paid');return;}
+    if(f==='unpay'){openSheet(function(){return SHEETS.bills();});return;}
+    if(f==='spend'){S.items.push({id:uid(),date:addDefaultDate(vmR),cat:'other',amt:Math.round(D*100)/100,note:'Spending not logged',created:Date.now()});}
+    else if(f==='india'){S.bankAdj=S.bankAdj||{};S.bankAdj[vmR]=(+S.bankAdj[vmR]||0)-D;if(+S.profile.inBalance){S.profile.inBalance=+S.profile.inBalance+Math.round(D*fx0);}S.transfers=S.transfers||[];S.transfers.push({d:today(),gbp:D,inr:Math.round(D*fx0)});}
+    else if(f==='income'){S.months=S.months||{};var mo=S.months[vmR]=S.months[vmR]||{};mo.carry=Math.round(((+mo.carry||0)-D)*100)/100;}
+    else if(f==='adjust'){S.bankAdj=S.bankAdj||{};S.bankAdj[vmR]=(+S.bankAdj[vmR]||0)-D;}
+    save();sheetFn=null;render();toast(f==='india'?'Recorded as money sent to India'+(+S.profile.inBalance?', added to your Indian account':''):'Done. Setu now matches your bank');return;}
   if(d.email){var eid=d.email;openSheet(function(){return emailSheet(eid);});return;}
   if(d.copy){var es=document.getElementById('emSub'),eb=document.getElementById('emBody');if(!es||!eb)return;copyText(d.copy==='sub'?es.value:d.copy==='body'?eb.value:'Subject: '+es.value+'\n\n'+eb.value);return;}
   if(d.monthin){var mk=d.monthin;S.months=S.months||{};var cur0=S.months[mk]||{},exp0=takeHome(S.profile.salary,S.profile.pension).month;
@@ -1746,6 +1767,14 @@ function goalsSheet(){
 }
 function emRefresh(){var t=document.getElementById('emTo'),s0=document.getElementById('emSub'),b0=document.getElementById('emBody'),o=document.getElementById('emOpen'),h=document.getElementById('emHint');if(!s0||!b0)return;if(o)o.href=mailtoHref(t?t.value:'',s0.value,b0.value);if(h){var n=placeholders(s0.value+b0.value);h.textContent=n?'✏️ Fill in the '+n+' part'+(n>1?'s':'')+' in [square brackets] before sending.':'✓ Ready to send.';h.classList.toggle('ready',!n);}}
 document.addEventListener('input',function(e){if(e.target&&/^em(To|Sub|Body)$/.test(e.target.id))emRefresh();});
+document.addEventListener('input',function(e){if(!e.target||e.target.id!=='recval')return;var out=document.getElementById('recout');if(!out)return;var a=parseFloat(e.target.value);if(!(a>=0)||e.target.value===''){out.innerHTML='';return;}
+  var vm=viewMonth||mKey(),B=bankParts(vm),D=Math.round((B.bank-a)*100)/100;if(Math.abs(D)<0.5){out.innerHTML='<p class="small ok">✓ That matches. Nothing to fix.</p>';return;}
+  var hi=D>0,ul=B.unpaidList,uSum=sum(ul.map(function(b){return cGBP(b.c,b.amt);}));
+  out.innerHTML='<p class="recdiff">Setu shows <b>'+gbp2(Math.abs(D))+(hi?' more':' less')+'</b> than your bank. '+(hi?'Usually that’s money that has left your account but isn’t in Setu yet. What was it?':'Usually that’s money that came in but isn’t in Setu yet, or a bill Setu thinks has gone out.')+'</p><div class="bopts">'+
+    (hi&&ul.length?'<button class="btn go" data-recfix="bills">Bills have already gone out <small>'+ul.map(function(b){return esc(b.c.name);}).slice(0,4).join(', ')+' · '+gbp(uSum)+'</small></button>':'')+
+    (hi?'<button class="btn" data-recfix="spend">Spending I haven’t logged <small>adds '+gbp2(D)+' as spending</small></button><button class="btn" data-recfix="india">Money I sent to India <small>a transfer, not spending</small></button>':'<button class="btn go" data-recfix="income">Extra money came in <small>adds '+gbp2(-D)+' to money in</small></button>'+(B.paidList.length?'<button class="btn" data-recfix="unpay">A bill hasn’t gone out yet <small>open bills to untick it</small></button>':''))+
+    '<button class="btn" data-recfix="adjust">Just match my bank <small>adjusts the balance only</small></button></div>';
+  out.dataset.diff=D;out.dataset.actual=a;});
 document.addEventListener('change',function(e){if(e.target&&e.target.classList&&e.target.classList.contains('hgoalsel')){var hx=holdings().find(function(x){return x.id===e.target.dataset.hg;});if(hx){hx.goal=e.target.value;save();toast('Now counts towards '+goalName(hx.goal).toLowerCase());}}});
 var mfT=null;document.addEventListener('input',function(e){if(!e.target||e.target.id!=='mfq')return;var q=e.target.value.trim(),box=document.getElementById('mfres');clearTimeout(mfT);if(q.length<3){if(box)box.innerHTML='';return;}
   mfT=setTimeout(function(){if(box)box.innerHTML='<p class="small soft">Searching…</p>';fetchT('https://api.mfapi.in/mf/search?q='+encodeURIComponent(q),8000).then(function(r){return r.json();}).then(function(L){var b=document.getElementById('mfres');if(!b)return;L=(L||[]).slice(0,25);

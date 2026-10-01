@@ -1,5 +1,5 @@
 /* Setu service worker: works offline, keeps the app fast. Bump VERSION on every release. */
-const VERSION = 'setu-v36-2026-10-01-inacct2';
+const VERSION = 'setu-v37-2026-10-01-recon';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './fonts/figtree.woff2', './fonts/bricolage.woff2', './icons/setu-192.png', './icons/setu-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
