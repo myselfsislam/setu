@@ -119,6 +119,7 @@ try:
     check('Logging rent warns it is already counted',pg.locator('.sheet').count()==1 and 'Already counted' in pg.inner_text('.sheet h2'));pg.click('[data-dupepay]');pg.wait_for_timeout(300)
     pg.click('.mimid');pg.wait_for_timeout(200);check('Bills list shows this month’s regular payments',pg.locator('.sheet .brow').count()>=2)
     pg.locator('.sheet .bmain').last.click();pg.wait_for_timeout(200);pg.click('[data-bskip]');pg.wait_for_timeout(200);check('A bill can be skipped for this month','Not paying this month' in pg.inner_text('.sheet'));pg.click('[data-close]');pg.wait_for_timeout(200)
+    check('India payments paid from the Indian account are not in Still to pay',pg.evaluate("(()=>{const S0=JSON.parse(localStorage.getItem('setu-v1'));return S0.profile.indiaItems.some(x=>x.src==='in')})()"))
     check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
     # --- Goals ---
