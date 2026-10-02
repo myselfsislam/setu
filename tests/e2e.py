@@ -123,6 +123,7 @@ try:
     pg.click('.reclink');pg.wait_for_timeout(200);bk=pg.evaluate("document.querySelector('.calct tr.big td').textContent");pg.fill('#recval','10');pg.wait_for_timeout(200)
     check('Bank balance can be matched',pg.locator('[data-recfix="adjust"]').count()==1);pg.click('[data-recfix="adjust"]');pg.wait_for_timeout(300)
     check('Bank now matches what the user entered','£10.00' in pg.inner_text('.moneyin'),pg.inner_text('.moneyin .r b'))
+    pg.click('[data-catview="groceries"]');pg.wait_for_timeout(300);check('Category view shows items and daily changes',pg.locator('.sheet .cvstats').count()==1 and 'Daily average' in pg.inner_text('.sheet'));pg.click('[data-close]');pg.wait_for_timeout(200)
     check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
     # --- Goals ---

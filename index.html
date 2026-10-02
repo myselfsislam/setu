@@ -512,6 +512,13 @@ body.app-locked #app{filter:blur(18px);pointer-events:none}body.app-locked::befo
 .splithint{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:9px 12px;border-radius:12px;background:var(--t-mint)}.splithint .small{font-weight:600}
 .btn.warn{color:#C73A26}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.warn{color:#FF8A76}}
 .movecode{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--t-indigo);border-radius:16px;padding:14px;margin:10px 0}.movecode b{font-size:36px;letter-spacing:4px;color:var(--indigo)}
+.cvstats{margin-top:0}.cvstats small .ok,.cvstats small .bad{font-weight:700}
+.cvchart{width:100%;height:auto;display:block;margin:4px 0 2px}
+.cvgroups{display:flex;flex-direction:column;gap:8px}.cvg b{font-size:14px}.cvg small{font-size:12px}.cvbar{height:5px;border-radius:5px;background:var(--rule);margin-top:4px;overflow:hidden}.cvbar i{display:block;height:100%;border-radius:5px}
+.cvday{border-top:1px solid var(--rule);padding:8px 0}.cvday .row-b>b{font-size:14px}.cvdt{display:flex;flex-direction:column;align-items:flex-end}.cvdt small{font-size:11.5px;font-weight:700}
+.cvit{display:flex;justify-content:space-between;width:100%;border:0;background:none;padding:4px 0 4px 10px;font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer;text-align:left}.cvit span:last-child{font-weight:700}
+@media (hover:hover){.cvit:hover{color:var(--indigo)}}
+.cvstats small .ok{color:#096B51}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cvstats small .ok,:root:not([data-theme="light"]) .cvdt .ok{color:#6FE3BF}}.cvdt .ok{color:#096B51}
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(20,12,60,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:88%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:28px 28px 0 0;padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px));touch-action:pan-y}
@@ -1213,9 +1220,9 @@ function vSpend(){
   var la=lastAdded(),lc=la&&allCats().find(function(c){return c.k===la.cat;});if(la)h+='<div class="undo"><span>Added '+esc(la.note||(lc?lc.label:'spending'))+' '+gbp2(la.amt)+'</span><button class="link bad" data-undo="'+la.id+'">Undo</button></div>';
   h+='</section>'+costsCard()+'<section class="tiles'+(items.length?' opt" data-prio="0':'')+'">';
   C.forEach(function(c){var v=sum(items.filter(function(x){return x.cat===c.k;}).map(function(x){return x.amt;})),pcc=c.budget?v/c.budget*100:(v?100:0),k=cc(c.k);
-    h+='<button class="tile" data-cat-edit="'+c.k+'" style="--cc:'+k[0]+'"><div class="row-b"><span><i>'+gl(k[1])+'</i>'+esc(c.label)+'</span><span class="v"><b>'+gbp(v)+'</b>/'+gbp(c.budget)+'</span></div><div class="bar'+(pcc>100?' over':'')+'"><div data-w="'+Math.min(100,pcc).toFixed(1)+'" style="width:'+Math.min(100,pcc).toFixed(1)+'%"></div></div></button>';});
-  if(!items.length)h+='<div class="emptyline">'+ILL.bag+'<span>Nothing added yet. Add what you spend above. Tap a category to change its budget.</span></div>';
-  var mInv=month(),target=Math.max(0,mInv.left);h+='<button class="tile invtile" data-cat="invest" style="--cc:#0C7F60" aria-label="Investments: '+gbp(invested)+' invested this month. Tap to log an investment"><div class="row-b"><span><i>'+gl('chart')+'</i>Investments</span><span class="tv"><b>'+gbp(invested)+'</b>'+(target>0?'<small>/'+gbp(target)+'</small>':'')+'</span></div><div class="bar"><div data-w="'+Math.min(100,target?invested/target*100:0).toFixed(1)+'" style="width:'+Math.min(100,target?invested/target*100:0).toFixed(1)+'%;background:#0C7F60"></div></div></button>';
+    h+='<button class="tile" data-catview="'+c.k+'" aria-label="'+esc(c.label)+': '+gbp(v)+' of '+gbp(c.budget)+'. See items and daily changes" style="--cc:'+k[0]+'"><div class="row-b"><span><i>'+gl(k[1])+'</i>'+esc(c.label)+'</span><span class="v"><b>'+gbp(v)+'</b>/'+gbp(c.budget)+'</span></div><div class="bar'+(pcc>100?' over':'')+'"><div data-w="'+Math.min(100,pcc).toFixed(1)+'" style="width:'+Math.min(100,pcc).toFixed(1)+'%"></div></div></button>';});
+  if(!items.length)h+='<div class="emptyline">'+ILL.bag+'<span>Nothing added yet. Add what you spend above. Tap a category to see its items and daily changes.</span></div>';
+  var mInv=month(),target=Math.max(0,mInv.left);h+='<button class="tile invtile" data-catview="invest" style="--cc:#0C7F60" aria-label="Investments: '+gbp(invested)+' invested this month. Tap to log an investment"><div class="row-b"><span><i>'+gl('chart')+'</i>Investments</span><span class="tv"><b>'+gbp(invested)+'</b>'+(target>0?'<small>/'+gbp(target)+'</small>':'')+'</span></div><div class="bar"><div data-w="'+Math.min(100,target?invested/target*100:0).toFixed(1)+'" style="width:'+Math.min(100,target?invested/target*100:0).toFixed(1)+'%;background:#0C7F60"></div></div></button>';
   h+='</section>';
   var li=logItems(vm);if(li.length||spendRange.mode!=='cycle')h+=spendTable(li,allCats());
   return h;
@@ -1710,6 +1717,31 @@ var SHEETS={
       r('− Spending logged',gbp(B.spent))+(B.inv?r('− Investments logged',gbp(B.inv)):'')+(B.adj?r((B.adj<0?'− ':'+ ')+'Adjustment',gbp(Math.abs(B.adj))):'')+
       r('= In your bank now',gbp2(B.bank),'','tot big')+'</table>'+
       '<label class="field"><span>What your bank app shows now (£)</span><input id="recval" type="number" inputmode="decimal" step="any" placeholder="e.g. 7759.95"></label><div id="recout" aria-live="polite"></div>'};},
+  catview:function(k){var vm=viewMonth||mKey(),C=allCats(),c=C.find(function(x){return x.k===k;})||{k:k,label:k,budget:0},col=cc(k)[0],fx=fxNow(),R=periodRange(vm);
+    var its=S.items.filter(function(x){return x.cat===k&&x.date>=startDay()&&pKey(x.date)===vm;}).sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(b.created||0)-(a.created||0);});
+    var tot=sum(its.map(function(x){return +x.amt||0;})),endD=isoD(R.end)<today()?isoD(R.end):today(),startD=isoD(R.start)<startDay()?startDay():isoD(R.start);
+    /* every day of the month so far, with its total */
+    var days=[],d=new Date(startD+'T12:00');while(isoD(d)<=endD&&days.length<62){var ds=isoD(d);days.push([ds,sum(its.filter(function(x){return x.date===ds;}).map(function(x){return +x.amt||0;}))]);d.setDate(d.getDate()+1);}
+    var nDays=Math.max(1,days.length),avg=tot/nDays,maxD=days.reduce(function(m,x){return x[1]>m[1]?x:m;},['',0]),fmtD=function(ds,o){return new Date(ds+'T12:00').toLocaleDateString('en-GB',o||{weekday:'short',day:'numeric',month:'short'});};
+    var tdy=days.length?days[days.length-1]:null,yst=days.length>1?days[days.length-2]:null;
+    /* bar chart of daily spending, with the budget's daily pace */
+    var W=innerWidth>=880?560:330,H=120,pad=6,bw=Math.max(2,(W-2*pad)/Math.max(days.length,1)-2),pace=c.budget?c.budget/R.days:0,mx=Math.max(maxD[1],pace*1.4,1);
+    var bars=days.map(function(x,i){var bh=x[1]/mx*(H-26),xx=pad+i*((W-2*pad)/days.length);return '<rect x="'+xx.toFixed(1)+'" y="'+(H-14-bh).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(x[1]?2:0,bh).toFixed(1)+'" rx="2" fill="'+col+'"'+(x[0]===today()?' opacity="1"':' opacity=".75"')+'><title>'+fmtD(x[0])+': '+gbp2(x[1])+'</title></rect>';}).join('');
+    var py=(H-14-pace/mx*(H-26)).toFixed(1),chart=days.length?'<svg class="cvchart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Daily '+esc(c.label)+' spending: highest '+gbp2(maxD[1])+' on '+(maxD[0]?fmtD(maxD[0]):'')+'">'+bars+(pace?'<line x1="0" x2="'+W+'" y1="'+py+'" y2="'+py+'" stroke="var(--soft)" stroke-dasharray="4 4" stroke-width="1"/><text x="'+(W-2)+'" y="'+(+py-4)+'" text-anchor="end" class="wlab">Budget pace '+gbp(pace)+'/day</text>':'')+'<text x="2" y="'+(H-2)+'" class="wlab">'+fmtD(days[0][0],{day:'numeric',month:'short'})+'</text><text x="'+(W-2)+'" y="'+(H-2)+'" text-anchor="end" class="wlab">'+fmtD(days[days.length-1][0],{day:'numeric',month:'short'})+'</text></svg>':'';
+    function chg(a,b){var dlt=a-b;if(Math.abs(dlt)<0.005)return '<span class="soft">same as before</span>';return '<span class="'+(dlt>0?'bad':'ok')+'">'+(dlt>0?'▲ ':'▼ ')+gbp2(Math.abs(dlt))+'</span>';}
+    /* what's being tracked: grouped by name */
+    var g={};its.forEach(function(x){var nm=(x.note||'').trim()||c.label,key=nm.toLowerCase();g[key]=g[key]||{n:nm,c:0,t:0,last:''};g[key].c++;g[key].t+=+x.amt||0;if(x.date>g[key].last)g[key].last=x.date;});
+    var groups=Object.keys(g).map(function(x){return g[x];}).sort(function(a,b){return b.t-a.t;});
+    /* day by day, newest first, with change from the previous day you spent */
+    var spentDays=days.filter(function(x){return x[1]>0;});
+    var daylist=spentDays.slice().reverse().map(function(x,i,arr){var prev=arr[i+1],di=its.filter(function(y){return y.date===x[0];});
+      return '<div class="cvday"><div class="row-b"><b>'+fmtD(x[0])+'</b><span class="cvdt"><b>'+gbp2(x[1])+'</b>'+(prev?'<small>'+chg(x[1],prev[1])+' vs '+fmtD(prev[0],{weekday:'short'})+'</small>':'')+'</span></div>'+di.map(function(y){return '<button class="cvit" data-item="'+y.id+'"><span>'+esc(y.note||c.label)+'</span><span>'+gbp2(y.amt)+'</span></button>';}).join('')+'</div>';}).join('');
+    return {title:c.label+', '+mLabel(vm),body:
+      '<div class="pgrid cvstats"><div><span>'+(k==='invest'?'Invested':'Spent')+'</span><b>'+gbp2(tot)+'</b>'+(c.budget?'<small>of '+gbp(c.budget)+' budget</small>':'')+'</div><div><span>Daily average</span><b>'+gbp2(avg)+'</b><small>over '+nDays+' day'+(nDays>1?'s':'')+'</small></div><div><span>'+(vm===mKey()?'Today':'Last day, '+(tdy?fmtD(tdy[0],{day:'numeric',month:'short'}):''))+'</span><b>'+gbp2(tdy?tdy[1]:0)+'</b><small>'+(tdy&&yst?chg(tdy[1],yst[1])+' vs '+(vm===mKey()?'yesterday':'the day before'):'')+'</small></div><div><span>Biggest day</span><b>'+gbp2(maxD[1])+'</b><small>'+(maxD[0]&&maxD[1]?fmtD(maxD[0],{weekday:'short',day:'numeric'}):'–')+'</small></div></div>'+
+      (its.length?'<h3 class="csub">Day by day</h3>'+chart:'<p class="small soft" style="margin:12px 0">Nothing logged in '+esc(c.label)+' this month yet.</p>')+
+      (groups.length?'<h3 class="csub">What you’re tracking</h3><div class="cvgroups">'+groups.map(function(x){var pc0=tot?x.t/tot*100:0;return '<div class="cvg"><div class="row-b"><span><b>'+esc(x.n)+'</b><small class="soft"> '+x.c+'× · last '+fmtD(x.last,{day:'numeric',month:'short'})+'</small></span><b>'+gbp2(x.t)+'</b></div><div class="cvbar"><i style="width:'+pc0.toFixed(1)+'%;background:'+col+'"></i></div></div>';}).join('')+'</div>':'')+
+      (daylist?'<h3 class="csub">Every entry</h3>'+daylist:'')+
+      '<div class="acts" style="margin-top:14px;flex-wrap:wrap"><button class="btn go" data-cvlog="'+k+'">Log '+esc(c.label.toLowerCase())+'</button>'+(k==='invest'?'':'<button class="btn" data-cat-edit="'+k+'">Change budget</button>')+'</div>'};},
   bills:function(){var vm=viewMonth||mKey(),B=billsFor(vm),fx=fxNow();
     function row(b){var c=b.c,money=c.cur==='inr'?inr(b.amt)+'<small>≈ '+gbp(cGBP(c,b.amt))+'</small>':gbp(b.amt),dd=new Date(b.due+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
       var stt=!b.started?'Starts '+fromLabel(c.from):b.skipped?'Not paying this month':b.paid?'Paid'+(b.manual?'':' (due '+dd+')'):'Due '+dd;
@@ -1839,6 +1871,8 @@ document.addEventListener('click',function(e){
   if(t.hasAttribute('data-moveshare')||t.hasAttribute('data-movecopy')){var ln=window.__moveLink;if(!ln)return;if(t.hasAttribute('data-moveshare')&&navigator.share){navigator.share({title:'My Setu data',text:'Open this on your other device, then enter the code shown in Setu.',url:ln}).catch(function(){});}else copyText(ln);return;}
   if(t.hasAttribute('data-movego')){var cd=((document.getElementById('movecode')||{}).value||'').replace(/\D/g,''),me=document.getElementById('moveerr');if(cd.length!==6){if(me)me.innerHTML='<p class="small bad">Enter the 6 digits shown on your other device.</p>';return;}if(me)me.innerHTML='<p class="small soft">Unlocking…</p>';
     openMoveLink(MOVE,cd).then(function(o){S=o;S.moved=Date.now();save();MOVE=null;history.replaceState(null,'',location.pathname+location.search);sheetFn=null;wz=null;lastTab=null;tab='home';render();toast('Your data is here. Welcome back'+(S.profile.name?', '+S.profile.name:''));}).catch(function(){if(me)me.innerHTML='<p class="small bad">That code didn’t work. Check it on your other device and try again.</p>';});return;}
+  if(d.catview){var kv=d.catview;openSheet(function(){return SHEETS.catview(kv);});return;}
+  if(d.cvlog){addCat=d.cvlog;sheetFn=null;render();setTimeout(function(){var a=document.getElementById('amt');if(a){a.focus();a.scrollIntoView({block:'center'});}},60);return;}
   if(d.email){var eid=d.email;openSheet(function(){return emailSheet(eid);});return;}
   if(d.copy){var es=document.getElementById('emSub'),eb=document.getElementById('emBody');if(!es||!eb)return;copyText(d.copy==='sub'?es.value:d.copy==='body'?eb.value:'Subject: '+es.value+'\n\n'+eb.value);return;}
   if(d.monthin){var mk=d.monthin;S.months=S.months||{};var cur0=S.months[mk]||{},exp0=takeHome(S.profile.salary,S.profile.pension).month;
