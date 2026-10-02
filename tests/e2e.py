@@ -143,6 +143,7 @@ try:
     check('Goals view shows progress towards each goal',pg.locator('.gtrack').count()>=1 and pg.locator('svg.gchart').count()>=1)
     check('Untracked fund totals offer live tracking',pg.locator('[data-hsplit]').count()>=1)
     pg.click('[data-hadd="in"]');pg.wait_for_timeout(200);check('Shares (NSE) offered for live tracking',pg.locator('[data-hnew="stk"]').count()==1);pg.click('[data-close]');pg.wait_for_timeout(200)
+    check('Investments are grouped by type',pg.locator('.wtile').count()>=1);pg.locator('.wtile').first.click();pg.wait_for_timeout(300);check('Type view lists each holding',pg.locator('.sheet .wrow').count()>=1);pg.click('[data-close]');pg.wait_for_timeout(200)
     check('Holding value can be updated',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).holdings.find(h=>h.name==='Test ISA').value")==1250)
     pg.click('[data-hadd="in"]');pg.wait_for_timeout(200);check('Live tracking options offered',pg.locator('[data-hnew="mf"]').count()==1 and pg.locator('[data-hnew="manual:in"]').count()==1);pg.click('[data-close]');pg.wait_for_timeout(200)
     # --- Settings ---
