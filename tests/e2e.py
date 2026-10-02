@@ -145,6 +145,8 @@ try:
     check('Holding value can be updated',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).holdings.find(h=>h.name==='Test ISA').value")==1250)
     pg.click('[data-hadd="in"]');pg.wait_for_timeout(200);check('Live tracking options offered',pg.locator('[data-hnew="mf"]').count()==1 and pg.locator('[data-hnew="manual:in"]').count()==1);pg.click('[data-close]');pg.wait_for_timeout(200)
     # --- Settings ---
+    pg.click('[data-sheet="settings"]:visible');pg.click('[data-set="move"]');pg.wait_for_timeout(200);pg.click('[data-movemake]');pg.wait_for_timeout(2500)
+    check('Transfer link with 6-digit code is created',len(pg.inner_text('.movecode b').replace(' ',''))==6 and '#move=' in (pg.evaluate('window.__moveLink') or ''));pg.click('[data-close]');pg.wait_for_timeout(200)
     pg.click('[data-sheet="settings"]:visible');pg.wait_for_timeout(200);rows=pg.locator('[data-set]').count();check('Settings rows',rows>=8,rows)
     pg.click('[data-set="transfer"]');pg.wait_for_timeout(300);pg.fill('#tfA','500');pg.fill('#tfF','3');pg.fill('#tfR','120');pg.wait_for_timeout(100)
     check('Transfer checker computes','Hidden cost' in pg.inner_text('#tfOut'));pg.click('[data-close]')
@@ -163,7 +165,7 @@ try:
     pg.click('[data-sheet="settings"]:visible');pg.click('[data-set="reset"]');pg.wait_for_timeout(300)
     check('Start over clears data',pg.locator('.introhero').count()==1)
     # restore
-    pg.click('.foot [data-sheet="backup"]');pg.wait_for_timeout(200);open(os.path.join(ROOT,'.bk-test.json'),'w').write(json.dumps(bk));pg.set_input_files('#bkin',os.path.join(ROOT,'.bk-test.json'));pg.wait_for_timeout(500)
+    pg.click('[data-sheet="movehelp"]');pg.wait_for_timeout(200);pg.click('.sheet [data-sheet="backup"]');pg.wait_for_timeout(200);open(os.path.join(ROOT,'.bk-test.json'),'w').write(json.dumps(bk));pg.set_input_files('#bkin',os.path.join(ROOT,'.bk-test.json'));pg.wait_for_timeout(500)
     check('Restore from file works',pg.locator('main').count()==1 and pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length")>=2)
     check('No page errors',not errs,errs[:3])
     check('No console errors (excluding blocked network)',not [c for c in cons if 'net::' not in c and 'Failed to load' not in c and 'CORS' not in c],cons[:3])
