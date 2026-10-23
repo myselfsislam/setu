@@ -618,6 +618,17 @@ body.app-locked #app{filter:blur(18px);pointer-events:none}body.app-locked::befo
 .tile .row-b{flex-direction:column;align-items:flex-start;gap:3px}.tile .row-b>span{max-width:100%}.tile .v,.tile .tv{padding-left:29px}
 @media (min-width:880px){.v-spend .tiles{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important}}
 @media (min-width:880px){.v-home .glance{align-self:stretch;align-items:center}}
+
+/* ILR view */
+.ilrhero{background:var(--t-indigo)}.ilrdate{font-size:34px;line-height:1.1;margin:4px 0 6px;letter-spacing:-.01em}.ilrbar{margin:14px 0 6px;height:10px}.ilrbar>div{background:var(--indigo)}.ilrhero .link{margin-top:6px;padding:0;min-height:28px;text-align:left}
+.ilrnums{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}.ilrnums>div{display:flex;flex-direction:column;gap:2px}.ilrnums b{font-size:28px;line-height:1.1}.ilrnums b.ok{color:#096B51}.ilrnums b.bad{color:#C73A26}
+.ilrmeter.bad{box-shadow:inset 0 0 0 1.5px #C73A26}.ilrwarn{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--t-rani);font-size:14px}
+.trip .grow b,.trip .grow>.small{display:block}.trip .grow>.small{margin-top:2px}.trip .tdays{display:flex;flex-direction:column;align-items:flex-end;min-width:44px}.trip .tdays b{font-size:20px;line-height:1}.trip .tdays small{font-size:11.5px;color:var(--soft)}
+.tchip{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:1px 8px;margin-left:4px;vertical-align:2px}.tchip.now{background:var(--t-teal);color:#0B6A64}.tchip.plan{background:var(--t-indigo);color:var(--indigo)}.tchip.over{background:var(--t-rani);color:#B21E5F}
+.ilrfine{grid-column:1/-1}
+@media (min-width:880px){.v-stay .ilrtrips{grid-column:1/-1}}
+
+.tb .ts{display:none}@media (max-width:374px){.tabbar{padding:5px 4px}.tb{font-size:10px;letter-spacing:-.01em}.tb .tl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.tb .ts{display:inline}}
 </style>
 </head>
 <body>
@@ -722,7 +733,7 @@ function makeMoveLink(){var code=String(Math.floor(100000+Math.random()*900000))
 function openMoveLink(frag,code){var parts=frag.split('.');if(parts.length!==4)return Promise.reject('bad');var z=parts[0]==='1',salt=ub64u(parts[1]),iv=ub64u(parts[2]),ct=ub64u(parts[3]);
   return moveKey(code,salt).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);}).then(function(pt){return z?zip(new Uint8Array(pt),true):new Uint8Array(pt);}).then(function(b){var o=JSON.parse(new TextDecoder().decode(b));if(!o||o.v!==1||!o.profile)throw 'bad';return o;});}
 /* ================= Sync: email sign-in + end-to-end encryption (Supabase stores only encrypted data) ================= */
-var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','startDate','splitFrom'];
+var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','startDate','splitFrom','ilr','rebDis','rebHDis'];
 var SKEY='setu-sync',SBASE='setu-sync-base';
 function syncOn(){return !!(SYNC_CFG.url&&SYNC_CFG.anon);}
 function sGet(){try{return JSON.parse(localStorage.getItem(SKEY)||'null');}catch(e){return null;}}
@@ -1005,8 +1016,8 @@ function bridgeSVG(p,big){
 var LOGO='<svg viewBox="0 0 40 40" role="img" aria-label="Setu logo"><path d="M9.5 30.5 C9.5 19 30.5 21 30.5 9.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.1 6.4"/><circle cx="9.5" cy="30.5" r="7" fill="var(--india)"/><circle cx="30.5" cy="9.5" r="7" fill="var(--uk)"/></svg>';
 
 /* ---------- render ---------- */
-var ICON={home:'<path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/>',check:'<circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><path d="M5 16.5C5 11 19 13 19 7.5" stroke-dasharray="0.1 3.4" stroke-width="2.4"/>',spend:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/>',goals:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',wealth:'<path d="M4 19h16"/><path d="M6 15l4-4 3 3 6-7"/><path d="M15 7h4v4"/>'};
-var TABS=[['home','Home'],['check','Checklist'],['spend','Spending'],['wealth','Investments'],['goals','Goals']];
+var ICON={home:'<path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/>',check:'<circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><path d="M5 16.5C5 11 19 13 19 7.5" stroke-dasharray="0.1 3.4" stroke-width="2.4"/>',spend:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/>',goals:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',wealth:'<path d="M4 19h16"/><path d="M6 15l4-4 3 3 6-7"/><path d="M15 7h4v4"/>',stay:'<rect x="5" y="3" width="14" height="18" rx="2.5"/><circle cx="12" cy="10" r="3"/><path d="M9 17h6"/>'};
+var TABS=[['home','Home'],['check','Checklist'],['spend','Spending'],['wealth','Investments'],['goals','Goals'],['stay','ILR']];
 var GEAR='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
 var GL={home:'<path d="M4 11l8-6 8 6v8H4z"/><path d="M10 19v-5h4v5"/>',shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',chart:'<path d="M5 19V11M12 19V5M19 19v-6"/>',spark:'<path d="M12 3v5M12 16v5M3 12h5M16 12h5M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3"/>',card:'<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10h18"/>',rupee:'<path d="M7 5h10M7 9h10M9 5c4 0 6 1.5 6 4s-2 4-6 4l6 6"/>',basket:'<path d="M4 10h16l-1.5 9h-13z"/><path d="M8 10l3-5M16 10l-3-5"/>',bus:'<rect x="5" y="3.5" width="14" height="14" rx="3"/><path d="M5 11h14M8 21v-3M16 21v-3"/>',fork:'<path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M16 3c-2 1-2.5 4-2.5 7h2.5v11"/>',bag:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',dots:'<circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/>',chart:'<path d="M4 19h16"/><path d="M6 15l4-4 3 3 6-7"/><path d="M15 7h4v4"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/>',ext:'<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',car:'<path d="M5 16h14v-4l-2-5H7l-2 5z"/><path d="M5 12h14"/><circle cx="8" cy="16.5" r="1.6"/><circle cx="16" cy="16.5" r="1.6"/>',cash:'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9v6M17.5 9v6"/>',list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/>'};
 function gl(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+GL[k]+'</svg>';}
@@ -1025,14 +1036,14 @@ var ILL={
 function greet(){var h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening';}
 function whenTxt(){var d=daysSince(S.profile.moved);return d<0?'You move in '+(-d)+' day'+(d===-1?'':'s'):'Day '+(d+1)+' in the UK';}
 function pageHead(){var p=S.profile;
-  return ({home:[greet()+(p.name?', '+p.name:''),whenTxt()],check:['Your first 90 days','Things to sort out in India and the UK'],spend:['Spending',mLabel(viewMonth||mKey())],goals:['Goals','Your home and retirement in India'],wealth:['Your investments','How your money is growing in the UK and India']})[tab];}
+  return ({home:[greet()+(p.name?', '+p.name:''),whenTxt()],check:['Your first 90 days','Things to sort out in India and the UK'],spend:['Spending',mLabel(viewMonth||mKey())],goals:['Goals','Your home and retirement in India'],wealth:['Your investments','How your money is growing in the UK and India'],stay:['ILR and time away','Your path to settlement and the 180-day limit']})[tab];}
 var lastTab=null,lastTicked=null,countFrom={};
 function render(){
   var app=document.getElementById('app'),anim=sheetAnim;sheetAnim=false;var sh0=document.querySelector('.sheet'),shTop=sh0&&sheetFn?sh0.scrollTop:0;
   if(!S.profile||wz){app.innerHTML='<div class="wzshell"><div class="wzcard">'+vWizard()+'</div></div>'+(sheetFn?sheetHTML(anim):'');bindWizard();bindSheet();return;}
-  var V={home:vHome,check:vCheck,spend:vSpend,wealth:vWealth,goals:vGoals};if(!V[tab])tab='home';
+  var V={home:vHome,check:vCheck,spend:vSpend,wealth:vWealth,goals:vGoals,stay:vStay};if(!V[tab])tab='home';
   var enter=lastTab!==tab,m=document.getElementById('main'),keep=(!enter&&m)?m.scrollTop:0;lastTab=tab;
-  var ph=pageHead(),p=S.profile,navBtn=function(t,cls){return '<button class="'+cls+'" data-tab="'+t[0]+'"'+(tab===t[0]?' aria-current="page"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true">'+ICON[t[0]]+'</svg><span>'+t[1]+'</span></button>';};
+  var ph=pageHead(),p=S.profile,navBtn=function(t,cls){return '<button class="'+cls+'" data-tab="'+t[0]+'"'+(tab===t[0]?' aria-current="page"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true">'+ICON[t[0]]+'</svg>'+(cls==='tb'&&t[0]==='wealth'?'<span class="tl">'+t[1]+'</span><span class="ts" aria-hidden="true">Invest</span>':'<span>'+t[1]+'</span>')+'</button>';};
   var mh=tab==='home'?'<div class="ava" aria-hidden="true">'+esc((p.name||'S').charAt(0).toUpperCase())+'</div><div class="hi"><b>'+esc(p.name?'Hey '+p.name:greet())+'</b><span>'+esc(whenTxt())+'</span></div>':'<h1 class="ptitle">'+esc(ph[0])+'</h1>';
   app.innerHTML='<div class="app">'+
     '<aside class="side"><div class="brand">'+LOGO+'Setu</div><nav class="snav" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'sn');}).join('')+'</nav>'+
@@ -1104,6 +1115,7 @@ function nudges(){
   if(canInstall()&&!S.installSeen)out.splice(1,0,{tone:'teal',ic:'home',t:'Add Setu to your home screen',x:'It opens like an app, works offline, and keeps your data safer on iPhone.',cta:'Show me how',go:'install'});
   var dupItems=S.items.filter(function(x){return !isInv(x)&&x.date>=startDay()&&pKey(x.date)===mKey()&&matchBill(x.note,x.amt,mKey());});
   if(dupItems.length){var dx=dupItems[0],dm=matchBill(dx.note,dx.amt,mKey());out.unshift({tone:'rani',ic:'card',t:esc(dm.c.name)+' may be counted twice',x:'You logged “'+esc(dx.note||'')+'” '+gbp(dx.amt)+' as spending. It’s already a regular payment.',cta:'Fix it',go:'dupefix:'+dx.id});}
+  if(S.ilr&&(S.ilr.trips||[]).length){var ic=ilrCalc();if(ic.over!=null)out.unshift({tone:'rani',ic:'clock',t:'Trips go over 180 days',x:'Your trips abroad go over the ILR limit in the 12 months to '+fmtD(ic.over)+'.',cta:'Check trips',go:'tab:stay'});else if(ic.left<45)out.unshift({tone:'marigold',ic:'clock',t:ic.left+' days left abroad',x:'You’re close to the 180-day limit for ILR in the last 12 months.',cta:'See ILR',go:'tab:stay'});}
   var rb=rebalDue();if(rb){var o0=rb.over[0],m0=rb.moves.filter(function(x){return x.to===o0.c;});out.unshift({tone:'marigold',ic:'chart',t:o0.c.label+' over budget',x:gbp(o0.spent-o0.c.budget)+' over. Move '+gbp(sum(m0.map(function(x){return x.amt;})))+' from '+m0.map(function(x){return x.from.label;}).join(' and ')+' to rebalance.',cta:'Rebalance',go:'sheet:rebal'});}
   var inT=indiaFromIN(p),inB=+p.inBalance||0;if(inT>0&&inB>0&&inB/inT<3)out.unshift({tone:'rani',ic:'rupee',t:'Indian account running low',x:'It covers about '+Math.floor(inB/inT)+' month'+(Math.floor(inB/inT)===1?'':'s')+' of the payments you make from it.',cta:'See details',go:'sheet:leftcalc'});
   if(m.india>0)out.push({tone:'marigold',ic:'rupee',t:'Is your bank overcharging?',x:'Check the real cost of sending money home against today’s rate.',cta:'Check a transfer',go:'sheet:transfer'});
@@ -1503,6 +1515,42 @@ function hForm(hh,cty){var isNew=!hh;hh=hh||{id:uid(),name:'',cty:cty,type:HTYPE
   formSheet(isNew?'Add an investment':'Edit '+hh.name,[{k:'name',label:'Name (e.g. Vanguard ISA, HDFC Flexi Cap SIP)',text:true},{k:'type',label:'Type',options:HTYPES[hh.cty]},{k:'value',label:'What it’s worth today ('+cur+')'},{k:'paid',label:'Total you’ve put in so far ('+cur+')'},{k:'rate',label:'Grows at (% a year, optional). Setu adds this between your updates: EPF 8.25, PPF 7.1, or your FD rate'},{k:'goal',label:'Counts towards',options:GOALDEF}],
     {name:hh.name,type:hh.type,value:hh.value,paid:hh.paid,rate:hh.rate!=null&&hh.rate!==''?hh.rate:(RATE_DEFAULT[hh.type]||''),goal:goalOf(hh)},function(o){hh.goal=o.goal;hh.rate=o.rate>0?+o.rate:'';var t=today();hh.name=String(o.name||hTypeLabel({cty:hh.cty,type:o.type})).slice(0,40);hh.type=o.type;var v=Math.max(0,o.value||0);hh.paid=Math.max(0,o.paid||v);
       if(v!==hh.value||isNew){hh.value=v;hh.hist=hh.hist.filter(function(x){return x[0]!==t;});hh.hist.push([t,v]);hh.hist.sort(function(a,b){return a[0]<b[0]?-1:1;});}if(isNew)holdings().push(hh);},isNew?'':'<button class="btn warn" data-form="delete">Remove</button>');}
+/* ---------- ILR: qualifying period and the 180-day absence limit ---------- */
+var ILR_MAX=180,DAYMS=864e5;
+function ilr(){var p=S.profile||{};if(!S.ilr||typeof S.ilr!=='object')S.ilr={};var I=S.ilr;if(!I.from)I.from=p.moved||today();if(!(+I.years>0))I.years=5;if(!Array.isArray(I.trips))I.trips=[];I.trips=I.trips.filter(function(t){return t&&/^\d{4}-\d{2}-\d{2}$/.test(t.out||'');});return I;}
+function dNum(iso){var p=iso.split('-');return Math.round(Date.UTC(+p[0],+p[1]-1,+p[2])/DAYMS);}
+function nIso(n){return new Date(n*DAYMS).toISOString().slice(0,10);}
+/* only whole days outside the UK count: the day you leave and the day you come back are days in the UK */
+function tripInfo(t){var o=dNum(t.out),tn=dNum(today()),b=t.back?dNum(t.back):null,away=!b&&o<=tn,end=b!=null?b:Math.max(tn,o+1);
+  return {o:o,b:b,away:away,planned:o>tn,days:Math.max(0,end-o-1),first:o+1,last:end-1};}
+function ilrCalc(){var I=ilr(),st=dNum(I.from),tn=dNum(today()),fromD=new Date(I.from+'T12:00'),fp=I.from.split('-');
+  var due=Math.round(Date.UTC(+fp[0]+(+I.years),+fp[1]-1,+fp[2])/DAYMS),applyN=due-28,abs={},last=tn;
+  var T=I.trips.map(function(t){var x=tripInfo(t);x.t=t;for(var d=Math.max(x.first,st);d<=x.last;d++)abs[d]=1;if(x.last>last)last=x.last;return x;});
+  var hi=Math.max(last,tn)+1,run=0,q=[],max=0,maxEnd=null,cur=0,overEnd=null;
+  /* rolling 12 months: any 365-day window (366 if it holds 29 Feb is close enough for a planning tool) */
+  for(var d=st;d<=hi;d++){if(abs[d])run++;if(d-365>=st&&abs[d-365])run--;if(run>max){max=run;maxEnd=d;}if(d===tn)cur=run;if(run>ILR_MAX&&overEnd==null)overEnd=d;}
+  var total=Object.keys(abs).length,last5=0,last12=0;Object.keys(abs).forEach(function(k){k=+k;if(k<=tn&&k>tn-1826)last5++;if(k<=tn&&k>tn-365)last12++;});
+  T.forEach(function(x){x.breaks=false;});
+  if(overEnd!=null){T.forEach(function(x){if(x.first<=overEnd&&x.last>=overEnd-365)x.breaks=true;});}
+  return {I:I,T:T.sort(function(a,b){return b.o-a.o;}),st:st,tn:tn,due:due,applyN:applyN,done:Math.max(0,Math.min(1,(tn-st)/(due-st))),daysIn:Math.max(0,tn-st),max:max,maxEnd:maxEnd,cur:cur,left:Math.max(0,ILR_MAX-cur),over:overEnd,total:total,last5:last5,last12:last12};}
+function fmtD(n,y){return new Date(n*DAYMS).toLocaleDateString('en-GB',y===false?{day:'numeric',month:'short',timeZone:'UTC'}:{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});}
+function vStay(){var C=ilrCalc(),I=C.I,toGo=C.applyN-C.tn,yrs=Math.floor(Math.max(0,toGo)/365.25),mos=Math.round((Math.max(0,toGo)-yrs*365.25)/30.44);
+  var h='<section class="card ilrhero"><div class="small soft">'+(toGo>0?'You can apply for settlement (ILR) from':'You can apply for settlement (ILR) now')+'</div><div class="ilrdate f">'+fmtD(C.applyN)+'</div><div class="small">'+(toGo>0?'About '+(yrs?yrs+' year'+(yrs>1?'s':''):'')+(yrs&&mos?' and ':'')+(mos?mos+' month'+(mos>1?'s':''):'')+(!yrs&&!mos?'a few days':'')+' to go. That’s 28 days before you reach '+I.years+' years on '+fmtD(C.due)+'.':'You reached '+I.years+' years on '+fmtD(C.due)+'.')+'</div>'+
+    '<div class="bar ilrbar"><div style="width:'+(C.done*100).toFixed(1)+'%"></div></div><div class="row-b small soft"><span>Started '+fmtD(C.st)+'</span><span>'+Math.round(C.done*100)+'% of '+I.years+' years</span></div>'+
+    '<button class="link small" data-ilrset>'+(+I.years===5?'5-year route':I.years+'-year route')+', counting from '+fmtD(C.st)+'. Change ›</button></section>';
+  var pc=Math.min(100,C.cur/ILR_MAX*100),warn=C.over!=null;
+  h+='<section class="card ilrmeter'+(warn?' bad':'')+'"><div class="row-b"><h3>Days outside the UK</h3><span class="small soft">Limit '+ILR_MAX+' in any 12 months</span></div>'+
+    '<div class="ilrnums"><div><b class="f">'+C.cur+'</b><span class="small soft">in the last 12 months</span></div><div><b class="f '+(C.left<30?'bad':'ok')+'">'+C.left+'</b><span class="small soft">days you could still spend away now</span></div></div>'+
+    '<div class="bar'+(pc>=100?' over':'')+'"><div style="width:'+pc.toFixed(1)+'%"></div></div>'+
+    (warn?'<p class="ilrwarn"><b>Your trips go over '+ILR_MAX+' days</b> in the 12 months up to '+fmtD(C.over)+'. That could break your continuous residence and reset your '+I.years+' years. Shorten a planned trip, or check with an immigration adviser before you travel.</p>':
+      '<p class="small soft" style="margin:8px 0 0">Most you’ve been away in any 12 months: <b>'+C.max+' days</b>'+(C.maxEnd!=null&&C.max>0?' (12 months to '+fmtD(C.maxEnd)+')':'')+'. Planned trips are included.</p>')+'</section>';
+  h+='<section class="card ilrtrips"><div class="row-b"><h3>Your trips abroad</h3><button class="btn go sm" data-trip="new">+ Log a trip</button></div>';
+  if(!C.T.length)h+='<p class="soft" style="margin:8px 0 2px">No trips yet. Log each trip outside the UK, including ones you’re planning, and Setu keeps count against the 180-day limit.</p>';
+  else h+='<div class="list">'+C.T.map(function(x){var t=x.t;return '<button class="li trip" data-trip="'+esc(t.id)+'"><span class="grow"><b>'+esc(t.where||'Trip abroad')+(x.away?' <span class="tchip now">Away now</span>':x.planned?' <span class="tchip plan">Planned</span>':'')+(x.breaks?' <span class="tchip over">Over limit</span>':'')+'</b><span class="small soft">'+fmtD(x.o,false)+' – '+(x.b!=null?fmtD(x.b):'not back yet')+(t.why?', '+esc(t.why):'')+'</span></span><span class="tdays"><b class="f">'+x.days+'</b><small>day'+(x.days===1?'':'s')+'</small></span></button>';}).join('')+'</div>';
+  h+='</section>';
+  h+='<section class="card ilrcit"><h3>Later, for British citizenship</h3><p class="small soft" style="margin:4px 0 10px">Usually no more than 450 days away in the 5 years before you apply, and 90 days in the last 12 months.</p><div class="ilrnums"><div><b class="f '+(C.last5>450?'bad':'')+'">'+C.last5+'</b><span class="small soft">of 450 days, last 5 years</span></div><div><b class="f '+(C.last12>90?'bad':'')+'">'+C.last12+'</b><span class="small soft">of 90 days, last 12 months</span></div></div></section>';
+  h+='<p class="fine ilrfine">Based on UK rules as of October 2026 for work routes such as Skilled Worker: 5 years in the UK with no more than 180 days away in any 12 months, counting whole days only. The Government has proposed longer “earned settlement” periods (10 years as standard) but these are not law yet; if they change, update your route above. Some absences, such as serious illness, can be allowed. This is a planning tool, not legal advice. Check <a class="link" href="https://www.gov.uk/government/publications/indefinite-leave-to-remain-calculating-continuous-period-in-uk" target="_blank" rel="noopener noreferrer">GOV.UK guidance</a> before you travel or apply.</p>';
+  return h;}
 function vGoals(){
   var p=S.profile,fx=+p.fx||129,plan=split(),lt=(plan.find(function(x){return x.title==='Long-term investing';})||{amt:0}).amt,h='';
   var top='<div class="gtop">'+ratesCard().replace(' opt"','"')+marketCard().replace(' opt"','"')+'</div>';
@@ -1978,6 +2026,13 @@ document.addEventListener('click',function(e){
   if(d.email){var eid=d.email;openSheet(function(){return emailSheet(eid);});return;}
   if(d.copy){var es=document.getElementById('emSub'),eb=document.getElementById('emBody');if(!es||!eb)return;copyText(d.copy==='sub'?es.value:d.copy==='body'?eb.value:'Subject: '+es.value+'\n\n'+eb.value);return;}
   if(d.rebhmode){rebHMode=d.rebhmode==='match'?'match':'keep';refreshSheet();return;}
+  if('ilrset' in d){var I0=ilr();formSheet('Your settlement route',[{k:'from',label:'Start date: when your visa started, or the day you first arrived on it',text:true,date:true},{k:'years',label:'Years needed',options:[['5','5 years (current rules for Skilled Worker)'],['10','10 years (proposed earned settlement)']]}],{from:I0.from,years:String(I0.years)},function(o){if(/^\d{4}-\d{2}-\d{2}$/.test(o.from||''))I0.from=o.from;else toast('Enter a start date');I0.years=o.years==='10'?10:5;});return;}
+  if(d.trip){var I1=ilr(),tid=d.trip,T0=tid==='new'?null:I1.trips.find(function(t){return t.id===tid;});
+    formDelete=T0?function(){I1.trips=I1.trips.filter(function(t){return t!==T0;});toast('Trip removed');}:null;
+    formSheet(T0?'Edit trip':'Log a trip abroad',[{k:'out',label:'Date you left the UK',text:true,date:true},{k:'back',label:'Date you came back (leave empty if you’re still away)',text:true,date:true},{k:'where',label:'Where to (e.g. India)',text:true},{k:'why',label:'Reason',options:[['Holiday','Holiday'],['Family','Visiting family'],['Work','Work trip'],['Other','Other']]}],T0||{out:today(),back:'',where:'India',why:'Family'},function(o){
+      var ok=/^\d{4}-\d{2}-\d{2}$/.test(o.out||''),bk=/^\d{4}-\d{2}-\d{2}$/.test(o.back||'')?o.back:'';if(!ok){toast('Enter the date you left');return;}if(bk&&bk<o.out){toast('The return date is before the date you left');return;}
+      var rec=T0||{id:uid()};rec.out=o.out;rec.back=bk;rec.where=String(o.where||'').trim().slice(0,40);rec.why=o.why||'';if(!T0)I1.trips.push(rec);
+      var c=ilrCalc();toast(c.over!=null?'Saved. Warning: this goes over 180 days in 12 months':'Saved. '+c.left+' days left you could spend away');},T0?'<button class="btn warn" data-form="delete">Remove</button>':'');return;}
   if('rebhapply' in d){var sg9=histSuggest(rebHMode);if(sg9){sg9.list.forEach(function(x){x.c.budget=x.sug;});S.rebHDis=S.rebHDis||{};S.rebHDis[mKey()]=1;save();closeSheet();render();toast('Budgets updated from your past spending. Total '+gbp(sg9.total));}return;}
   if('rebhdis' in d){S.rebHDis=S.rebHDis||{};S.rebHDis[mKey()]=1;save();if(document.querySelector('.sheet [data-rebhdis]'))closeSheet();render();toast('OK. You can do this any time in Settings → Spending budgets.');return;}
   if('rebapply' in d){var r9=rebalance();if(r9){r9.moves.forEach(function(m){m.from.budget=Math.max(0,(+m.from.budget||0)-m.amt);m.to.budget=(+m.to.budget||0)+m.amt;});S.rebDis=S.rebDis||{};delete S.rebDis[r9.vm];save();closeSheet();render();toast('Budgets rebalanced. Your total stays '+gbp(sum(cats().map(function(c){return +c.budget||0;}))));}return;}
