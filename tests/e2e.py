@@ -230,6 +230,13 @@ try:
     cs={c['k']:c['budget'] for c in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).cats")}
     check('Budgets follow past spending and total is kept',sum(cs.values())==800 and cs['eating']>cs['groceries']>cs['transport']>cs['other']>0 and pg.locator('.rebal:visible').count()==0,cs)
     ctx.close()
+    # --- investments from an older backup (missing history) still open ---
+    ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)));pg.goto(URL)
+    ob=dict(old);ob['holdings']=[{"id":"x","name":"EPF","cty":"in","type":"epf","value":900000,"paid":900000},{"name":"ISA","cty":"uk","type":"isa","value":"3200"}]
+    pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(ob));pg.reload();pg.wait_for_timeout(600)
+    pg.locator('[data-tab="wealth"]:visible').last.click();pg.wait_for_timeout(500)
+    check('Investments open even when saved holdings are missing fields',pg.locator('.wtypes').count()==1 and not pe,pe[:2])
+    ctx.close()
     # --- corrupted storage ---
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
     pg.goto(URL);pg.evaluate("localStorage.setItem('setu-v1','{not json')");pg.reload();pg.wait_for_timeout(400)

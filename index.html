@@ -45,8 +45,8 @@
   --s-rent:#FF7FB0;--s-bills:#FFD580;--s-day:#7FE3D8;--s-india:#FFB020;--s-left:#FFFFFF;
   --mist:var(--bg);
   box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#9184FF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3A2E14;--t-mint:#143A31;--t-teal:#12363A;--rust:#FF8A76;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#9184FF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3A2E14;--t-mint:#143A31;--t-teal:#12363A;--rust:#FF8A76;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#9184FF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3E2E36;--t-mint:#143A31;--t-teal:#12363A;--rust:#FF8A76;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F0C24;--card:#1B1740;--ink:#F0EEFF;--soft:#A9A4D2;--rule:#2C2760;--indigo:#9184FF;--indigo-2:#5A4BE6;--hero:#3B2DC4;--t-indigo:#2A2466;--t-rani:#3D1B34;--t-marigold:#3E2E36;--t-mint:#143A31;--t-teal:#12363A;--rust:#FF8A76;color-scheme:dark}
 *,*::before,*::after{box-sizing:inherit}
 html{height:100%;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
 body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:400 15px/1.45 Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
@@ -406,7 +406,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .cchip span{font-size:12px;color:var(--soft);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.cchip b{font-size:18px;font-family:"Bricolage Grotesque",sans-serif;white-space:nowrap}
 .csub{font-size:14px;margin:14px 0 6px}.cnote{display:block;margin-top:3px;font-size:12px}
 @media (min-width:880px){.v-spend .costs{grid-column:1/-1}}
-.moneyin>*{flex:1 1 0}.moneyin .small{white-space:nowrap}.mileft .small.addlink{white-space:normal}
+.moneyin>*{flex:1 1 0}.moneyin .small{white-space:nowrap}.mileft .small{white-space:normal;line-height:1.3}.mileft .milwrap{padding-right:6px}
 .mimid{border:0;background:none;padding:0;margin:0;text-align:center;cursor:pointer;font:inherit;color:inherit;min-width:0}.mimid .milwrap{align-items:center}
 @media (max-width:360px){.moneyin b{font-size:15px!important}.moneyin .small{font-size:10.5px}}
 @media (max-height:720px){.costs{padding:8px 12px}.costchips{margin-top:6px}.cchip{padding:4px 9px}}
@@ -612,6 +612,12 @@ body.app-locked #app{filter:blur(18px);pointer-events:none}body.app-locked::befo
 .glance{align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer}
 .gl{flex:1;display:flex;flex-direction:column;min-width:0}.gl .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .gv{font-weight:800;font-size:26px;line-height:1.2}
+
+/* layout polish: headers wrap cleanly, tiles never truncate amounts */
+.gwrap>.row-b,.wtypes>.row-b,.gtrack>.row-b{flex-wrap:wrap;row-gap:6px}.gwrap>.row-b h3,.wtypes>.row-b h3{white-space:nowrap}.gst{white-space:nowrap}
+.tile .row-b{flex-direction:column;align-items:flex-start;gap:3px}.tile .row-b>span{max-width:100%}.tile .v,.tile .tv{padding-left:29px}
+@media (min-width:880px){.v-spend .tiles{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important}}
+@media (min-width:880px){.v-home .glance{align-self:stretch;align-items:center}}
 </style>
 </head>
 <body>
@@ -813,7 +819,7 @@ function spark(v,w,h){if(!v||v.length<2)return '';var mn=Math.min.apply(null,v),
 function marketCard(){
   var I=fxInsight(),r=fxNow();
   return '<section class="card market opt" data-prio="2"><div class="row-b"><h3>Pound to rupee</h3><span class="small soft">Live, last 3 months</span></div>'+
-    '<div class="mkrow"><div><div class="mid f">₹'+r.toFixed(2)+'</div><div class="small '+(I?(I.ch>=0?'ok':'bad'):'soft')+'" style="font-weight:700">'+(I?(I.ch>=0?'▲ ':'▼ ')+Math.abs(I.ch).toFixed(1)+'% in 30 days':'for £1')+'</div></div>'+(I?'<div class="sparkbox">'+spark(I.v,160,48)+'<div class="rng"><span>Low ₹'+I.mn.toFixed(1)+'</span><span>High ₹'+I.mx.toFixed(1)+'</span></div></div>':'')+'</div>'+
+    '<div class="mkrow"><div><div class="mid f">₹'+r.toFixed(2)+'</div><div class="small '+(I?(I.ch>=0?'ok':'bad'):'soft')+'" style="font-weight:700">'+(I?(I.ch>=0?'▲ ':'▼ ')+Math.abs(I.ch).toFixed(1)+'% in 30 days':'')+'</div></div>'+(I?'<div class="sparkbox">'+spark(I.v,160,48)+'<div class="rng"><span>Low ₹'+I.mn.toFixed(1)+'</span><span>High ₹'+I.mx.toFixed(1)+'</span></div></div>':'')+'</div>'+
     '<p class="small" style="margin:8px 0 0">'+(I?esc(I.say):'The 3-month trend appears when you’re online.')+'</p></section>';
 }
 function ratesCard(){
@@ -1181,11 +1187,11 @@ function histSuggest(mode){var h=histSpend();if(!h)return null;var C=cats(),r5=f
 function histLabel(h){var f=function(k){return periodRange(k).start.toLocaleDateString('en-GB',{month:'long'});};return h.keys.length===1?f(h.keys[0]):h.keys.slice(0,-1).map(f).join(', ')+' and '+f(h.keys[h.keys.length-1]);}
 function histDue(){var cur=mKey();if((S.rebHDis||{})[cur]||rebalDue())return null;var R=periodRange(cur),d=Math.floor((new Date()-R.start)/864e5)+1;if(d>7)return null;var sg=histSuggest('keep');return sg&&sg.changed?sg:null;}
 function histCard(vm,w){var sg=vm===mKey()?histDue():null;if(!sg)return '';var big=sg.list.slice().sort(function(a,b){return Math.abs(b.sug-b.now)-Math.abs(a.sug-a.now);})[0];
-  return '<section class="card rebal '+(w||'rm')+'" aria-label="Set budgets from past months"><div class="rbhead"><span class="ic" aria-hidden="true">'+gl('chart')+'</span><div><b>New month: update your budgets?</b><p class="small">Based on what you spent in '+histLabel(sg.h)+', '+esc(big.c.label)+' would be '+gbp(big.sug)+' instead of '+gbp(big.now)+'. Your total stays '+gbp(sg.total)+'.</p></div></div><div class="acts"><button class="btn go sm" data-sheet="rebalhist">Review</button><button class="btn sm" data-rebhdis>Not now</button></div></section>';}
+  return '<div role="region" class="card rebal '+(w||'rm')+'" aria-label="Set budgets from past months"><div class="rbhead"><span class="ic" aria-hidden="true">'+gl('chart')+'</span><div><b>New month: update your budgets?</b><p class="small">Based on what you spent in '+histLabel(sg.h)+', '+esc(big.c.label)+' would be '+gbp(big.sug)+' instead of '+gbp(big.now)+'. Your total stays '+gbp(sg.total)+'.</p></div></div><div class="acts"><button class="btn go sm" data-sheet="rebalhist">Review</button><button class="btn sm" data-rebhdis>Not now</button></div></div>';}
 function rebalDue(){var r=rebalance();if(!r)return null;var dz=(S.rebDis||{})[r.vm];return dz===r.sig?null:r;}
 function rebalText(r){var o=r.over[0],m=r.moves.filter(function(x){return x.to===o.c;});return esc(o.c.label)+' is '+gbp(o.spent-o.c.budget)+' over ('+gbp(o.spent)+' of '+gbp(o.c.budget)+'). '+m.map(function(x){return esc(x.from.label);}).join(' and ')+(m.length>1?' have':' has')+' room to spare.';}
 function rebalCard(vm,w){var r=vm===mKey()?rebalDue():null;if(!r)return histCard(vm,w);
-  return '<section class="card rebal '+(w||'rm')+'" aria-label="Rebalance your budgets"><div class="rbhead"><span class="ic" aria-hidden="true">'+gl('chart')+'</span><div><b>Rebalance your budgets?</b><p class="small">'+rebalText(r)+' Move '+gbp(sum(r.moves.map(function(x){return x.amt;})))+' across so your total budget stays the same.</p></div></div><div class="acts"><button class="btn go sm" data-sheet="rebal">Review</button><button class="btn sm" data-rebdis>Not now</button></div></section>';}
+  return '<div role="region" class="card rebal '+(w||'rm')+'" aria-label="Rebalance your budgets"><div class="rbhead"><span class="ic" aria-hidden="true">'+gl('chart')+'</span><div><b>Rebalance your budgets?</b><p class="small">'+rebalText(r)+' Move '+gbp(sum(r.moves.map(function(x){return x.amt;})))+' across so your total budget stays the same.</p></div></div><div class="acts"><button class="btn go sm" data-sheet="rebal">Review</button><button class="btn sm" data-rebdis>Not now</button></div></div>';}
 function isInv(x){return x&&x.cat==='invest';}
 function cats(){if(!S.cats){var e=+S.profile.everyday||600;S.cats=[['groceries','Groceries',.4],['transport','Transport',.2],['eating','Eating out',.15],['shopping','Shopping',.15],['other','Other',.1]].map(function(c){return {k:c[0],label:c[1],budget:Math.round(e*c[2])};});}return S.cats;}
 function shiftMonth(k,d){return shiftKey(k,d);}
@@ -1216,7 +1222,7 @@ function spendTable(items,C){
     if(x.date!==lastD){lastD=x.date;var isT=x.date===today();h+='<tr class="dayrow"><th colspan="2" scope="rowgroup">'+(isT?'Today':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}))+'</th><td class="tnum">'+gbp2(byDay[x.date])+'</td></tr>';}
     h+='<tr data-item="'+x.id+'" tabindex="0"><td class="twhat">'+esc(x.note||(c?c.label:'Spending'))+'</td><td><span class="tcat" style="--cc:'+k[0]+'"><i></i>'+esc(c?c.label:'')+'</span></td><td class="tnum"><b>'+gbp2(x.amt)+'</b><small>'+inr(x.amt*fx)+'</small></td></tr>';});
   var RO=[['cycle','This month'],['7','Last 7 days'],['30','Last 30 days'],['90','Last 3 months'],['year','This year'],['all','Since you started'],['custom','Choose dates…']];
-  var tools='<p class="small soft trackfrom">Tracking since '+startLabel()+'</p><div class="ttools rtools"><select id="sr" aria-label="Date range">'+RO.map(function(o){return '<option value="'+o[0]+'"'+(spendRange.mode===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+(spendRange.mode==='custom'?'<label class="small soft" for="sfrom">From</label><input id="sfrom" type="date" min="'+startDay()+'" max="'+today()+'" value="'+esc(spendRange.from)+'"><label class="small soft" for="sto">to</label><input id="sto" type="date" min="'+startDay()+'" max="'+today()+'" value="'+esc(spendRange.to)+'">':'')+'</div><div class="ttools"><input id="sq" type="search" placeholder="Search spending" aria-label="Search spending" value="'+esc(spendQ)+'"><select id="sf" aria-label="Filter by category"><option value="">All</option>'+C.map(function(c){return '<option value="'+c.k+'"'+(spendF===c.k?' selected':'')+'>'+esc(c.label)+'</option>';}).join('')+'</select><button class="btn sm" data-csv="month" aria-label="Download these items as CSV">CSV</button></div>';
+  var tools='<p class="small soft trackfrom">Tracking since '+startLabel()+'</p><div class="ttools rtools"><select id="sr" aria-label="Date range">'+RO.map(function(o){return '<option value="'+o[0]+'"'+(spendRange.mode===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+(spendRange.mode==='custom'?'<label class="small soft" for="sfrom">From</label><input id="sfrom" type="date" min="'+startDay()+'" max="'+today()+'" value="'+esc(spendRange.from)+'"><label class="small soft" for="sto">to</label><input id="sto" type="date" min="'+startDay()+'" max="'+today()+'" value="'+esc(spendRange.to)+'">':'')+'</div><div class="ttools"><input id="sq" type="search" placeholder="Search" aria-label="Search spending" value="'+esc(spendQ)+'"><select id="sf" aria-label="Filter by category"><option value="">All</option>'+C.map(function(c){return '<option value="'+c.k+'"'+(spendF===c.k?' selected':'')+'>'+esc(c.label)+'</option>';}).join('')+'</select><button class="btn sm" data-csv="month" aria-label="Download these items as CSV">CSV</button></div>';
   if(!rows.length)return '<section class="card tblcard"><div class="row-b"><h3>Your spending log</h3></div>'+tools+'<div class="tblwrap"><p class="small soft" style="padding:10px 2px">Nothing matches your search.</p></div></section>';
   return '<section class="card tblcard"><div class="row-b"><h3>Your spending log</h3><span class="small soft">'+rows.length+' item'+(rows.length>1?'s':'')+', '+gbp2(tot)+(spendRange.mode!=='cycle'?', '+rangeLabel():'')+'</span></div>'+tools+
     '<div class="tblwrap"><table class="stbl"><colgroup><col class="cw"><col class="cc"><col class="ca"></colgroup><thead><tr><th scope="col">What</th><th scope="col">Category</th><th scope="col" class="tnum">Amount</th></tr></thead><tbody>'+h+(more>0?'<tr class="morerow"><td colspan="3"><button class="link" data-showall>Show all '+rows.length+' items ↓</button></td></tr>':'')+'</tbody><tfoot><tr><th colspan="2" scope="row">'+(spendQ||spendF||spendRange.mode!=='cycle'?'Total shown':'Total this month')+'</th><td class="tnum"><b>'+gbp2(tot)+'</b><small>'+inr(tot*fx)+'</small></td></tr></tfoot></table></div><p class="fine" style="margin-top:6px">Tap a row to edit or delete it.</p></section>';
@@ -1307,7 +1313,9 @@ var HTYPES={uk:[['isa','Stocks & shares ISA'],['cashisa','Cash ISA'],['pension',
 function holdings(){if(!Array.isArray(S.holdings)){var p=S.profile||{},t=startDay(),H=[];
     if(+p.invested>0)H.push({id:uid(),name:'Mutual funds and shares',cty:'in',type:'mf',value:+p.invested,paid:+p.invested,hist:[[t,+p.invested]]});
     if(+p.savedUK>0)H.push({id:uid(),name:'UK savings',cty:'uk',type:'savings',value:+p.savedUK,paid:+p.savedUK,hist:[[t,+p.savedUK]]});
-    S.holdings=H;save();}return S.holdings;}
+    S.holdings=H;save();}
+  /* repair holdings from older backups or other devices so a missing field never breaks the page */
+  S.holdings=S.holdings.filter(function(h){return h&&typeof h==='object';});S.holdings.forEach(function(h){if(!Array.isArray(h.hist))h.hist=(+h.value>0)?[[startDay(),+h.value]]:[];if(!h.id)h.id=uid();if(h.cty!=='in'&&h.cty!=='uk')h.cty='uk';h.value=+h.value||0;h.paid=+h.paid||0;if(h.tx&&!Array.isArray(h.tx))h.tx=[];});return S.holdings;}
 /* ---------- Live prices: Indian mutual funds (mfapi.in, daily NAV) and UK ETFs (weekly, from the site's data file) ---------- */
 S.px=S.px||{};var pxBusy={};
 function pxPts(k){var o=S.px[k];return o&&o.pts||[];}
