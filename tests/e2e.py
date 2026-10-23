@@ -194,6 +194,26 @@ try:
     check('New month starts the day salary arrived',pg.inner_text('.mlabel').startswith('23 Oct') and 'Nov' in pg.inner_text('.mlabel'),pg.inner_text('.mlabel'))
     check('Spending on that day counts in the new month','Salary on 23 Oct' in pg.text_content('.moneyin') and 'Lunch' in pg.inner_text('.tblcard') and not pe,(pg.inner_text('.moneyin')[:120],pg.locator('.tblcard').count(),pe[:2]))
     ctx.close()
+    # --- rebalance budgets when one category is over and another has room ---
+    ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
+    pg.clock.set_fixed_time('2026-10-28T10:00:00');pg.goto(URL)
+    rb=dict(old);rb['startDate']='2026-07-26';rb['cats']=[{"k":"groceries","label":"Groceries","budget":400},{"k":"eating","label":"Eating out","budget":150},{"k":"transport","label":"Transport","budget":150},{"k":"other","label":"Other","budget":100}]
+    rb['items']=[{"id":"r1","date":"2026-10-05","amt":300,"cat":"eating","note":"Deliveroo"},{"id":"r2","date":"2026-10-06","amt":200,"cat":"groceries","note":"Tesco"},{"id":"r3","date":"2026-10-07","amt":140,"cat":"transport","note":"Oyster"},{"id":"r4","date":"2026-10-08","amt":90,"cat":"other","note":"Bits"}]
+    pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(rb));pg.reload();pg.wait_for_timeout(600)
+    check('Home suggests rebalancing when a category is over budget','Eating out over budget' in pg.text_content('.nudges') and not pe,pe[:2])
+    pg.locator('[data-tab="spend"]:visible').first.click();pg.wait_for_timeout(300)
+    check('Spending shows a rebalance card',pg.locator('.rebal:visible').count()==1 and 'Groceries' in pg.locator('.rebal:visible').text_content())
+    pg.locator('.rebal [data-sheet="rebal"]:visible').click();pg.wait_for_timeout(250)
+    check('Rebalance sheet moves spare Groceries money to Eating out','Move £150 from Groceries to Eating out' in pg.text_content('.rbmoves'),pg.text_content('.rbmoves'))
+    pg.click('[data-rebapply]');pg.wait_for_timeout(300)
+    cs={c['k']:c['budget'] for c in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).cats")}
+    check('Budgets rebalanced and total unchanged',cs['eating']==300 and cs['groceries']==250 and sum(cs.values())==800 and pg.locator('.rebal').count()==0,cs)
+    ctx.close()
+    ctx=b.new_context();pg=ctx.new_page();pg.clock.set_fixed_time('2026-10-28T10:00:00');pg.goto(URL)
+    pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(rb));pg.reload();pg.wait_for_timeout(600)
+    pg.locator('[data-tab="spend"]:visible').first.click();pg.wait_for_timeout(300);pg.locator('.rebal [data-rebdis]:visible').click();pg.wait_for_timeout(300);pg.reload();pg.wait_for_timeout(500)
+    check('Not now hides the rebalance prompt for this month',pg.locator('.rebal').count()==0 and 'over budget' not in (pg.text_content('main') or ''))
+    ctx.close()
     # --- corrupted storage ---
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
     pg.goto(URL);pg.evaluate("localStorage.setItem('setu-v1','{not json')");pg.reload();pg.wait_for_timeout(400)
