@@ -214,6 +214,22 @@ try:
     pg.locator('[data-tab="spend"]:visible').first.click();pg.wait_for_timeout(300);pg.locator('.rebal [data-rebdis]:visible').click();pg.wait_for_timeout(300);pg.reload();pg.wait_for_timeout(500)
     check('Not now hides the rebalance prompt for this month',pg.locator('.rebal').count()==0 and 'over budget' not in (pg.text_content('main') or ''))
     ctx.close()
+    # --- budgets from past months ---
+    ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
+    pg.clock.set_fixed_time('2026-11-03T10:00:00');pg.goto(URL)
+    hs=dict(old);hs['startDate']='2026-09-01';hs['cats']=[{"k":"groceries","label":"Groceries","budget":400},{"k":"eating","label":"Eating out","budget":150},{"k":"transport","label":"Transport","budget":150},{"k":"other","label":"Other","budget":100}]
+    hs['items']=[{"id":"h%d"%i,"date":d,"amt":a,"cat":c,"note":"x"} for i,(d,a,c) in enumerate([("2026-09-05",300,"eating"),("2026-09-06",200,"groceries"),("2026-09-07",150,"transport"),("2026-10-05",300,"eating"),("2026-10-06",200,"groceries"),("2026-10-07",150,"transport")])]
+    pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(hs));pg.reload();pg.wait_for_timeout(600)
+    pg.locator('[data-tab="spend"]:visible').first.click();pg.wait_for_timeout(300)
+    check('New month suggests budgets from past spending',pg.locator('.rebal:visible').count()==1 and 'New month' in pg.locator('.rebal:visible').text_content() and not pe,pe[:2])
+    pg.locator('.rebal [data-sheet="rebalhist"]:visible').click();pg.wait_for_timeout(250)
+    check('Past-months sheet shows September and October','September and October' in pg.text_content('.sheet'))
+    pg.click('[data-rebhmode="match"]');pg.wait_for_timeout(200)
+    check('Match-my-spending option changes the total','Match my spending £650' in pg.text_content('.sheet') and '£650' in pg.text_content('.rbtbl tfoot'),pg.text_content('.rbtbl tfoot'))
+    pg.click('[data-rebhmode="keep"]');pg.wait_for_timeout(200);pg.click('[data-rebhapply]');pg.wait_for_timeout(300)
+    cs={c['k']:c['budget'] for c in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).cats")}
+    check('Budgets follow past spending and total is kept',sum(cs.values())==800 and cs['eating']>cs['groceries']>cs['transport']>cs['other']>0 and pg.locator('.rebal:visible').count()==0,cs)
+    ctx.close()
     # --- corrupted storage ---
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
     pg.goto(URL);pg.evaluate("localStorage.setItem('setu-v1','{not json')");pg.reload();pg.wait_for_timeout(400)
