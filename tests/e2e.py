@@ -179,6 +179,21 @@ try:
     pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(old));pg.reload();pg.wait_for_timeout(600)
     check('Old data migrates without errors',pg.locator('.hero').count()==1 and not pe,pe[:2])
     ctx.close()
+    # --- salary arrives early (pay day 25th falls on a weekend) ---
+    ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
+    pg.clock.set_fixed_time('2026-10-23T10:00:00');pg.goto(URL)
+    es=dict(old);es['profile']=dict(old['profile'],payday=25);es['startDate']='2026-07-26';es['items']=[{"id":"e1","date":"2026-10-23","amt":12,"cat":"food","note":"Lunch"}]
+    pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(es));pg.reload();pg.wait_for_timeout(600)
+    pg.click('[data-tab="spend"]');pg.wait_for_timeout(300)
+    check('Before salary date is set, 23 Oct is in the previous pay month',pg.inner_text('.mlabel').startswith('25 Sep'),pg.inner_text('.mlabel'))
+    pg.click('.earlysal [data-monthin]');pg.wait_for_timeout(200)
+    check('Early salary form defaults to today',pg.input_value('[data-f="paidOn"]')=='2026-10-23')
+    pg.fill('[data-f="salary"]','4100');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
+    st=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).months['2026-10']")
+    check('Salary date saved for the month',st.get('paidOn')=='2026-10-23' and st.get('salary')==4100,st)
+    check('New month starts the day salary arrived',pg.inner_text('.mlabel').startswith('23 Oct') and 'Nov' in pg.inner_text('.mlabel'),pg.inner_text('.mlabel'))
+    check('Spending on that day counts in the new month','Salary on 23 Oct' in pg.text_content('.moneyin') and 'Lunch' in pg.inner_text('.tblcard') and not pe,(pg.inner_text('.moneyin')[:120],pg.locator('.tblcard').count(),pe[:2]))
+    ctx.close()
     # --- corrupted storage ---
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
     pg.goto(URL);pg.evaluate("localStorage.setItem('setu-v1','{not json')");pg.reload();pg.wait_for_timeout(400)
