@@ -65,7 +65,7 @@ try:
     print('server row after A:',bool(DB),'| data looks encrypted:', 'Sohail' not in json.dumps(DB),'| log',LOG[-2:])
     # Phone B: fresh, signs in, enters passphrase
     cB,B=ctx(b,390,844);B.on('pageerror',lambda e:errs.append('B '+str(e)))
-    B.goto(f'http://localhost:{PORT}/');B.wait_for_timeout(300);B.click('[data-sheet="movehelp"]');B.wait_for_timeout(200);B.click('.sheet [data-sheet="sync"]');B.wait_for_timeout(200)
+    B.goto(f'http://localhost:{PORT}/');B.wait_for_timeout(300);B.click('[data-sheet="sync"]');B.wait_for_timeout(200)
     B.fill('#syemail','sohail@example.com');B.click('[data-syncsend]');B.wait_for_timeout(400);B.fill('#sycode','123456');B.click('[data-syncverify]');B.wait_for_timeout(500)
     print('B step:',B.inner_text('.sheet h2'));B.fill('#sypass','wrong passphrase');B.click('[data-syncpass]');B.wait_for_timeout(3000);print('B wrong pass:',B.inner_text('#syerr'))
     B.fill('#sypass','correct horse battery');B.click('[data-syncpass]');B.wait_for_timeout(4000)
