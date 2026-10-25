@@ -116,6 +116,14 @@ try:
     cP,P=ctx(b,390,844);P.on('pageerror',lambda e:errs.append('P '+str(e)));P.goto(f'http://localhost:{PORT}/');P.wait_for_timeout(300);P.click('[data-sheet="sync"]');P.wait_for_timeout(200)
     form(P,'sohail@example.com','laptop pass 1')
     check('That password then opens the data on a new device',(st(P).get('profile') or {}).get('name')=='Sohail' and P.locator('#syold').count()==0)
+    # A device that already has newer data signs in: nothing is lost, both copies are combined
+    cQ,Q=ctx(b,1280,800);Q.on('pageerror',lambda e:errs.append('Q '+str(e)));Q.goto(f'http://localhost:{PORT}/');Q.wait_for_timeout(250)
+    Q.click('[data-wz="next"]');Q.fill('[data-k="salary"]','60000');Q.click('[data-wz="finish"]');Q.wait_for_timeout(500)
+    Q.locator('[data-sheet="addspend"]:visible').first.click();Q.wait_for_timeout(150);Q.fill('#amt','9');Q.fill('#note','Only on this laptop');Q.click('[data-add]');Q.wait_for_timeout(300)
+    Q.locator('[data-sheet="sync"]:visible').first.click() if Q.locator('[data-sheet="sync"]:visible').count() else (Q.click('[data-sheet="settings"]:visible'),Q.click('[data-set="sync"]'))
+    Q.wait_for_timeout(200);form(Q,'sohail@example.com','laptop pass 1');Q.wait_for_timeout(1500)
+    nq=[x['note'] for x in st(Q)['items']];P.evaluate("()=>document.dispatchEvent(new Event('visibilitychange'))");P.wait_for_timeout(2500);np=[x['note'] for x in st(P)['items']]
+    check('Signing in on a device with its own data keeps everything',('Only on this laptop' in nq) and ('Phone bus' in nq) and ('Only on this laptop' in np),(nq,np))
     # Existing account whose copy was locked with an older passphrase: asked once, then switched to the password
     cM,M=ctx(b,390,844);M.on('pageerror',lambda e:errs.append('M '+str(e)));M.goto(f'http://localhost:{PORT}/');M.wait_for_timeout(300);M.click('[data-sheet="sync"]');M.wait_for_timeout(200)
     form(M,'old@example.com','oldpassphrase',create=True)

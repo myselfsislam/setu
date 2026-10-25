@@ -2320,9 +2320,10 @@ if(SYNC_LINK)setTimeout(function(){syncFromLink(SYNC_LINK);},150);
 function syncHome(){return IS_APP||/github\.io$/.test(location.hostname)?SITE_URL:location.origin+location.pathname;}
 function syncErr(bad,info){var el=document.getElementById('syerr');if(el)el.innerHTML=bad?'<p class="small bad">'+bad+'</p>':info?'<p class="small soft">'+info+'</p>':'';return false;}
 function syncDone(msg){window.__syncStep='form';window.__syncPw=null;window.__syncRow=null;sheetFn=null;wz=null;render();toast(msg);}
-function applyRemote(remote){var useRemote=!S.profile||confirm('This device already has Setu data. Replace it with the data from your account? (Recommended. A copy of this device’s data is kept as a backup.)\n\nChoose Cancel to combine both instead.');
-  if(useRemote){try{if(S.profile)localStorage.setItem('setu-v1-before-sync',JSON.stringify(S));}catch(e){}SYNC_KEYS.forEach(function(kk){if(remote[kk]!==undefined)S[kk]=remote[kk];});localStorage.setItem(SBASE,JSON.stringify(remote));try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}tab='home';}
-  else localStorage.setItem(SBASE,JSON.stringify({}));}
+function applyRemote(remote){
+  /* Never throw away this device's data: if it has some, combine both copies (every entry kept; this device's settings win). */
+  if(!S.profile){SYNC_KEYS.forEach(function(kk){if(remote[kk]!==undefined)S[kk]=remote[kk];});localStorage.setItem(SBASE,JSON.stringify(remote));try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}tab='home';wz=null;return;}
+  try{localStorage.setItem('setu-v1-before-sync',JSON.stringify(S));}catch(e){}localStorage.setItem(SBASE,JSON.stringify({}));}
 /* save this device's data online under a (new) key, replacing the old copy */
 function vaultReplace(k,saltB){var ss=sGet();return crypto.subtle.exportKey('raw',k).then(function(raw){ss.key=b64u(raw);ss.salt=b64u(saltB);ss.pw=1;sSet(ss);return sealObj(pick(S),k);}).then(function(blob){var now=new Date().toISOString();
   return sb('/rest/v1/vaults?select=user_id&user_id=eq.'+ss.uid).then(function(rows){return rows&&rows.length?sb('/rest/v1/vaults?user_id=eq.'+ss.uid,{method:'PATCH',headers:{Prefer:'return=representation'},body:{salt:ss.salt,data:blob,updated_at:now}}):sb('/rest/v1/vaults',{method:'POST',headers:{Prefer:'return=representation'},body:{user_id:ss.uid,salt:ss.salt,data:blob,updated_at:now}});});})
