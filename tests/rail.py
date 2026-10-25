@@ -15,7 +15,7 @@ try:
         ctx=b.new_context(viewport={'width':w,'height':h});pg=ctx.new_page()
         pg.route('https://static.cloudflareinsights.com/**',lambda r:r.abort())
         pg.goto(f'http://localhost:{PORT}/');pg.wait_for_timeout(300)
-        pg.click('[data-wz="next"]');pg.click('[data-wz="next"]');pg.fill('[data-k="salary"]','48000');pg.fill('[data-k="rent"]','1150');pg.click('[data-wz="next"]');pg.click('[data-wz="next"]');pg.click('[data-wz="next"]');pg.click('.foot [data-wz="finish"].go');pg.wait_for_timeout(700)
+        pg.click('[data-wz="next"]');pg.click('[data-wz="full"]');pg.click('[data-wz="next"]');pg.fill('[data-k="salary"]','48000');pg.fill('[data-k="rent"]','1150');pg.click('[data-wz="next"]');pg.click('[data-wz="next"]');pg.click('[data-wz="next"]');pg.click('.foot [data-wz="finish"].go');pg.wait_for_timeout(700)
         mode=lambda:pg.evaluate("document.getElementById('rail').className.replace('rail mode-','')")
         check(f'{w}px default is {exp}',mode()==exp,mode())
         if exp!='none':

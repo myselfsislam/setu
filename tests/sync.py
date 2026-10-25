@@ -55,7 +55,7 @@ try:
     b=p.chromium.launch()
     cA,A=ctx(b,1440,900);A.on('pageerror',lambda e:errs.append('A '+str(e)))
     A.goto(f'http://localhost:{PORT}/');A.wait_for_timeout(250)
-    A.click('[data-wz="next"]');A.fill('[data-k="name"]','Sohail');A.click('[data-wz="next"]');A.fill('[data-k="salary"]','72000');A.fill('[data-k="rent"]','1600');A.click('[data-wz="next"]');A.click('[data-wz="next"]');A.click('[data-wz="next"]');A.click('.foot [data-wz="finish"].go');A.wait_for_timeout(500)
+    A.click('[data-wz="next"]');A.click('[data-wz="full"]');A.fill('[data-k="name"]','Sohail');A.click('[data-wz="next"]');A.fill('[data-k="salary"]','72000');A.fill('[data-k="rent"]','1600');A.click('[data-wz="next"]');A.click('[data-wz="next"]');A.click('[data-wz="next"]');A.click('.foot [data-wz="finish"].go');A.wait_for_timeout(500)
     A.locator('[data-tab="spend"]:visible').first.click();A.fill('#amt','12.5');A.fill('#note','Laptop coffee');A.click('[data-add]');A.wait_for_timeout(300)
     bad,title=signin(A,'sohail@example.com','correct horse battery',True);print('A wrong code msg:',bad,'| A pass step:',title)
     print('server row after A:',bool(DB),'| data looks encrypted:', 'Sohail' not in json.dumps(DB),'| log',LOG[-2:])

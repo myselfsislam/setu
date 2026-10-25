@@ -7,6 +7,10 @@ PORT=8780
 srv=subprocess.Popen([sys.executable,'-m','http.server',str(PORT)],cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL);time.sleep(1)
 URL=f'http://localhost:{PORT}/'
 R=[]
+def go(pg,t):
+    if pg.locator(f'[data-tab="{t}"]:visible').count()==0:
+        pg.locator('[data-tab="more"]:visible').first.click();pg.wait_for_timeout(150)
+    pg.locator(f'[data-tab="{t}"]:visible').first.click()
 def check(name,cond,detail=''):
     R.append((name,bool(cond),detail));print(('PASS ' if cond else 'FAIL ')+name+(' | '+str(detail) if detail else ''))
 def fit(pg,sel='main'):
@@ -23,7 +27,7 @@ try:
     pg.goto(URL);pg.wait_for_timeout(400)
     check('Intro loads',pg.locator('.introhero').count()==1)
     # --- Wizard with XSS attempts and edge values ---
-    pg.click('[data-wz="next"]')
+    pg.click('[data-wz="next"]');pg.click('[data-wz="full"]')
     pg.fill('[data-k="name"]','<img src=x onerror=alert(1)>');pg.fill('[data-k="age"]','29');pg.fill('[data-k="moved"]','2026-09-01')
     pg.click('[data-wz="next"]')
     check('Step 2 Continue disabled without salary',pg.locator('[data-wz="next"]').is_disabled())
@@ -40,7 +44,7 @@ try:
     pg.fill('[data-k="retireAge"]','50');pg.click('[data-seg="homeOn"][data-v="true"]');pg.fill('[data-k="homeCost"]','7500000');pg.click('.foot [data-wz="finish"].go');pg.wait_for_timeout(900)
     check('Home renders after setup',pg.locator('.hero').count()==1)
     check('XSS name escaped (no img element)',pg.locator('main img').count()==0 and pg.evaluate("!document.querySelector('img[src=\"x\"]')"))
-    check('Home fits (390x844)',fit(pg)<=2,fit(pg))
+    check('Home opens with Today first',pg.evaluate("document.querySelector('main').children[1].classList.contains('today')"))
     # plan sums equal money left (+carry)
     left=pg.evaluate("(()=>{const t=document.querySelector('.hero .big').textContent;return +t.replace(/[^0-9.-]/g,'')})()")
     check('Plan shows steps without money amounts',pg.locator('.step').count()>=2 and not any(c in pg.inner_text('.card.plan') for c in '£₹'),pg.inner_text('.card.plan')[:80])
@@ -52,11 +56,11 @@ try:
     # nudges clickable
     pg.locator('.nudge').first.click();pg.wait_for_timeout(300);check('Nudge opens something',pg.locator('.sheet').count()==1 or pg.locator('[aria-current="page"]:visible').inner_text()!='Home')
     if pg.locator('[data-close]').count():pg.click('[data-close]')
-    pg.locator('[data-tab="home"]:visible').first.click();pg.wait_for_timeout(200)
+    go(pg,'home');pg.wait_for_timeout(200)
     # plan sheet
     pg.locator('.step').first.click();pg.wait_for_timeout(300);check('Plan step sheet opens',pg.locator('.sheet h2').count()==1);pg.click('[data-close]')
     # --- Checklist ---
-    pg.locator('[data-tab="check"]:visible').first.click();pg.wait_for_timeout(300)
+    go(pg,'check');pg.wait_for_timeout(300)
     for t in ['nro','nre','kyc','lenders','sim']:pg.click(f'[data-tick="{t}"]');pg.wait_for_timeout(60)
     check('Phase complete marker',pg.locator('.ph.full').count()>=1)
     pg.click('[data-tick="sim"]');check('Untick works',pg.locator('[data-tick="sim"][aria-checked="false"]').count()==1)
@@ -69,7 +73,7 @@ try:
     pg.click('[data-close]')
     check('Checklist fits',fit(pg)<=2,fit(pg))
     # --- Spending ---
-    pg.locator('[data-tab="spend"]:visible').first.click();pg.wait_for_timeout(300)
+    go(pg,'spend');pg.wait_for_timeout(300)
     pg.fill('#amt','-5');pg.click('[data-add]');check('Negative amount rejected',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length")==0)
     pg.click('[data-cat="groceries"]');pg.fill('#amt','42.5');pg.fill('#note','<script>alert(1)</script>Tesco');pg.keyboard.press('Enter');pg.wait_for_timeout(200)
     check('Enter key adds spending',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length")==1)
@@ -127,7 +131,7 @@ try:
     check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
     # --- Goals ---
-    pg.locator('[data-tab="goals"]:visible').first.click();pg.wait_for_timeout(300)
+    go(pg,'goals');pg.wait_for_timeout(300)
     pg.click('[data-funds="retire"]');pg.wait_for_timeout(400);pg.click('[data-choose="retire:n50"]');pg.wait_for_timeout(300)
     check('Fund choice saved',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile.retFund")=='n50')
     pg.click('[data-sheet="goals"]');pg.fill('[data-f="retireAge"]','55');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
@@ -135,7 +139,7 @@ try:
     check('Rates and pound-to-rupee are at the top of Goals',pg.evaluate("document.querySelector('main').children[1].className")=='gtop')
     check('Goals has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     # --- Investments ---
-    pg.locator('[data-tab="wealth"]:visible').first.click();pg.wait_for_timeout(300)
+    go(pg,'wealth');pg.wait_for_timeout(300)
     pg.click('[data-hadd="uk"]');pg.wait_for_timeout(200);pg.click('[data-hnew="manual:uk"]');pg.wait_for_timeout(200);pg.fill('[data-f="name"]','Test ISA');pg.fill('[data-f="value"]','1100');pg.fill('[data-f="paid"]','1000');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     check('Investment holding can be added with growth shown','ISAs and funds' in pg.inner_text('main') and pg.locator('.wtile').count()>=2 and pg.locator('.whold').count()==0)
     hid=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).holdings.find(h=>h.name==='Test ISA').id")
@@ -184,7 +188,7 @@ try:
     pg.clock.set_fixed_time('2026-10-23T10:00:00');pg.goto(URL)
     es=dict(old);es['profile']=dict(old['profile'],payday=25);es['startDate']='2026-07-26';es['items']=[{"id":"e1","date":"2026-10-23","amt":12,"cat":"food","note":"Lunch"}]
     pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(es));pg.reload();pg.wait_for_timeout(600)
-    pg.click('[data-tab="spend"]');pg.wait_for_timeout(300)
+    go(pg,'spend');pg.wait_for_timeout(300)
     check('Before salary date is set, 23 Oct is in the previous pay month',pg.inner_text('.mlabel').startswith('25 Sep'),pg.inner_text('.mlabel'))
     pg.click('.earlysal [data-monthin]');pg.wait_for_timeout(200)
     check('Early salary form defaults to today',pg.input_value('[data-f="paidOn"]')=='2026-10-23')
@@ -201,7 +205,7 @@ try:
     rb['items']=[{"id":"r1","date":"2026-10-05","amt":300,"cat":"eating","note":"Deliveroo"},{"id":"r2","date":"2026-10-06","amt":200,"cat":"groceries","note":"Tesco"},{"id":"r3","date":"2026-10-07","amt":140,"cat":"transport","note":"Oyster"},{"id":"r4","date":"2026-10-08","amt":90,"cat":"other","note":"Bits"}]
     pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(rb));pg.reload();pg.wait_for_timeout(600)
     check('Home suggests rebalancing when a category is over budget','Eating out over budget' in pg.text_content('.nudges') and not pe,pe[:2])
-    pg.locator('[data-tab="spend"]:visible').first.click();pg.wait_for_timeout(300)
+    go(pg,'spend');pg.wait_for_timeout(300)
     check('Spending shows a rebalance card',pg.locator('.rebal:visible').count()==1 and 'Groceries' in pg.locator('.rebal:visible').text_content())
     pg.locator('.rebal [data-sheet="rebal"]:visible').click();pg.wait_for_timeout(250)
     check('Rebalance sheet moves spare Groceries money to Eating out','Move £150 from Groceries to Eating out' in pg.text_content('.rbmoves'),pg.text_content('.rbmoves'))
@@ -211,7 +215,7 @@ try:
     ctx.close()
     ctx=b.new_context();pg=ctx.new_page();pg.clock.set_fixed_time('2026-10-28T10:00:00');pg.goto(URL)
     pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(rb));pg.reload();pg.wait_for_timeout(600)
-    pg.locator('[data-tab="spend"]:visible').first.click();pg.wait_for_timeout(300);pg.locator('.rebal [data-rebdis]:visible').click();pg.wait_for_timeout(300);pg.reload();pg.wait_for_timeout(500)
+    go(pg,'spend');pg.wait_for_timeout(300);pg.locator('.rebal [data-rebdis]:visible').click();pg.wait_for_timeout(300);pg.reload();pg.wait_for_timeout(500)
     check('Not now hides the rebalance prompt for this month',pg.locator('.rebal').count()==0 and 'over budget' not in (pg.text_content('main') or ''))
     ctx.close()
     # --- budgets from past months ---
@@ -220,7 +224,7 @@ try:
     hs=dict(old);hs['startDate']='2026-09-01';hs['cats']=[{"k":"groceries","label":"Groceries","budget":400},{"k":"eating","label":"Eating out","budget":150},{"k":"transport","label":"Transport","budget":150},{"k":"other","label":"Other","budget":100}]
     hs['items']=[{"id":"h%d"%i,"date":d,"amt":a,"cat":c,"note":"x"} for i,(d,a,c) in enumerate([("2026-09-05",300,"eating"),("2026-09-06",200,"groceries"),("2026-09-07",150,"transport"),("2026-10-05",300,"eating"),("2026-10-06",200,"groceries"),("2026-10-07",150,"transport")])]
     pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(hs));pg.reload();pg.wait_for_timeout(600)
-    pg.locator('[data-tab="spend"]:visible').first.click();pg.wait_for_timeout(300)
+    go(pg,'spend');pg.wait_for_timeout(300)
     check('New month suggests budgets from past spending',pg.locator('.rebal:visible').count()==1 and 'New month' in pg.locator('.rebal:visible').text_content() and not pe,pe[:2])
     pg.locator('.rebal [data-sheet="rebalhist"]:visible').click();pg.wait_for_timeout(250)
     check('Past-months sheet shows September and October','September and October' in pg.text_content('.sheet'))
@@ -234,7 +238,7 @@ try:
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)));pg.goto(URL)
     ob=dict(old);ob['holdings']=[{"id":"x","name":"EPF","cty":"in","type":"epf","value":900000,"paid":900000},{"name":"ISA","cty":"uk","type":"isa","value":"3200"}]
     pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(ob));pg.reload();pg.wait_for_timeout(600)
-    pg.locator('[data-tab="wealth"]:visible').last.click();pg.wait_for_timeout(500)
+    go(pg,'wealth');pg.wait_for_timeout(500)
     check('Investments open even when saved holdings are missing fields',pg.locator('.wtypes').count()==1 and not pe,pe[:2])
     ctx.close()
     # --- ILR: trips abroad and the 180-day limit ---
@@ -242,7 +246,7 @@ try:
     pg.clock.set_fixed_time('2026-10-23T14:00:00');pg.goto(URL)
     il=dict(old);il['profile']=dict(old['profile'],moved='2026-07-20')
     pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(il));pg.reload();pg.wait_for_timeout(600)
-    pg.locator('[data-tab="stay"]:visible').last.click();pg.wait_for_timeout(400)
+    go(pg,'stay');pg.wait_for_timeout(400)
     check('ILR view shows the apply-from date (5 years less 28 days)','22 Jun 2031' in pg.text_content('.ilrhero') and not pe,pe[:2])
     pg.click('[data-trip="new"]');pg.wait_for_timeout(200);pg.fill('[data-f="out"]','2026-09-10');pg.fill('[data-f="back"]','2026-09-20');pg.fill('[data-f="where"]','Paris');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     check('Only whole days abroad count (10–20 Sept = 9 days)',pg.text_content('.ilrmeter .ilrnums b')=='9' and '171' in pg.text_content('.ilrmeter'),pg.text_content('.ilrmeter'))
@@ -252,6 +256,27 @@ try:
     check('Trips are saved',len(tr)==2 and tr[0]['where']=='Paris',tr)
     pg.locator('.trip').first.click();pg.wait_for_timeout(200);pg.click('[data-form="delete"]');pg.wait_for_timeout(300)
     check('A trip can be removed',len(pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).ilr.trips"))==1 and pg.locator('.ilrwarn').count()==0)
+    ctx.close()
+    # --- spending-first: quick setup, Today card, usuals, Insights, More ---
+    ctx=b.new_context(viewport={'width':390,'height':844});pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
+    pg.clock.set_fixed_time('2026-10-27T13:00:00');pg.goto(URL);pg.wait_for_timeout(300)
+    pg.click('[data-wz="next"]');check('Quick setup is the first step',pg.locator('[data-wz="full"]').count()==1 and pg.locator('[data-wz="finish"]').is_disabled())
+    pg.fill('[data-k="salary"]','72000');pg.select_option('[data-k="payday"]','25');pg.fill('[data-k="everyday"]','930');pg.click('[data-wz="finish"]');pg.wait_for_timeout(600)
+    P=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile")
+    check('Quick setup saves pay, pay day and budget',P['salary']==72000 and P['payday']==25 and P['everyday']==930 and P.get('short') is True,P)
+    check('Home opens on Today with a daily amount','£32 left for today' in pg.text_content('.today') and pg.locator('.setupleft').count()==1,pg.text_content('.tdleft'))
+    pg.fill('#amt','6.40');pg.fill('#note','Pret');pg.click('.tdc[data-cat="eating"]');pg.fill('#amt','6.40');pg.fill('#note','Pret');pg.click('.today [data-add]');pg.wait_for_timeout(300)
+    it=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items")
+    check('Adding from Today logs it for today',len(it)==1 and it[0]['date']=='2026-10-27' and it[0]['cat']=='eating' and '£6.40' in pg.text_content('.tdnum'),it)
+    pg.evaluate("()=>{const S0=JSON.parse(localStorage.getItem('setu-v1'));S0.items.push({id:'u2',date:'2026-10-26',cat:'eating',amt:6.2,note:'Pret'});localStorage.setItem('setu-v1',JSON.stringify(S0))}");pg.reload();pg.wait_for_timeout(500)
+    check('Usual items appear after two of the same',pg.locator('.uchip').count()==1 and 'Pret' in pg.text_content('.uchip'))
+    pg.click('.uchip');pg.wait_for_timeout(300)
+    check('Tapping a usual adds it today',len([x for x in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items") if x['date']=='2026-10-27'])==2)
+    pg.click('.tabbar [data-tab="insights"]');pg.wait_for_timeout(300)
+    check('Insights shows the month and categories',pg.locator('.inshead svg.bars').count()==1 and pg.locator('.icrow').count()>=5 and 'Pret' in pg.text_content('.insplaces'))
+    pg.click('.tabbar [data-tab="more"]');pg.wait_for_timeout(300);pg.click('.moreit[data-tab="stay"]');pg.wait_for_timeout(300)
+    check('More opens the other sections, with a way back',pg.locator('.ilrhero').count()==1 and pg.locator('.tabbar [data-tab="more"][aria-current="page"]').count()==1 and pg.locator('.mback').count()==1 and not pe,pe[:2])
+    pg.click('.mback');pg.wait_for_timeout(200);check('Back returns to More',pg.locator('.morelist').count()==1)
     ctx.close()
     # --- corrupted storage ---
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))

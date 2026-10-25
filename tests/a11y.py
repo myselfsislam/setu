@@ -18,15 +18,16 @@ try:
         ctx=b.new_context(viewport={'width':w,'height':h},color_scheme=scheme);pg=ctx.new_page()
         for host in ['api.gdeltproject.org','www.gov.uk','api.mfapi.in','api.frankfurter.dev']:pg.route(f'https://{host}/**',lambda r:r.abort())
         pg.goto(f'http://localhost:{PORT}/');pg.wait_for_timeout(300);tag=f'{scheme}/{w}'
-        scan(pg,tag+' intro');pg.click('[data-wz="next"]');scan(pg,tag+' step1');pg.click('[data-wz="next"]')
+        scan(pg,tag+' intro');pg.click('[data-wz="next"]');scan(pg,tag+' quick setup');pg.click('[data-wz="full"]');scan(pg,tag+' step1');pg.click('[data-wz="next"]')
         pg.fill('[data-k="salary"]','48000');pg.fill('[data-k="rent"]','1150');scan(pg,tag+' step2');pg.click('[data-wz="next"]')
         pg.click('[data-debt="card"]');pg.wait_for_timeout(300);scan(pg,tag+' debt sheet');pg.fill('[data-f="bal"]','25000');pg.click('[data-form="save"]');pg.wait_for_timeout(100)
         scan(pg,tag+' step3');pg.click('[data-wz="next"]');scan(pg,tag+' step4');pg.click('[data-wz="next"]');pg.click('[data-seg="homeOn"][data-v="true"]');pg.fill('[data-k="homeCost"]','7500000');pg.fill('[data-k="retireAge"]','50');scan(pg,tag+' step5')
         pg.click('.foot [data-wz="finish"].go');pg.wait_for_timeout(1500)
         pg.evaluate("()=>{const S0=JSON.parse(localStorage.getItem('setu-v1'));for(let d=1;d<=10;d++)S0.items.push({id:'s'+d,date:'2026-09-'+String(d).padStart(2,'0'),cat:'groceries',amt:10+d,note:'Shop '+d});localStorage.setItem('setu-v1',JSON.stringify(S0));}");pg.reload();pg.wait_for_timeout(1200)
-        for t in ['home','check','spend','wealth','goals','stay']:
-            pg.locator(f'[data-tab="{t}"]:visible').first.click();pg.wait_for_timeout(900);scan(pg,tag+' '+t)
-        pg.locator('[data-tab="goals"]:visible').first.click();pg.click('[data-funds="retire"]');pg.wait_for_timeout(500);scan(pg,tag+' funds sheet');pg.click('[data-close]')
+        for t in ['home','spend','insights','more','check','wealth','goals','stay']:
+            if t=='more' and pg.locator('[data-tab="more"]:visible').count()==0: continue
+            (pg.locator('[data-tab="more"]:visible').first.click() if pg.locator(f'[data-tab="{t}"]:visible').count()==0 else None);pg.locator(f'[data-tab="{t}"]:visible').first.click();pg.wait_for_timeout(900);scan(pg,tag+' '+t)
+        (pg.locator('[data-tab="more"]:visible').first.click() if pg.locator('[data-tab="goals"]:visible').count()==0 else None);pg.locator('[data-tab="goals"]:visible').first.click();pg.click('[data-funds="retire"]');pg.wait_for_timeout(500);scan(pg,tag+' funds sheet');pg.click('[data-close]')
         pg.click('[data-sheet="settings"]:visible');pg.wait_for_timeout(300);scan(pg,tag+' settings');pg.click('[data-set="transfer"]');pg.wait_for_timeout(300);scan(pg,tag+' transfer');pg.click('[data-close]')
         if w>1400:
             pg.click('[data-railtoggle]') if 'collapsed' in pg.evaluate("document.getElementById('rail').className") else None;pg.wait_for_timeout(300);scan(pg,tag+' markets');pg.click('[data-rtab="news"]');pg.wait_for_timeout(600);scan(pg,tag+' news')

@@ -14,7 +14,7 @@ cases=[(30000,False,ruk(30000)),(50000,False,ruk(50000)),(72000,False,ruk(72000)
 try:
   with sync_playwright() as p:
     b=p.chromium.launch();pg=b.new_page();pg.goto(f'http://localhost:{PORT}/');pg.wait_for_timeout(300)
-    pg.click('[data-wz="next"]');pg.click('[data-wz="next"]')
+    pg.click('[data-wz="next"]');pg.click('[data-wz="full"]');pg.click('[data-wz="next"]')
     for g,sco,exp in cases:
         pg.click(f'[data-seg="scot"][data-v="{"true" if sco else "false"}"]');pg.wait_for_timeout(80)
         pg.fill('[data-k="pension"]','0');pg.fill('[data-k="salary"]',str(g));pg.wait_for_timeout(80)
