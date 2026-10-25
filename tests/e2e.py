@@ -11,6 +11,9 @@ def go(pg,t):
     if pg.locator(f'[data-tab="{t}"]:visible').count()==0:
         pg.locator('[data-tab="more"]:visible').first.click();pg.wait_for_timeout(150)
     pg.locator(f'[data-tab="{t}"]:visible').first.click()
+def ensure_add(pg):
+    if pg.locator('#amt').count()==0:
+        pg.click('[data-sheet="addspend"]');pg.wait_for_timeout(200)
 def check(name,cond,detail=''):
     R.append((name,bool(cond),detail));print(('PASS ' if cond else 'FAIL ')+name+(' | '+str(detail) if detail else ''))
 def fit(pg,sel='main'):
@@ -74,13 +77,13 @@ try:
     check('Checklist fits',fit(pg)<=2,fit(pg))
     # --- Spending ---
     go(pg,'spend');pg.wait_for_timeout(300)
-    pg.fill('#amt','-5');pg.click('[data-add]');check('Negative amount rejected',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length")==0)
-    pg.click('[data-cat="groceries"]');pg.fill('#amt','42.5');pg.fill('#note','<script>alert(1)</script>Tesco');pg.keyboard.press('Enter');pg.wait_for_timeout(200)
+    ensure_add(pg);pg.fill('#amt','-5');pg.click('[data-add]');check('Negative amount rejected',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length")==0)
+    ensure_add(pg);pg.click('.sheet [data-cat="groceries"]');pg.fill('#amt','42.5');pg.fill('#note','<script>alert(1)</script>Tesco');pg.keyboard.press('Enter');pg.wait_for_timeout(200)
     check('Enter key adds spending',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length")==1)
     check('Note escaped in table',pg.locator('.stbl script').count()==0 and '<script>' in pg.locator('.twhat').first.inner_text())
     pg.click('[data-undo]');pg.wait_for_timeout(200);check('Undo removes',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length")==0)
     for amt,note,cat in [('42','Tesco','groceries'),('35','Oyster','transport'),('18.5','Dishoom','eating')]:
-        pg.click(f'[data-cat="{cat}"]');pg.fill('#amt',amt);pg.fill('#note',note);pg.click('[data-add]');pg.wait_for_timeout(100)
+        ensure_add(pg);pg.click(f'.sheet [data-cat="{cat}"]');ensure_add(pg);pg.fill('#amt',amt);pg.fill('#note',note);pg.click('[data-add]');pg.wait_for_timeout(100)
     pg.locator('tr[data-item]').first.click();pg.wait_for_timeout(200);pg.fill('[data-f="amt"]','20');pg.click('[data-form="save"]');pg.wait_for_timeout(200)
     check('Edit spending saves',20 in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.map(x=>x.amt)"))
     pg.locator('tr[data-item]').first.click();pg.wait_for_timeout(200);pg.click('[data-form="delete"]');pg.wait_for_timeout(200)
@@ -89,7 +92,7 @@ try:
     check('Budget edit via Settings works','£250' in pg.inner_text('.sheet'));pg.click('[data-close]')
     pg.click('[data-monthin]');pg.fill('[data-f="salary"]','3100');pg.fill('[data-f="carry"]','200');pg.click('[data-form="save"]');pg.wait_for_timeout(200)
     check('Money in saved','£3,300' in pg.inner_text('.moneyin'),pg.inner_text('.moneyin').replace('\n',' '))
-    pg.click('.rchip');pg.click('[data-recur="new"]');pg.fill('[data-f="name"]','Netflix');pg.fill('[data-f="amt"]','10.99');pg.fill('[data-f="day"]',str(__import__('datetime').date.today().day));pg.click('[data-form="save"]');pg.wait_for_timeout(400)
+    pg.click('.sptools [data-sheet="recur"]');pg.click('[data-recur="new"]');pg.fill('[data-f="name"]','Netflix');pg.fill('[data-f="amt"]','10.99');pg.fill('[data-f="day"]',str(__import__('datetime').date.today().day));pg.click('[data-form="save"]');pg.wait_for_timeout(400)
     check('Repeating cost auto-added',any(x['note']=='Netflix' for x in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items")))
     pg.click('[data-close]');pg.wait_for_timeout(200)
     pg.fill('#sq','oys');pg.wait_for_timeout(150);check('Search filters',pg.locator('tr[data-item]').count()==1);pg.fill('#sq','')
@@ -111,15 +114,15 @@ try:
     pg.click('.mlabel');pg.wait_for_timeout(200);pg.select_option('[data-f="payday"]','25');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     check('Month can start on pay day',' – ' in pg.inner_text('.mlabel') and pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile.payday")==25,pg.inner_text('.mlabel'))
     pg.click('.mlabel');pg.wait_for_timeout(200);pg.select_option('[data-f="payday"]','1');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
-    pg.fill('#amt','5');pg.fill('#note','Past bus');pg.fill('#sdt','2026-08-03');pg.click('[data-add]');pg.wait_for_timeout(300)
-    check('Dates before you started are not allowed',pg.get_attribute('#sdt','min')==pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).startDate") and '2026-08-03' not in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.map(x=>x.date)"))
+    ensure_add(pg);pg.fill('#amt','5');pg.fill('#note','Past bus');pg.fill('#sdt','2026-08-03');mn=pg.get_attribute('#sdt','min');pg.click('[data-add]');pg.wait_for_timeout(300)
+    check('Dates before you started are not allowed',mn==pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).startDate") and '2026-08-03' not in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.map(x=>x.date)"))
 
     pg.select_option('#sr','all');pg.wait_for_timeout(300);check('Date range filter shows everything since you started',pg.locator('tr[data-item]').count()>=3 and 'since' in pg.inner_text('.tblcard .row-b'))
     pg.select_option('#sr','cycle');pg.wait_for_timeout(200)
-    check('Category buttons need no sideways scrolling',pg.evaluate("(()=>{const c=document.querySelector('.v-spend .chips');return c.scrollWidth<=c.clientWidth})()"))
-    sp0=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length");pg.click('.chips [data-cat="invest"]');pg.fill('#amt','200');pg.fill('#note','ISA');pg.click('[data-add]');pg.wait_for_timeout(300)
-    check('Investments can be logged and are not counted as spending',pg.locator('.invline').count()==1 and pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.some(x=>x.cat==='invest')"))
-    pg.click('[data-cat="other"]');pg.fill('#amt','1200');pg.fill('#note','Rent');pg.click('[data-add]');pg.wait_for_timeout(300)
+    ensure_add(pg);check('Category buttons need no sideways scrolling',pg.evaluate("(()=>{const c=document.querySelector('.sheet .chips');return c.scrollWidth<=c.clientWidth})()"))
+    sp0=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.length");ensure_add(pg);pg.click('.sheet [data-cat="invest"]');ensure_add(pg);pg.fill('#amt','200');pg.fill('#note','ISA');pg.click('[data-add]');pg.wait_for_timeout(300)
+    check('Investments can be logged and are not counted as spending','Invested' in pg.text_content('.spsum') and pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.some(x=>x.cat==='invest')"))
+    ensure_add(pg);pg.click('.sheet [data-cat="other"]');ensure_add(pg);pg.fill('#amt','1200');pg.fill('#note','Rent');pg.click('[data-add]');pg.wait_for_timeout(300)
     check('Logging rent warns it is already counted',pg.locator('.sheet').count()==1 and 'Already counted' in pg.inner_text('.sheet h2'));pg.click('[data-dupepay]');pg.wait_for_timeout(300)
     pg.click('.mimid');pg.wait_for_timeout(200);check('Bills list shows this month’s regular payments',pg.locator('.sheet .brow').count()>=2)
     pg.locator('.sheet .bmain').last.click();pg.wait_for_timeout(200);pg.click('[data-bskip]');pg.wait_for_timeout(200);check('A bill can be skipped for this month','Not paying this month' in pg.inner_text('.sheet'));pg.click('[data-close]');pg.wait_for_timeout(200)
@@ -127,7 +130,7 @@ try:
     pg.click('.reclink');pg.wait_for_timeout(200);bk=pg.evaluate("document.querySelector('.calct tr.big td').textContent");pg.fill('#recval','10');pg.wait_for_timeout(200)
     check('Bank balance can be matched',pg.locator('[data-recfix="adjust"]').count()==1);pg.click('[data-recfix="adjust"]');pg.wait_for_timeout(300)
     check('Bank now matches what the user entered','£10.00' in pg.inner_text('.moneyin'),pg.inner_text('.moneyin .r b'))
-    pg.click('[data-catview="groceries"]');pg.wait_for_timeout(300);check('Category view shows items and daily changes',pg.locator('.sheet .cvstats').count()==1 and 'Daily average' in pg.inner_text('.sheet'));pg.click('[data-close]');pg.wait_for_timeout(200)
+    go(pg,'insights');pg.wait_for_timeout(300);pg.click('[data-catview="groceries"]');pg.wait_for_timeout(300);check('Category view shows items and daily changes',pg.locator('.sheet .cvstats').count()==1 and 'Daily average' in pg.inner_text('.sheet'));pg.click('[data-close]');pg.wait_for_timeout(200);go(pg,'spend');pg.wait_for_timeout(300)
     check('Spending has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     check('Spending log shows rows in full',pg.evaluate("(()=>{const w=document.querySelector('.tblwrap');return !w||w.scrollHeight<=w.clientHeight+2})()"))
     # --- Goals ---

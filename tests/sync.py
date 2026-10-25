@@ -56,7 +56,7 @@ try:
     cA,A=ctx(b,1440,900);A.on('pageerror',lambda e:errs.append('A '+str(e)))
     A.goto(f'http://localhost:{PORT}/');A.wait_for_timeout(250)
     A.click('[data-wz="next"]');A.click('[data-wz="full"]');A.fill('[data-k="name"]','Sohail');A.click('[data-wz="next"]');A.fill('[data-k="salary"]','72000');A.fill('[data-k="rent"]','1600');A.click('[data-wz="next"]');A.click('[data-wz="next"]');A.click('[data-wz="next"]');A.click('.foot [data-wz="finish"].go');A.wait_for_timeout(500)
-    A.locator('[data-tab="spend"]:visible').first.click();A.fill('#amt','12.5');A.fill('#note','Laptop coffee');A.click('[data-add]');A.wait_for_timeout(300)
+    A.locator('[data-tab="home"]:visible').first.click();A.fill('#amt','12.5');A.fill('#note','Laptop coffee');A.click('[data-add]');A.wait_for_timeout(300)
     bad,title=signin(A,'sohail@example.com','correct horse battery',True);print('A wrong code msg:',bad,'| A pass step:',title)
     print('server row after A:',bool(DB),'| data looks encrypted:', 'Sohail' not in json.dumps(DB),'| log',LOG[-2:])
     # Phone B: fresh, signs in, enters passphrase
@@ -67,7 +67,7 @@ try:
     B.fill('#sypass','correct horse battery');B.click('[data-syncpass]');B.wait_for_timeout(4000)
     SB=st(B);print('B got profile:',SB.get('profile',{}).get('name'),'| items',[x['note'] for x in SB['items']])
     # both edit, then sync both ways
-    B.locator('[data-tab="spend"]:visible').first.click();B.wait_for_timeout(200);B.fill('#amt','4.2');B.fill('#note','Phone bus');B.click('[data-add]');B.wait_for_timeout(3500)
+    B.locator('[data-tab="home"]:visible').first.click();B.wait_for_timeout(200);B.fill('#amt','4.2');B.fill('#note','Phone bus');B.click('[data-add]');B.wait_for_timeout(3500)
     A.fill('#amt','30');A.fill('#note','Laptop groceries');A.click('[data-add]');A.wait_for_timeout(3500)
     A.evaluate("()=>document.dispatchEvent(new Event('visibilitychange'))");A.wait_for_timeout(2500)
     B.evaluate("()=>document.dispatchEvent(new Event('visibilitychange'))");B.wait_for_timeout(2500)
@@ -75,7 +75,7 @@ try:
     # delete on B propagates
     iid=[x for x in st(B)['items'] if x['note']=='Laptop coffee'][0]['id']
     B.evaluate(f"()=>{{const S0=JSON.parse(localStorage.getItem('setu-v1'));S0.items=S0.items.filter(x=>x.id!=='{iid}');localStorage.setItem('setu-v1',JSON.stringify(S0));}}");B.reload();B.wait_for_timeout(500)
-    B.locator('[data-tab="spend"]:visible').first.click();B.fill('#amt','1');B.fill('#note','trigger');B.click('[data-add]');B.wait_for_timeout(3500)
+    B.locator('[data-tab="home"]:visible').first.click();B.fill('#amt','1');B.fill('#note','trigger');B.click('[data-add]');B.wait_for_timeout(3500)
     A.evaluate("()=>document.dispatchEvent(new Event('visibilitychange'))");A.wait_for_timeout(2500)
     print('deleted on B, gone on A:', 'Laptop coffee' not in [x['note'] for x in st(A)['items']])
     A.click('[data-sheet="settings"]:visible');A.click('[data-set="sync"]');A.wait_for_timeout(300);print('A status:',A.inner_text('#syncstat'))
