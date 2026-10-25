@@ -13,7 +13,7 @@ def go(pg,t):
     pg.locator(f'[data-tab="{t}"]:visible').first.click()
 def ensure_add(pg):
     if pg.locator('#amt').count()==0:
-        pg.click('[data-sheet="addspend"]');pg.wait_for_timeout(200)
+        pg.locator('[data-sheet="addspend"]:visible').first.click();pg.wait_for_timeout(200)
 def check(name,cond,detail=''):
     R.append((name,bool(cond),detail));print(('PASS ' if cond else 'FAIL ')+name+(' | '+str(detail) if detail else ''))
 def fit(pg,sel='main'):
@@ -92,7 +92,7 @@ try:
     check('Budget edit via Settings works','£250' in pg.inner_text('.sheet'));pg.click('[data-close]')
     pg.click('[data-monthin]');pg.fill('[data-f="salary"]','3100');pg.fill('[data-f="carry"]','200');pg.click('[data-form="save"]');pg.wait_for_timeout(200)
     check('Money in saved','£3,300' in pg.inner_text('.moneyin'),pg.inner_text('.moneyin').replace('\n',' '))
-    pg.click('.sptools [data-sheet="recur"]');pg.click('[data-recur="new"]');pg.fill('[data-f="name"]','Netflix');pg.fill('[data-f="amt"]','10.99');pg.fill('[data-f="day"]',str(__import__('datetime').date.today().day));pg.click('[data-form="save"]');pg.wait_for_timeout(400)
+    pg.click('.sprec');pg.click('[data-recur="new"]');pg.fill('[data-f="name"]','Netflix');pg.fill('[data-f="amt"]','10.99');pg.fill('[data-f="day"]',str(__import__('datetime').date.today().day));pg.click('[data-form="save"]');pg.wait_for_timeout(400)
     check('Repeating cost auto-added',any(x['note']=='Netflix' for x in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items")))
     pg.click('[data-close]');pg.wait_for_timeout(200)
     pg.fill('#sq','oys');pg.wait_for_timeout(150);check('Search filters',pg.locator('tr[data-item]').count()==1);pg.fill('#sq','')
@@ -268,7 +268,7 @@ try:
     P=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile")
     check('Quick setup saves pay, pay day and budget',P['salary']==72000 and P['payday']==25 and P['everyday']==930 and P.get('short') is True,P)
     check('Home opens on Today with a daily amount','£32 left for today' in pg.text_content('.today') and pg.locator('.setupleft').count()==1,pg.text_content('.tdleft'))
-    pg.fill('#amt','6.40');pg.fill('#note','Pret');pg.click('.tdc[data-cat="eating"]');pg.fill('#amt','6.40');pg.fill('#note','Pret');pg.click('.today [data-add]');pg.wait_for_timeout(300)
+    pg.click('.tbadd');pg.wait_for_timeout(200);pg.click('.sheet [data-cat="eating"]');pg.fill('#amt','6.40');pg.fill('#note','Pret');pg.click('.sheet [data-add]');pg.wait_for_timeout(300)
     it=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items")
     check('Adding from Today logs it for today',len(it)==1 and it[0]['date']=='2026-10-27' and it[0]['cat']=='eating' and '£6.40' in pg.text_content('.tdnum'),it)
     pg.evaluate("()=>{const S0=JSON.parse(localStorage.getItem('setu-v1'));S0.items.push({id:'u2',date:'2026-10-26',cat:'eating',amt:6.2,note:'Pret'});localStorage.setItem('setu-v1',JSON.stringify(S0))}");pg.reload();pg.wait_for_timeout(500)
