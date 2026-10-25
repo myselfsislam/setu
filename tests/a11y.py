@@ -27,7 +27,7 @@ try:
         for t in ['home','spend','insights','wealth','wuk','win','goals','check','stay']:
             (pg.locator('[data-tab="%s"]:visible'%{'insights':'spend','spend':'spend','wealth':'wealth','wuk':'wealth','win':'wealth','goals':'plan','check':'plan','stay':'plan','plan':'plan','home':'home'}[t]).first.click() if pg.locator(f'[data-tab="{t}"]:visible').count()==0 else None);pg.locator(f'[data-tab="{t}"]:visible').first.click();pg.wait_for_timeout(900);scan(pg,tag+' '+t)
         (pg.locator('[data-tab="plan"]:visible').first.click() if pg.locator('[data-tab="goals"]:visible').count()==0 else None);pg.locator('[data-tab="goals"]:visible').first.click();pg.click('[data-funds="retire"]');pg.wait_for_timeout(500);scan(pg,tag+' funds sheet');pg.click('[data-close]')
-        pg.click('[data-sheet="settings"]:visible');pg.wait_for_timeout(300);scan(pg,tag+' settings');pg.click('[data-set="transfer"]');pg.wait_for_timeout(300);scan(pg,tag+' transfer');pg.click('[data-close]')
+        pg.click('[data-sheet="settings"]:visible');pg.wait_for_timeout(300);scan(pg,tag+' settings');pg.click('[data-setgrp="rates"]');pg.click('[data-set="transfer"]');pg.wait_for_timeout(300);scan(pg,tag+' transfer');pg.click('[data-close]')
         if w>1400:
             pg.click('[data-railtoggle]') if 'collapsed' in pg.evaluate("document.getElementById('rail').className") else None;pg.wait_for_timeout(300);scan(pg,tag+' markets');pg.click('[data-rtab="news"]');pg.wait_for_timeout(600);scan(pg,tag+' news')
         ctx.close()
