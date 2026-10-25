@@ -7,9 +7,10 @@ PORT=8780
 srv=subprocess.Popen([sys.executable,'-m','http.server',str(PORT)],cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL);time.sleep(1)
 URL=f'http://localhost:{PORT}/'
 R=[]
+PAR={'insights':'spend','spend':'spend','wealth':'wealth','wuk':'wealth','win':'wealth','goals':'plan','check':'plan','stay':'plan','plan':'plan','home':'home'}
 def go(pg,t):
     if pg.locator(f'[data-tab="{t}"]:visible').count()==0:
-        pg.locator('[data-tab="more"]:visible').first.click();pg.wait_for_timeout(150)
+        pg.locator('[data-tab="%s"]:visible'%PAR.get(t,t)).first.click();pg.wait_for_timeout(150)
     pg.locator(f'[data-tab="{t}"]:visible').first.click()
 def ensure_add(pg):
     if pg.locator('#amt').count()==0:
@@ -139,7 +140,7 @@ try:
     check('Fund choice saved',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile.retFund")=='n50')
     pg.click('[data-sheet="goals"]');pg.fill('[data-f="retireAge"]','55');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     check('Goals edit works','55' in pg.inner_text('main'))
-    check('Rates and pound-to-rupee are at the top of Goals',pg.evaluate("document.querySelector('main').children[1].className")=='gtop')
+    check('Rates and pound-to-rupee are at the top of Goals',pg.evaluate("document.querySelector('main .subnav').nextElementSibling.className")=='gtop')
     check('Goals has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     # --- Investments ---
     go(pg,'wealth');pg.wait_for_timeout(300)
@@ -147,7 +148,7 @@ try:
     check('Investment holding can be added with growth shown','ISAs and funds' in pg.inner_text('main') and pg.locator('.wtile').count()>=2 and pg.locator('.whold').count()==0)
     hid=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).holdings.find(h=>h.name==='Test ISA').id")
     pg.click('[data-wtype="uk:isa"]');pg.wait_for_timeout(300);pg.click(f'.sheet [data-hval="{hid}"]');pg.fill('[data-f="value"]','1250');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
-    check('Goals view shows progress towards each goal',pg.locator('.gtrack').count()>=1 and pg.locator('svg.gchart').count()>=1)
+    go(pg,'goals');pg.wait_for_timeout(300);check('Goals view shows progress towards each goal',pg.locator('.gtrack').count()>=1 and pg.locator('svg.gchart').count()>=1);go(pg,'wealth');pg.wait_for_timeout(300)
     pg.click('[data-wtype="in:mf"]');pg.wait_for_timeout(300);check('Untracked fund totals offer live tracking',pg.locator('.sheet [data-hsplit]').count()>=1);pg.click('[data-close]');pg.wait_for_timeout(200)
     pg.click('[data-hadd="in"]');pg.wait_for_timeout(200);check('Shares (NSE) offered for live tracking',pg.locator('[data-hnew="stk"]').count()==1);pg.click('[data-close]');pg.wait_for_timeout(200)
     check('Investments are grouped by type',pg.locator('.wtile').count()>=1);pg.locator('.wtile').first.click();pg.wait_for_timeout(300);check('Type view lists each holding',pg.locator('.sheet .wrow').count()>=1);pg.click('[data-close]');pg.wait_for_timeout(200)
@@ -277,11 +278,17 @@ try:
     check('Usual items appear after two of the same',pg.locator('.uchip').count()==1 and 'Pret' in pg.text_content('.uchip'))
     pg.click('.uchip');pg.wait_for_timeout(300)
     check('Tapping a usual adds it today',len([x for x in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items") if x['date']=='2026-10-27'])==2)
-    pg.click('.tabbar [data-tab="insights"]');pg.wait_for_timeout(300)
+    go(pg,'insights');pg.wait_for_timeout(300)
     check('Insights shows the month and categories',pg.locator('.inshead svg.bars').count()==1 and pg.locator('.icrow').count()>=5 and 'Pret' in pg.text_content('.insplaces'))
-    pg.click('.tabbar [data-tab="more"]');pg.wait_for_timeout(300);pg.click('.moreit[data-tab="stay"]');pg.wait_for_timeout(300)
-    check('More opens the other sections, with a way back',pg.locator('.ilrhero').count()==1 and pg.locator('.tabbar [data-tab="more"][aria-current="page"]').count()==1 and pg.locator('.mback').count()==1 and not pe,pe[:2])
-    pg.click('.mback');pg.wait_for_timeout(200);check('Back returns to More',pg.locator('.morelist').count()==1)
+    pg.click('.tabbar [data-tab="plan"]');pg.wait_for_timeout(300);pg.click('.subnav [data-tab="stay"]');pg.wait_for_timeout(300)
+    check('Plan groups goals, the moving checklist and ILR',pg.locator('.ilrhero').count()==1 and pg.locator('.tabbar [data-tab="plan"][aria-current="page"]').count()==1 and pg.locator('.subnav button').count()==3 and not pe,pe[:2])
+    pg.click('.tabbar [data-tab="wealth"]');pg.wait_for_timeout(300);pg.click('.subnav [data-tab="wuk"]');pg.wait_for_timeout(300);pg.click('[data-ukdebt="new"]');pg.wait_for_timeout(200)
+    pg.fill('[data-f="bal"]','640');pg.fill('[data-f="pay"]','80');pg.fill('[data-f="day"]','12');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
+    P5=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile")
+    check('UK debts can be added and count in net worth',len(P5.get('ukDebts',[]))==1 and '£640' in pg.text_content('.debts') and '£640 owed' in pg.text_content('.whero'),pg.text_content('.whero'))
+    pg.click('.subnav [data-tab="wport"]');pg.wait_for_timeout(300)
+    check('Portfolio shows net worth across both countries and a market mood card','net worth' in pg.text_content('.whero') and pg.locator('.mood').count()==1,(pg.text_content('main')[:200],pg.locator('.mood').count()))
+    go(pg,'goals');pg.wait_for_timeout(300);check('Goals has a live check',pg.locator('.gcheck').count()==1)
     ctx.close()
     # --- corrupted storage ---
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))

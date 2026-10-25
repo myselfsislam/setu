@@ -188,6 +188,83 @@ def nse_prices(old):
         out[sym] = {"n": v["n"], "c": [m.get(d) for d in all_dates], "l": v["p"][-1][1], "lt": v["p"][-1][0], "d1": v["d1"]}
     return {"day": NOW.strftime("%Y-%m-%d"), "dates": all_dates, "s": out}
 
+# ---------- Market mood: Reddit posts and headlines, scored with a small finance word list ----------
+POS = {"surge":2,"surges":2,"soar":2,"soars":2,"rally":2,"rallies":2,"record":1,"high":1,"highs":1,"gain":1,"gains":1,"jump":1,"jumps":1,"rise":1,"rises":1,"rising":1,
+       "up":0.5,"beat":1,"beats":1,"upgrade":1.5,"bullish":2,"bull":1,"growth":1,"profit":1,"profits":1,"boost":1,"boosts":1,"strong":1,"recovery":1,"rebound":1.5,
+       "outperform":1.5,"buy":0.5,"inflows":1,"cut":0.3,"cuts":0.3,"easing":1,"optimism":1.5,"upbeat":1.5,"green":0.5,"best":1,"wins":1,"positive":1,"happy":1,"good":0.7}
+NEG = {"fall":1,"falls":1,"falling":1,"drop":1,"drops":1,"plunge":2,"plunges":2,"crash":2.5,"crashes":2.5,"slump":2,"slumps":2,"tumble":2,"tumbles":2,"loss":1,"losses":1,
+       "down":0.5,"bearish":2,"bear":1,"selloff":2,"sell-off":2,"fear":1.5,"fears":1.5,"worry":1,"worries":1,"warning":1,"warns":1,"risk":0.5,"risks":0.5,"recession":2,
+       "inflation":0.7,"downgrade":1.5,"weak":1,"slowdown":1.5,"outflows":1,"fraud":2,"scam":2,"default":1.5,"probe":1,"crisis":2,"volatile":1,"volatility":1,"red":0.5,
+       "panic":2,"worst":1.5,"lost":1,"debt":0.5,"hike":0.7,"hikes":0.7,"tax":0.3,"negative":1,"bad":0.7,"regret":1}
+NOT = {"not","no","never","without","isn't","wasn't","don't","won't","can't"}
+def sentiment(text):
+    words = re.findall(r"[a-z][a-z'\-]*", text.lower())
+    p = n = 0.0
+    def root(w, D):
+        for c in (w, w[:-1] if w.endswith("s") else None, w[:-3] if w.endswith("ing") else None, w[:-3]+"e" if w.endswith("ing") else None, w[:-2] if w.endswith("ed") else None, w[:-1] if w.endswith("ed") else None):
+            if c and c in D: return c
+        return None
+    for i, w0 in enumerate(words):
+        flip = i > 0 and words[i-1] in NOT
+        w = root(w0, POS) or root(w0, NEG) or w0
+        if w in POS: p, n = (p, n + POS[w]) if flip else (p + POS[w], n)
+        elif w in NEG: p, n = (p + NEG[w], n) if flip else (p, n + NEG[w])
+    if p + n == 0: return 0.0
+    return round((p - n) / (p + n), 2)
+
+REDDIT = {"uk": ["UKPersonalFinance", "UKInvesting", "FIREUK"], "in": ["IndiaInvestments", "IndianStockMarket", "mutualfunds", "nri"]}
+def reddit(sub, limit=25):
+    """Public listing; Reddit sometimes blocks servers, so fall back to its RSS feed and then give up quietly."""
+    out = []
+    try:
+        j = json.loads(get(f"https://www.reddit.com/r/{sub}/hot.json?limit={limit}&raw_json=1", timeout=20))
+        for c in j.get("data", {}).get("children", []):
+            d = c.get("data", {})
+            if d.get("stickied") or d.get("over_18"): continue
+            t = html.unescape(d.get("title", "")).strip()
+            if t: out.append({"t": t[:200], "u": "https://www.reddit.com" + d.get("permalink", ""), "src": "r/" + sub, "up": d.get("score", 0), "s": sentiment(t + " " + (d.get("selftext") or "")[:400])})
+    except Exception as e:
+        print("reddit json failed", sub, e)
+        try:
+            root = ET.fromstring(get(f"https://www.reddit.com/r/{sub}/.rss", timeout=20))
+            ns = {"a": "http://www.w3.org/2005/Atom"}
+            for en in root.findall("a:entry", ns)[:limit]:
+                t = (en.findtext("a:title", default="", namespaces=ns) or "").strip()
+                l = en.find("a:link", ns)
+                if t: out.append({"t": html.unescape(t)[:200], "u": l.get("href") if l is not None else "", "src": "r/" + sub, "up": 0, "s": sentiment(t)})
+        except Exception as e2:
+            print("reddit rss failed", sub, e2)
+    return out
+
+def mood(result, old):
+    m = {"at": NOW.strftime("%Y-%m-%dT%H:%M:%SZ"), "sources": []}
+    heads = {"uk": [], "in": []}
+    try:
+        heads["uk"] = gnews('("FTSE 100" OR "UK stocks" OR "UK shares" OR "Bank of England") market', 2, 12, region="GB", tid=None)
+    except Exception as e:
+        print("uk headlines failed", e)
+    for tid in ("n50", "mid", "small", "mf", "fx", "gold"):
+        heads["in"] += [dict(x) for x in result["topics"].get(tid, [])]
+    for cty in ("uk", "in"):
+        items = []
+        for x in heads[cty]:
+            items.append({"t": x.get("t", ""), "u": x.get("u", ""), "src": x.get("d") or "News", "s": sentiment(x.get("t", ""))})
+        posts = []
+        for sub in REDDIT[cty]:
+            p = reddit(sub); posts += p
+            if p and ("r/" + sub) not in m["sources"]: m["sources"].append("r/" + sub)
+            time.sleep(2)
+        items += posts
+        scored = [i["s"] for i in items if i["s"] != 0]
+        avg = round(sum(scored) / len(scored), 2) if scored else 0.0
+        label = "Positive" if avg > 0.15 else "Negative" if avg < -0.15 else "Mixed"
+        keep = sorted(items, key=lambda i: (-abs(i["s"]), -(i.get("up") or 0)))[:60]
+        m[cty] = {"score": avg, "label": label, "n": len(items), "posts": len(posts), "items": keep}
+        if not items and old.get("mood", {}).get(cty):
+            m[cty] = old["mood"][cty]
+    if heads["uk"] or heads["in"]: m["sources"].insert(0, "Google News")
+    return m
+
 def main():
     try:
         old = json.load(open("news.json"))
@@ -217,6 +294,10 @@ def main():
         result["stocks"] = nse_prices(old)
     except Exception as e:
         print("stocks failed", e); result["stocks"] = old.get("stocks", {})
+    try:
+        result["mood"] = mood(result, old)
+    except Exception as e:
+        print("mood failed", e); result["mood"] = old.get("mood", {})
     with open("news.json", "w") as f:
         json.dump(result, f, ensure_ascii=False, separators=(",", ":"))
     print("topics:", {k: len(v) for k, v in result["topics"].items()}, "uk:", len(result["uk"]), "india:", len(result["india"]), "prices:", len(result.get("prices", {})), "stocks:", len((result.get("stocks") or {}).get("s", {})))
