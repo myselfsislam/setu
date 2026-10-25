@@ -1,5 +1,5 @@
 /* Setu service worker: works offline, keeps the app fast. Bump VERSION on every release. */
-const VERSION = 'setu-v53-2026-10-25-fintech';
+const VERSION = 'setu-v54-2026-10-25-sync';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './fonts/manrope-latin.woff2', './fonts/manrope-latin-ext.woff2', './icons/setu-192.png', './icons/setu-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

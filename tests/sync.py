@@ -19,6 +19,10 @@ def _fake(route):
     if path=='/auth/v1/verify':
         if body.get('token')!='123456': return send(400,{'msg':'Token has expired or is invalid'})
         uid=USERS[body['email']];return send(200,{'access_token':'acc-'+uid,'refresh_token':'ref-'+uid,'expires_in':3600,'user':{'id':uid}})
+    if path=='/auth/v1/user':
+        auth=req.headers.get('authorization','');uid=auth[len('Bearer acc-'):] if auth.startswith('Bearer acc-') else None
+        em=[e for e,u in USERS.items() if u==uid]
+        return send(200,{'id':uid,'email':em[0]}) if em else send(401,{'msg':'invalid JWT'})
     if path=='/auth/v1/token': uid=body['refresh_token'][4:];return send(200,{'access_token':'acc-'+uid,'refresh_token':'ref-'+uid,'expires_in':3600})
     if path=='/rest/v1/vaults':
         auth=req.headers.get('authorization','');uid=auth[len('Bearer acc-'):] if auth.startswith('Bearer acc-') else None
@@ -35,7 +39,7 @@ def _fake(route):
             row.update(body);LOG.append('patch');return send(200,[row])
     return send(404,{})
 def page_with_sync(route):
-    r=route.fetch();body=r.text().replace("var SYNC_CFG={url:'',anon:''};","var SYNC_CFG={url:'http://localhost:%d/sb',anon:'anon-key'};"%PORT)
+    r=route.fetch();body=re.sub(r"var SYNC_CFG=\{url:'[^']*',anon:'[^']*'\};","var SYNC_CFG={url:'http://localhost:%d/sb',anon:'anon-key'};"%PORT,r.text())
     route.fulfill(response=r,body=body)
 def ctx(b,w,h):
     c=b.new_context(viewport={'width':w,'height':h},service_workers='block');pg=c.new_page();pg.route(re.compile(r'.*:%d/(\?.*|index\.html.*|#.*)?$'%PORT),page_with_sync);pg.route(re.compile(r'.*/sb/.*'),fake);pg.route('https://static.cloudflareinsights.com/**',lambda r:r.abort());return c,pg
@@ -78,12 +82,19 @@ try:
     B.locator('[data-tab="home"]:visible').first.click();B.locator('[data-sheet="addspend"]:visible').first.click();B.wait_for_timeout(150);B.fill('#amt','1');B.fill('#note','trigger');B.click('[data-add]');B.wait_for_timeout(3500)
     A.evaluate("()=>document.dispatchEvent(new Event('visibilitychange'))");A.wait_for_timeout(2500)
     print('deleted on B, gone on A:', 'Laptop coffee' not in [x['note'] for x in st(A)['items']])
+    # Device C: signs in by tapping the link in Supabase's standard email
+    uidS=USERS['sohail@example.com'];cC,Cp=ctx(b,390,844);Cp.on('pageerror',lambda e:errs.append('C '+str(e)))
+    Cp.goto(f'http://localhost:{PORT}/#access_token=acc-{uidS}&expires_in=3600&refresh_token=ref-{uidS}&token_type=bearer&type=magiclink');Cp.wait_for_timeout(1200)
+    linkok=Cp.locator('#sypass').count()==1 and 'access_token' not in Cp.url;print('C link sign-in asks for passphrase, address cleaned:',linkok)
+    Cp.fill('#sypass','correct horse battery');Cp.click('[data-syncpass]');Cp.wait_for_timeout(4000)
+    gotC=bool(st(Cp).get('profile'));print('C got data via link:',gotC)
     A.click('[data-sheet="settings"]:visible');A.click('[data-set="sync"]');A.wait_for_timeout(300);print('A status:',A.inner_text('#syncstat'))
     BAD=[]
     if not na==nb: BAD.append('items differ')
     if 'Laptop coffee' in [x['note'] for x in st(A)['items']]: BAD.append('delete not synced')
     if 'Sohail' in json.dumps(DB): BAD.append('server data not encrypted')
     if errs: BAD.append('page errors')
+    if not (linkok and gotC): BAD.append('link sign-in')
     print('SYNC CHECKS:', 'ALL PASSED' if not BAD else 'FAILED '+', '.join(BAD))
     b.close()
 finally: srv.terminate()

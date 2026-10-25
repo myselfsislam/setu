@@ -34,6 +34,11 @@ create policy "delete own vault" on public.vaults for delete using (auth.uid() =
 4. Optional but recommended for launch: **Project Settings → Authentication → SMTP** with your own email provider (Supabase's built-in email is limited to a few emails an hour).
 
 ## 4. Switch it on in Setu
+
+**Done (25 Oct 2026):** project `bdufafdctkrjakmixsuq` (EU West) is connected in `index.html`. Setu accepts both the 6-digit code and the sign-in link in Supabase's standard email, so the email-template step is optional.
+
+Still required in the dashboard: **Authentication → URL Configuration → Site URL = `https://myselfsislam.github.io/setu/`**, otherwise the sign-in link opens `localhost:3000`.
+
 Send the Project URL and anon key to be added to `SYNC_CFG` in `index.html`:
 ```js
 var SYNC_CFG={url:'https://YOUR-PROJECT.supabase.co',anon:'YOUR-ANON-KEY'};
