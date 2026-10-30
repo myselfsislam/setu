@@ -756,6 +756,8 @@ h3{font-size:17px;line-height:1.25}.ptitle{font-size:24px}.phd h1{font-size:30px
 .mlab{white-space:nowrap}
 .setacct{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--bg);border-radius:16px;padding:12px;margin-bottom:12px;text-align:left;cursor:pointer;color:var(--ink)}.setacct b,.setrow b{display:block;font-weight:700}
 .setic{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:var(--t-indigo);color:var(--indigo)}.setic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.setrow{gap:12px}.setback{padding:0;min-height:28px;margin-bottom:4px}
+.eye svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.eye[aria-pressed="true"]{background:var(--t-indigo);color:var(--indigo)}
+.phd{position:relative}.phd .eye{position:absolute;right:0;top:4px}
 </style>
 </head>
 <body>
@@ -985,9 +987,12 @@ window.addEventListener('popstate',function(e){var t=(e.state&&e.state.tab)||(ne
 /* ---------- helpers ---------- */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function sum(a){return a.reduce(function(x,y){return x+(+y||0);},0);}
-function gbp(n){return (n<0?'−':'')+'£'+Math.round(Math.abs(n)).toLocaleString('en-GB');}
-function gbp2(n){return '£'+(+n||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function inr(n){var a=Math.abs(n),s=n<0?'−':'';if(a>=1e7)return s+'₹'+(a/1e7).toFixed(2)+' Cr';if(a>=1e5)return s+'₹'+(a/1e5).toFixed(1)+' L';return s+'₹'+Math.round(a).toLocaleString('en-IN');}
+/* privacy: hide every amount on this device (kept on this device only, never synced) */
+function eyeBtn(){return '<button class="gear eye" data-hidemoney aria-pressed="'+HIDE+'" aria-label="'+(HIDE?'Show amounts':'Hide amounts')+'" title="'+(HIDE?'Show amounts':'Hide amounts')+'">'+(HIDE?'<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 3l18 18\"/><path d=\"M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.9 9.9 0 0 0 5.4-1.6\"/><path d=\"M9.9 9.9a3 3 0 0 0 4.2 4.2\"/></svg>':'<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>')+'</button>';}
+var HIDE=false;try{HIDE=localStorage.getItem('setu-hide')==='1';}catch(e){}
+function gbp(n){if(HIDE)return '£••••';return (n<0?'−':'')+'£'+Math.round(Math.abs(n)).toLocaleString('en-GB');}
+function gbp2(n){if(HIDE)return '£••••';return '£'+(+n||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function inr(n){if(HIDE)return '₹••••';var a=Math.abs(n),s=n<0?'−':'';if(a>=1e7)return s+'₹'+(a/1e7).toFixed(2)+' Cr';if(a>=1e5)return s+'₹'+(a/1e5).toFixed(1)+' L';return s+'₹'+Math.round(a).toLocaleString('en-IN');}
 function pct(a,b){return b>0?Math.max(0,Math.min(100,a/b*100)):0;}
 function uid(){return 'x'+Math.random().toString(36).slice(2,9);}
 function today(){return new Date().toISOString().slice(0,10);}
@@ -1186,8 +1191,8 @@ function render(){
   app.innerHTML='<div class="app">'+
     '<aside class="side"><div class="brand">'+LOGO+'Setu</div><button class="btn go sideadd" data-sheet="addspend"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add spending</button><nav class="snav" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'sn');}).join('')+'</nav>'+
       '<div class="sfoot"><button class="sn" data-sheet="settings">'+GEAR+'<span>Settings</span></button><p>Free and private. Everything stays on this device. General guidance, not financial advice.</p><p class="sidelinks"><a class="link" href="guides/">Guides</a> <button class="link" data-sheet="privacy">Privacy</button> <button class="link" data-sheet="terms">Terms</button> <button class="link" data-sheet="earn">How Setu makes money</button>'+(MONEY_CFG.tipLink?' <a class="link" href="'+esc(MONEY_CFG.tipLink)+'" target="_blank" rel="noopener noreferrer">☕ Support</a>':'')+'</p></div></aside>'+
-    '<div class="col"><header class="mhd">'+mh+'<button class="gear" data-sheet="settings" aria-label="Settings">'+GEAR+'</button></header>'+
-    '<main id="main" class="v-'+({wuk:'wealth',win:'wealth',wport:'wealth',slog:'spend'}[vk]||vk)+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+subnav()+V[vk]()+'</main>'+
+    '<div class="col"><header class="mhd">'+mh+eyeBtn()+'<button class="gear" data-sheet="settings" aria-label="Settings">'+GEAR+'</button></header>'+
+    '<main id="main" class="v-'+({wuk:'wealth',win:'wealth',wport:'wealth',slog:'spend'}[vk]||vk)+(enter?' enter':'')+'"><div class="phd">'+eyeBtn()+'<h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+subnav()+V[vk]()+'</main>'+
     '<nav class="tabbar" aria-label="Sections">'+TABS.map(function(t,i){return (i===2?'<button class="tbadd" data-sheet="addspend" aria-label="Add spending"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>':'')+navBtn(t,'tb');}).join('')+'</nav></div><aside class="rail mode-'+railMode()+'" id="rail" aria-label="Markets and news">'+(railMode()!=='none'?railInner():'')+'</aside></div>'+(sheetFn?sheetHTML(anim):'');
   var m2=document.getElementById('main');if(m2)m2.scrollTop=keep;
   lastRailMode=railMode();document.body.classList.toggle('rail-overlay',lastRailMode==='overlay');afterRender(enter);lastTicked=null;bindSheet();fitRail();loadRail();var sh1=document.querySelector('.sheet');if(sh1&&shTop)sh1.scrollTop=shTop;
@@ -1293,7 +1298,7 @@ function moodMentions(){var M=(MKT||{}).mood;if(!M)return [];var all=(M.uk&&M.uk
 function moodTone(x){return x>0.15?'ok':x<-0.15?'bad':'mid';}
 function moodCard(){var M=(MKT||{}).mood;if(!M||(!M.uk&&!M.in))return '<section class="card mood"><div class="row-b"><h3>Market mood</h3></div><p class="small soft">What investors are saying on Reddit and in the news appears here after the next update, within a few hours.</p></section>';
   function side(k,flag,name){var x=M[k];if(!x)return '';var pos=Math.round((x.score+1)*50);return '<div class="mside"><div class="row-b"><b>'+flag+' '+name+'</b><span class="mlab '+moodTone(x.score)+'">'+esc(x.label)+'</span></div><div class="mgauge" aria-hidden="true"><i style="left:'+pos+'%"></i></div><span class="small soft">From '+x.n+' headlines'+(x.posts?' and Reddit posts':'')+'</span>'+
-    '<ul class="mlist">'+(x.items||[]).slice(0,3).map(function(i){return '<li><i class="mdot '+moodTone(i.s)+'" aria-label="'+(i.s>0.15?'positive':i.s<-0.15?'negative':'neutral')+'"></i><a href="'+esc(i.u)+'" target="_blank" rel="noopener noreferrer">'+esc(i.t)+'</a><small>'+esc(i.src)+'</small></li>';}).join('')+'</ul></div>';}
+    '<ul class="mlist">'+(x.items||[]).slice(0,3).map(function(i){return '<li><i class="mdot '+moodTone(i.s)+'" role="img" aria-label="'+(i.s>0.15?'positive':i.s<-0.15?'negative':'neutral')+'"></i><a href="'+esc(i.u)+'" target="_blank" rel="noopener noreferrer">'+esc(i.t)+'</a><small>'+esc(i.src)+'</small></li>';}).join('')+'</ul></div>';}
   var mm=moodMentions();
   return '<section class="card mood"><div class="row-b"><h3>Market mood</h3><span class="small soft">'+(M.at?'Updated '+ago(new Date(M.at).getTime()):'')+'</span></div><div class="mgrid">'+side('uk','🇬🇧','UK')+side('in','🇮🇳','India')+'</div>'+
     (mm.length?'<div class="mment"><b class="small">Talk about your investments</b>'+mm.map(function(m){return '<div class="row-b small"><span>'+esc(m.h.name)+': '+m.n+' mention'+(m.n>1?'s':'')+'</span><span class="mlab '+moodTone(m.avg)+'">'+(m.avg>0.15?'Mostly positive':m.avg<-0.15?'Mostly negative':'Mixed')+'</span></div>';}).join('')+'</div>':'')+
@@ -2351,6 +2356,7 @@ document.addEventListener('click',function(e){
     if(S.checks[k]){var phT=TASKS.filter(function(x){return x.ph===t0.ph;});if(doneCount(phT)===phT.length||doneCount(TASKS)===TASKS.length)setTimeout(confetti,120);}
     if(t.hasAttribute('data-close-after'))sheetFn=null;render();if(S.checks[k])toast(doneCount(TASKS)===TASKS.length?'All done. You’re settled in!':'Done: '+t0.title);return;}
   if(d.sheet){var n=d.sheet;if(n==='goals'){goalsSheet();return;}openSheet(function(){return SHEETS[n]();});return;}
+  if('hidemoney' in d){HIDE=!HIDE;try{localStorage.setItem('setu-hide',HIDE?'1':'0');}catch(e){}countFrom={};render();toast(HIDE?'Amounts hidden on this device':'Amounts shown');return;}
   if(d.setgrp){var gk=d.setgrp;openSheet(function(){return SHEETS.setgrp(gk);});return;}
   if(d.set){var s=d.set;
     if(s==='setup'){sheetFn=null;startWizard();return;}

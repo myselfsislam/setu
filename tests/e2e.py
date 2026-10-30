@@ -290,6 +290,17 @@ try:
     check('Portfolio shows net worth across both countries and a market mood card','net worth' in pg.text_content('.whero') and pg.locator('.mood').count()==1,(pg.text_content('main')[:200],pg.locator('.mood').count()))
     go(pg,'goals');pg.wait_for_timeout(300);check('Goals has a live check',pg.locator('.gcheck').count()==1)
     ctx.close()
+    # --- hide amounts on the dashboard ---
+    ctx=b.new_context(viewport={'width':390,'height':844});pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)));pg.goto(URL)
+    pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(old));pg.reload();pg.wait_for_timeout(600)
+    pg.locator('[data-hidemoney]:visible').first.click();pg.wait_for_timeout(1000)
+    import re as _re
+    check('Eye button hides every amount',pg.text_content('.hero .big')=='£••••' and not _re.search(r'£\d',pg.inner_text('main')) and not pe,(pg.text_content('.hero .big'),pe[:1]))
+    pg.reload();pg.wait_for_timeout(800)
+    check('Hidden amounts stay hidden after reopening',pg.text_content('.hero .big')=='£••••' and pg.locator('[data-hidemoney][aria-pressed="true"]:visible').count()==1)
+    pg.locator('[data-hidemoney]:visible').first.click();pg.wait_for_timeout(1000)
+    check('Tapping again shows the amounts',_re.search(r'£\d',pg.text_content('.hero .big')) is not None)
+    ctx.close()
     # --- corrupted storage ---
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
     pg.goto(URL);pg.evaluate("localStorage.setItem('setu-v1','{not json')");pg.reload();pg.wait_for_timeout(400)
