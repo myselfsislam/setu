@@ -756,8 +756,7 @@ h3{font-size:17px;line-height:1.25}.ptitle{font-size:24px}.phd h1{font-size:30px
 .mlab{white-space:nowrap}
 .setacct{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--bg);border-radius:16px;padding:12px;margin-bottom:12px;text-align:left;cursor:pointer;color:var(--ink)}.setacct b,.setrow b{display:block;font-weight:700}
 .setic{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:var(--t-indigo);color:var(--indigo)}.setic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.setrow{gap:12px}.setback{padding:0;min-height:28px;margin-bottom:4px}
-.eye svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.eye[aria-pressed="true"]{background:var(--t-indigo);color:var(--indigo)}
-.phd{position:relative}.phd .eye{position:absolute;right:0;top:4px}
+.eye{border:0;background:rgba(255,255,255,.16);color:#fff;width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;cursor:pointer;vertical-align:middle;margin-left:4px;padding:0}.eye svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.eye:hover{background:rgba(255,255,255,.26)}
 </style>
 </head>
 <body>
@@ -988,11 +987,12 @@ window.addEventListener('popstate',function(e){var t=(e.state&&e.state.tab)||(ne
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function sum(a){return a.reduce(function(x,y){return x+(+y||0);},0);}
 /* privacy: hide every amount on this device (kept on this device only, never synced) */
-function eyeBtn(){return '<button class="gear eye" data-hidemoney aria-pressed="'+HIDE+'" aria-label="'+(HIDE?'Show amounts':'Hide amounts')+'" title="'+(HIDE?'Show amounts':'Hide amounts')+'">'+(HIDE?'<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 3l18 18\"/><path d=\"M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.9 9.9 0 0 0 5.4-1.6\"/><path d=\"M9.9 9.9a3 3 0 0 0 4.2 4.2\"/></svg>':'<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>')+'</button>';}
+function eyeBtn(){return '<button class="eye" data-hidemoney aria-pressed="'+HIDE+'" aria-label="'+(HIDE?'Show your bank balance':'Hide your bank balance')+'" title="'+(HIDE?'Show your bank balance':'Hide your bank balance')+'">'+(HIDE?'<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 3l18 18\"/><path d=\"M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.9 9.9 0 0 0 5.4-1.6\"/><path d=\"M9.9 9.9a3 3 0 0 0 4.2 4.2\"/></svg>':'<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>')+'</button>';}
 var HIDE=false;try{HIDE=localStorage.getItem('setu-hide')==='1';}catch(e){}
-function gbp(n){if(HIDE)return '£••••';return (n<0?'−':'')+'£'+Math.round(Math.abs(n)).toLocaleString('en-GB');}
-function gbp2(n){if(HIDE)return '£••••';return '£'+(+n||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function inr(n){if(HIDE)return '₹••••';var a=Math.abs(n),s=n<0?'−':'';if(a>=1e7)return s+'₹'+(a/1e7).toFixed(2)+' Cr';if(a>=1e5)return s+'₹'+(a/1e5).toFixed(1)+' L';return s+'₹'+Math.round(a).toLocaleString('en-IN');}
+function gbp(n){return (n<0?'−':'')+'£'+Math.round(Math.abs(n)).toLocaleString('en-GB');}
+function gbp2(n){return '£'+(+n||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function bankAmt(f,v){return HIDE?(f===inr?'₹••••':'£••••'):f(v);}
+function inr(n){var a=Math.abs(n),s=n<0?'−':'';if(a>=1e7)return s+'₹'+(a/1e7).toFixed(2)+' Cr';if(a>=1e5)return s+'₹'+(a/1e5).toFixed(1)+' L';return s+'₹'+Math.round(a).toLocaleString('en-IN');}
 function pct(a,b){return b>0?Math.max(0,Math.min(100,a/b*100)):0;}
 function uid(){return 'x'+Math.random().toString(36).slice(2,9);}
 function today(){return new Date().toISOString().slice(0,10);}
@@ -1191,8 +1191,8 @@ function render(){
   app.innerHTML='<div class="app">'+
     '<aside class="side"><div class="brand">'+LOGO+'Setu</div><button class="btn go sideadd" data-sheet="addspend"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add spending</button><nav class="snav" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'sn');}).join('')+'</nav>'+
       '<div class="sfoot"><button class="sn" data-sheet="settings">'+GEAR+'<span>Settings</span></button><p>Free and private. Everything stays on this device. General guidance, not financial advice.</p><p class="sidelinks"><a class="link" href="guides/">Guides</a> <button class="link" data-sheet="privacy">Privacy</button> <button class="link" data-sheet="terms">Terms</button> <button class="link" data-sheet="earn">How Setu makes money</button>'+(MONEY_CFG.tipLink?' <a class="link" href="'+esc(MONEY_CFG.tipLink)+'" target="_blank" rel="noopener noreferrer">☕ Support</a>':'')+'</p></div></aside>'+
-    '<div class="col"><header class="mhd">'+mh+eyeBtn()+'<button class="gear" data-sheet="settings" aria-label="Settings">'+GEAR+'</button></header>'+
-    '<main id="main" class="v-'+({wuk:'wealth',win:'wealth',wport:'wealth',slog:'spend'}[vk]||vk)+(enter?' enter':'')+'"><div class="phd">'+eyeBtn()+'<h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+subnav()+V[vk]()+'</main>'+
+    '<div class="col"><header class="mhd">'+mh+'<button class="gear" data-sheet="settings" aria-label="Settings">'+GEAR+'</button></header>'+
+    '<main id="main" class="v-'+({wuk:'wealth',win:'wealth',wport:'wealth',slog:'spend'}[vk]||vk)+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+subnav()+V[vk]()+'</main>'+
     '<nav class="tabbar" aria-label="Sections">'+TABS.map(function(t,i){return (i===2?'<button class="tbadd" data-sheet="addspend" aria-label="Add spending"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>':'')+navBtn(t,'tb');}).join('')+'</nav></div><aside class="rail mode-'+railMode()+'" id="rail" aria-label="Markets and news">'+(railMode()!=='none'?railInner():'')+'</aside></div>'+(sheetFn?sheetHTML(anim):'');
   var m2=document.getElementById('main');if(m2)m2.scrollTop=keep;
   lastRailMode=railMode();document.body.classList.toggle('rail-overlay',lastRailMode==='overlay');afterRender(enter);lastTicked=null;bindSheet();fitRail();loadRail();var sh1=document.querySelector('.sheet');if(sh1&&shTop)sh1.scrollTop=shTop;
@@ -1381,10 +1381,10 @@ function vHome(){
   var p=S.profile,m=month(),plan=split(),take=Math.max(1,m.moneyIn),fx=fxNow();function rs(g){return inr(Math.max(0,g)*fx);}
   var B=bankParts(mKey()),bud=sum(cats().map(function(c){return +c.budget||0;})),budLeft=Math.max(0,bud-B.spent),due=m.bl.dueUK,likely=B.bank-due-budLeft,inTot=Math.max(1,B.moneyIn,B.paid+B.spent+B.inv+Math.max(0,B.bank));
   var segs=[['Bills paid',B.paid,'--s-rent'],['Spent',B.spent,'--s-day'],['Invested',B.inv,'--s-india'],['In your bank',Math.max(0,B.bank),'--s-left']];
-  var h=todayCard()+setupLeftCard()+'<section class="hero">'+ILL.jar+'<div class="lbl">In your bank now <button class="herohow" data-sheet="leftcalc" aria-label="How is this worked out?"><span class="hl">How is this worked out?</span><span class="hs">How?</span> ›</button></div><div class="bigrow"><div class="big f" data-count="'+Math.round(B.bank)+'" data-key="bank">'+gbp(B.bank)+'</div><div class="inr f">≈ '+rs(B.bank)+'</div></div>'+
+  var h=todayCard()+setupLeftCard()+'<section class="hero">'+ILL.jar+'<div class="lbl">In your bank now '+eyeBtn()+' <button class="herohow" data-sheet="leftcalc" aria-label="How is this worked out?"><span class="hl">How is this worked out?</span><span class="hs">How?</span> ›</button></div><div class="bigrow"><div class="big f"'+(HIDE?'':' data-count="'+Math.round(B.bank)+'" data-key="bank"')+'>'+bankAmt(gbp,B.bank)+'</div><div class="inr f">≈ '+(HIDE?'₹••••':rs(B.bank))+'</div></div>'+
     '<div class="sub">'+(B.estimated?'Using your estimated pay. <button class="herolink" data-monthin="'+mKey()+'">Add the salary you got</button>':'Money in this month '+gbp(B.moneyIn))+'</div>'+
     '<div class="flow">'+segs.map(function(x){return '<div data-w="'+pct(x[1],inTot).toFixed(1)+'" style="width:'+pct(x[1],inTot).toFixed(1)+'%;background:var('+x[2]+')"></div>';}).join('')+'</div>'+
-    '<div class="key k4">'+segs.map(function(x){return '<span style="--c:var('+x[2]+')">'+x[0]+'<b>'+gbp(x[1])+'</b><small>'+rs(x[1])+'</small></span>';}).join('')+'</div>'+
+    '<div class="key k4">'+segs.map(function(x,i){var hid=HIDE&&i===3;return '<span style="--c:var('+x[2]+')">'+x[0]+'<b>'+(hid?'£••••':gbp(x[1]))+'</b><small>'+(hid?'₹••••':rs(x[1]))+'</small></span>';}).join('')+'</div>'+
     '<div class="herofoot"><span>Still to pay <b>'+gbp(due)+'</b></span><span>'+(likely>=0?'On track to save <b>'+gbp(likely)+'</b>':'Heading <b>'+gbp(-likely)+'</b> short this month')+'</span></div></section>';
   var N=nudges();
   if(N.length)h+='<div class="nudges" role="list" aria-label="Tips for you">'+N.map(function(n){return '<button class="nudge" role="listitem" data-go="'+n.go+'" style="--tint:var(--t-'+n.tone+');--tone:var(--'+n.tone+')"><span class="ic">'+gl(n.ic)+'</span><span class="grow"><b>'+esc(n.t)+'</b><span>'+esc(n.x)+'</span><em>'+esc(n.cta)+'</em></span></button>';}).join('')+'</div>';
@@ -1468,7 +1468,7 @@ function moneyInRow(vm,spent,inv){inv=+inv||0;
   var BL=billsFor(vm),cash=bankParts(vm).bank,pc=paceOf(vm,spent,sum(cats().map(function(c){return c.budget;}))),endM=pc&&!pc.early?cash-BL.dueUK-Math.max(0,pc.proj-spent):null;
   return '<div class="moneyin"><button class="mileft" data-monthin="'+vm+'"><span class="milwrap"><span class="small soft">Money in</span><b class="f">'+gbp(inAmt)+'</b><span class="small '+(mi.salary?'soft':'addlink')+'">'+(mi.salary?'Salary'+(mi.paidOn?' on '+new Date(mi.paidOn+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'')+(mi.carry?' + '+gbp(mi.carry)+' carried':''):'+ Add salary & last month')+'</span></span></button>'+
     '<button class="mimid" data-sheet="bills"><span class="milwrap"><span class="small soft">Still to pay</span><b class="f">'+gbp(BL.dueUK)+'</b><span class="small addlink">Bills ›</span></span></button>'+
-    '<span class="r"><span class="small soft">In your bank now'+tip('cl','Money in, minus the bills you’ve paid and what you’ve spent or invested this month. It should match your bank balance.',true)+'</span><b class="f '+(cash<0?'bad':'')+'">'+gbp2(cash)+'</b><span class="small '+(endM!=null&&endM<0?'bad':'soft')+'">'+(endM!=null?'Month end ≈ '+gbp(endM):'after bills paid so far')+'</span><button class="link small reclink" data-sheet="recon">Doesn’t match your bank?</button></span></div>'+earlyLink(vm);
+    '<span class="r"><span class="small soft">In your bank now'+tip('cl','Money in, minus the bills you’ve paid and what you’ve spent or invested this month. It should match your bank balance.',true)+'</span><b class="f '+(cash<0?'bad':'')+'">'+bankAmt(gbp2,cash)+'</b><span class="small '+(endM!=null&&endM<0?'bad':'soft')+'">'+(endM!=null?'Month end ≈ '+bankAmt(gbp,endM):'after bills paid so far')+'</span><button class="link small reclink" data-sheet="recon">Doesn’t match your bank?</button></span></div>'+earlyLink(vm);
 }
 /* a few days before pay day: let the person start next month early if salary has already landed */
 function earlyLink(vm){if(vm!==mKey()||payDay()===1)return '';var nk=shiftKey(vm,1),ns=normStart(+nk.slice(0,4),+nk.slice(5,7)-1),t=new Date(),tn=new Date(t.getFullYear(),t.getMonth(),t.getDate(),12),gap=Math.round((ns-tn)/864e5);if(gap<1||gap>7||paidOnOf(nk))return '';
@@ -2356,7 +2356,7 @@ document.addEventListener('click',function(e){
     if(S.checks[k]){var phT=TASKS.filter(function(x){return x.ph===t0.ph;});if(doneCount(phT)===phT.length||doneCount(TASKS)===TASKS.length)setTimeout(confetti,120);}
     if(t.hasAttribute('data-close-after'))sheetFn=null;render();if(S.checks[k])toast(doneCount(TASKS)===TASKS.length?'All done. You’re settled in!':'Done: '+t0.title);return;}
   if(d.sheet){var n=d.sheet;if(n==='goals'){goalsSheet();return;}openSheet(function(){return SHEETS[n]();});return;}
-  if('hidemoney' in d){HIDE=!HIDE;try{localStorage.setItem('setu-hide',HIDE?'1':'0');}catch(e){}countFrom={};render();toast(HIDE?'Amounts hidden on this device':'Amounts shown');return;}
+  if('hidemoney' in d){HIDE=!HIDE;try{localStorage.setItem('setu-hide',HIDE?'1':'0');}catch(e){}countFrom={};render();toast(HIDE?'Bank balance hidden on this device':'Bank balance shown');return;}
   if(d.setgrp){var gk=d.setgrp;openSheet(function(){return SHEETS.setgrp(gk);});return;}
   if(d.set){var s=d.set;
     if(s==='setup'){sheetFn=null;startWizard();return;}

@@ -295,7 +295,7 @@ try:
     pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(old));pg.reload();pg.wait_for_timeout(600)
     pg.locator('[data-hidemoney]:visible').first.click();pg.wait_for_timeout(1000)
     import re as _re
-    check('Eye button hides every amount',pg.text_content('.hero .big')=='£••••' and not _re.search(r'£\d',pg.inner_text('main')) and not pe,(pg.text_content('.hero .big'),pe[:1]))
+    check('Eye button hides only the bank balance',pg.text_content('.hero .big')=='£••••' and '₹••••' in pg.text_content('.hero .inr') and _re.search(r'£\d',pg.text_content('.today')) is not None and _re.search(r'Still to pay £\d',pg.text_content('.herofoot')) is not None and not pe,(pg.text_content('.hero .big'),pg.text_content('.herofoot'),pe[:1]))
     pg.reload();pg.wait_for_timeout(800)
     check('Hidden amounts stay hidden after reopening',pg.text_content('.hero .big')=='£••••' and pg.locator('[data-hidemoney][aria-pressed="true"]:visible').count()==1)
     pg.locator('[data-hidemoney]:visible').first.click();pg.wait_for_timeout(1000)
