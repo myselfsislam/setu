@@ -311,6 +311,15 @@ try:
     it8=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items")
     check('Spending on 23 Oct is saved on 23 Oct and shows on the Spending page',it8 and it8[0]['date']=='2026-10-23' and 'Lunch on the 23rd' in pg.inner_text('main'),(it8,pg.inner_text('.mlabel')))
     ctx.close()
+    # --- salary on 23 Oct, a 23 Oct entry that exists from before (or from another device), start day still 25 Oct ---
+    ctx=b.new_context(viewport={'width':390,'height':844});pg=ctx.new_page();pg.clock.set_fixed_time('2026-10-31T23:20:00');pg.goto(URL)
+    fs=dict(old);fs['profile']=dict(old['profile'],payday=25);fs['startDate']='2026-10-25';fs['months']={"2026-10":{"salary":4200,"carry":0,"paidOn":"2026-10-23"}};fs['items']=[{"id":"x23","date":"2026-10-23","amt":12,"cat":"eating","note":"Lunch 23rd"}]
+    pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(fs));pg.reload();pg.wait_for_timeout(500)
+    pg.click('.tabbar [data-tab="spend"]');pg.wait_for_timeout(300)
+    check('An entry before the start day still shows in the month that began on salary day','Lunch 23rd' in pg.inner_text('main') and pg.inner_text('.mlabel').startswith('23 Oct'),pg.inner_text('.mlabel'))
+    pg.select_option('#sr','custom');pg.wait_for_timeout(300);pg.fill('#sfrom','2026-10-23');pg.dispatch_event('#sfrom','change');pg.fill('#sto','2026-10-31');pg.dispatch_event('#sto','change');pg.wait_for_timeout(300)
+    check('A 23 Oct to today date range includes the 23rd','Lunch 23rd' in pg.inner_text('.tblcard'))
+    ctx.close()
     # --- corrupted storage ---
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
     pg.goto(URL);pg.evaluate("localStorage.setItem('setu-v1','{not json')");pg.reload();pg.wait_for_timeout(400)

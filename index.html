@@ -848,7 +848,8 @@ function indiaFromIN(p){return sum(indiaLines(p).filter(function(l){return l.src
 function shareFile(name,text){var FS=plug('Filesystem'),SH=plug('Share');if(!FS||!SH){toast('Sharing isn’t available');return;}
   FS.writeFile({path:name,data:text,directory:'CACHE',encoding:'utf8'}).then(function(r){return SH.share({title:name,files:[r.uri]});}).catch(function(e){if(!/cancel/i.test(String(e&&e.message||e)))toast('Couldn’t share the file');});}
 /* Spending is only kept and shown from the day you started using Setu. */
-function startDay(){return S.startDate||today();}
+/* Tracking starts on the setup day, or on the earliest thing you've logged if that's earlier, so nothing you log is ever hidden. */
+var _sd=null;function startDay(){if(_sd===null){var d=S.startDate||today();(S.items||[]).forEach(function(x){if(x&&x.date&&x.date<d)d=x.date;});_sd=d;}return _sd;}
 function startLabel(){return new Date(startDay()+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
 /* Move to another device: data is compressed and encrypted (AES-GCM, key from a 6-digit code via PBKDF2) and put in the link's #fragment, which browsers never send to any server. */
 function b64u(buf){var b=new Uint8Array(buf),s0='';for(var i=0;i<b.length;i+=8192)s0+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return btoa(s0).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
@@ -976,7 +977,7 @@ function fetchFxMulti(){var t=new Date().toISOString().slice(0,10);if(fxmBusy||(
   fetch('https://api.frankfurter.dev/v1/'+st+'..?base=GBP&symbols=INR,USD,EUR',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
     var d=Object.keys(j.rates||{}).sort();if(d.length<5)throw 0;FXM={at:t,days:d,rates:j.rates};S.fxMulti=FXM;save();}).catch(function(){}).then(function(){refreshRail();});}
 function fxLabel(){return '₹'+fxNow().toFixed(2)+' = £1'+(FX.at?', updated '+new Date(FX.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):', last known rate');}
-function save(){try{var js=JSON.stringify(S);localStorage.setItem(KEY,js);storageOK=true;if(window.setuSyncSoon)window.setuSyncSoon();var PR=plug('Preferences');if(PR)PR.set({key:KEY,value:js}).catch(function(){});if(persisted===null){persisted=false;askPersist();}}catch(e){storageOK=false;}}
+function save(){_sd=null;try{var js=JSON.stringify(S);localStorage.setItem(KEY,js);storageOK=true;if(window.setuSyncSoon)window.setuSyncSoon();var PR=plug('Preferences');if(PR)PR.set({key:KEY,value:js}).catch(function(){});if(persisted===null){persisted=false;askPersist();}}catch(e){storageOK=false;}}
 var tab='home',phase=null,addCat='groceries',viewMonth=null,sheetFn=null,wz=null;
 try{tab=sessionStorage.getItem('setu-tab')||'home';}catch(e){}
 var QS=(function(){var o={};try{new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;});}catch(e){}return o;})();
@@ -1182,7 +1183,7 @@ function whenTxt(){var d=daysSince(S.profile.moved);return d<0?'You move in '+(-
 function pageHead(){var p=S.profile;
   var vk0=viewKey(),T={spend:'Spending',wealth:'Wealth',plan:'Plan'}[tab];var r=({home:[greet()+(p.name?', '+p.name:''),whenTxt()],check:['Your first 90 days','NRE, NRO, tax and the other things to sort out after moving'],spend:['Spending',mLabel(viewMonth||mKey())],goals:['Goals','Live check of the home, retirement and savings you’re aiming for'],wealth:['Your investments','Everything you own and owe, in the UK and India'],wport:['Wealth','Everything you own and owe, in the UK and India'],slog:['Spending',mLabel(viewMonth||mKey())],wuk:['UK','Investments and debts in the UK'],win:['India','Investments and debts in India'],stay:['ILR and time away','Your path to settlement and the 180-day limit'],insights:['Insights','Where your money goes, and how to keep more of it']})[vk0]||['',''];if(T)r=[T,r[1]];return r;}
 var lastTab=null,lastTicked=null,countFrom={};
-function render(){
+function render(){_sd=null;
   var app=document.getElementById('app'),anim=sheetAnim;sheetAnim=false;var sh0=document.querySelector('.sheet'),shTop=sh0&&sheetFn?sh0.scrollTop:0;
   if(!S.profile||wz){app.innerHTML='<div class="wzshell"><div class="wzcard">'+vWizard()+'</div></div>'+(sheetFn?sheetHTML(anim):'');bindWizard();bindSheet();return;}
   normTab();var V={home:vHome,check:vCheck,spend:vSpend,wealth:vWealth,goals:vGoals,stay:vStay,insights:vInsights,slog:vSpend,wport:vWealth,wuk:function(){return vCountry('uk');},win:function(){return vCountry('in');}};var vk=viewKey();if(!V[vk]){tab='home';vk='home';}
