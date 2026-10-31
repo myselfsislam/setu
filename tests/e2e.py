@@ -116,7 +116,8 @@ try:
     check('Month can start on pay day',' – ' in pg.inner_text('.mlabel') and pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile.payday")==25,pg.inner_text('.mlabel'))
     pg.click('.mlabel');pg.wait_for_timeout(200);pg.select_option('[data-f="payday"]','1');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     ensure_add(pg);pg.fill('#amt','5');pg.fill('#note','Past bus');pg.fill('#sdt','2026-08-03');mn=pg.get_attribute('#sdt','min');pg.click('[data-add]');pg.wait_for_timeout(300)
-    check('Dates before you started are not allowed',mn==pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).startDate") and '2026-08-03' not in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items.map(x=>x.date)"))
+    S8=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")
+    check('An earlier date is kept, shown, and moves the tracking start back','2026-08-03' in [x['date'] for x in S8['items']] and S8['startDate']=='2026-08-03' and 'Past bus' in pg.inner_text('main'),(S8['startDate'],pg.inner_text('.mlabel')))
 
     pg.select_option('#sr','all');pg.wait_for_timeout(300);check('Date range filter shows everything since you started',pg.locator('tr[data-item]').count()>=3 and 'since' in pg.inner_text('.tblcard .row-b'))
     pg.select_option('#sr','cycle');pg.wait_for_timeout(200)
@@ -300,6 +301,15 @@ try:
     check('Hidden amounts stay hidden after reopening',pg.text_content('.hero .big')=='£••••' and pg.locator('[data-hidemoney][aria-pressed="true"]:visible').count()==1)
     pg.locator('[data-hidemoney]:visible').first.click();pg.wait_for_timeout(1000)
     check('Tapping again shows the amounts',_re.search(r'£\d',pg.text_content('.hero .big')) is not None)
+    ctx.close()
+    # --- a transaction from before a fresh start (set up on 25 Oct, spent on 23 Oct) ---
+    ctx=b.new_context(viewport={'width':390,'height':844});pg=ctx.new_page();pg.clock.set_fixed_time('2026-10-31T23:00:00');pg.goto(URL)
+    fs=dict(old);fs['profile']=dict(old['profile'],payday=25);fs['startDate']='2026-10-25';fs['items']=[]
+    pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(fs));pg.reload();pg.wait_for_timeout(500)
+    pg.click('.tabbar [data-tab="spend"]');pg.wait_for_timeout(300);pg.click('.tbadd');pg.wait_for_timeout(200)
+    pg.fill('#amt','12');pg.fill('#note','Lunch on the 23rd');pg.fill('#sdt','2026-10-23');pg.click('.sheet [data-add]');pg.wait_for_timeout(500)
+    it8=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items")
+    check('Spending on 23 Oct is saved on 23 Oct and shows on the Spending page',it8 and it8[0]['date']=='2026-10-23' and 'Lunch on the 23rd' in pg.inner_text('main'),(it8,pg.inner_text('.mlabel')))
     ctx.close()
     # --- corrupted storage ---
     ctx=b.new_context();pg=ctx.new_page();pe=[];pg.on('pageerror',lambda e:pe.append(str(e)))
