@@ -93,9 +93,12 @@ try:
     check('Budget edit via Settings works','£250' in pg.inner_text('.sheet'));pg.click('[data-close]')
     pg.click('[data-monthin]');pg.fill('[data-f="salary"]','3100');pg.fill('[data-f="carry"]','200');pg.click('[data-form="save"]');pg.wait_for_timeout(200)
     check('Money in saved','£3,300' in pg.inner_text('.moneyin'),pg.inner_text('.moneyin').replace('\n',' '))
-    pg.click('.sprec');pg.click('[data-recur="new"]');pg.fill('[data-f="name"]','Netflix');pg.fill('[data-f="amt"]','10.99');pg.fill('[data-f="day"]',str(__import__('datetime').date.today().day));pg.click('[data-form="save"]');pg.wait_for_timeout(400)
-    check('Repeating cost auto-added',any(x['note']=='Netflix' for x in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).items")))
-    pg.click('[data-close]');pg.wait_for_timeout(200)
+    check('No repeating spending link',pg.locator('.sprec').count()==0)
+    pg.evaluate("(function(){var s=JSON.parse(localStorage.getItem('setu-v1'));s.recur=[{id:'r1',name:'Netflix',cat:'other',amt:10.99,day:5}];localStorage.setItem('setu-v1',JSON.stringify(s));})()")
+    pg.reload();pg.wait_for_timeout(900)
+    st=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1'))")
+    check('Old repeating spending moved into Bills',any(x['name']=='Netflix' and x['amt']==10.99 for x in st['profile']['ukItems']) and not st.get('recur'))
+    go(pg,'slog');pg.wait_for_timeout(200)
     pg.fill('#sq','oys');pg.wait_for_timeout(150);check('Search filters',pg.locator('tr[data-item]').count()==1);pg.fill('#sq','')
     with pg.expect_download() as dl: pg.click('[data-csv="month"]')
     txt=open(dl.value.path()).read();check('CSV export valid',txt.startswith('Date,What') and txt.count('\n')>=2)
@@ -127,6 +130,13 @@ try:
     ensure_add(pg);pg.click('.sheet [data-cat="other"]');ensure_add(pg);pg.fill('#amt','1200');pg.fill('#note','Rent');pg.click('[data-add]');pg.wait_for_timeout(300)
     check('Logging rent warns it is already counted',pg.locator('.sheet').count()==1 and 'Already counted' in pg.inner_text('.sheet h2'));pg.click('[data-dupepay]');pg.wait_for_timeout(300)
     pg.click('.mimid');pg.wait_for_timeout(200);check('Bills list shows this month’s regular payments',pg.locator('.sheet .brow').count()>=2)
+    dues=pg.evaluate("[...document.querySelectorAll('.sheet .brow:not(.bmuted)')].map(r=>(r.querySelector('.bmain .small')||{}).textContent||'')")
+    M3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    def _d(x):
+        m=re.search(r'(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',x)
+        return (M3.index(m.group(2)),int(m.group(1))) if m else None
+    ds=[_d(x) for x in dues if _d(x)]
+    check('Bills are sorted by deduction date',len(ds)>=2 and (ds==sorted(ds) or ds==sorted(ds,key=lambda v:((v[0]+6)%12,v[1]))),dues)
     pg.locator('.sheet .bmain').last.click();pg.wait_for_timeout(200);pg.click('[data-bskip]');pg.wait_for_timeout(200);check('A bill can be skipped for this month','Not paying this month' in pg.inner_text('.sheet'));pg.click('[data-close]');pg.wait_for_timeout(200)
     check('India payments paid from the Indian account are not in Still to pay',pg.evaluate("(()=>{const S0=JSON.parse(localStorage.getItem('setu-v1'));return S0.profile.indiaItems.some(x=>x.src==='in')})()"))
     pg.click('.reclink');pg.wait_for_timeout(200);bk=pg.evaluate("document.querySelector('.calct tr.big td').textContent");pg.fill('#recval','10');pg.wait_for_timeout(200)

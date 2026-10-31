@@ -840,6 +840,8 @@ function bankParts(vm){var p=S.profile,mi=moneyIn(vm),exp=takeHome(p.salary,p.pe
   return {sal:sal,estimated:!mi.salary,carry:mi.carry,moneyIn:sal+mi.carry,paid:BL.paidUK,paidList:BL.list.filter(function(b){return b.applies&&cFromUK(b.c)&&b.paid;}),unpaidList:BL.list.filter(function(b){return b.applies&&cFromUK(b.c)&&!b.paid;}),spent:spent,inv:inv,adj:adj,bank:sal+mi.carry-BL.paidUK-spent-inv+adj};}
 function setPay(vm,key,st,amt){S.pay=S.pay||{};S.pay[vm]=S.pay[vm]||{};if(st==null)delete S.pay[vm][key];else S.pay[vm][key]={st:st,amt:amt};}
 function billsFor(vm){var L=commitments(S.profile).map(function(c){var st=cState(c,vm);return {c:c,applies:cApplies(c,vm),skipped:cSkipped(c,vm),started:cStarted(c,vm),paid:st.paid,amt:st.amt,due:st.due,manual:st.manual};});
+  /* in the order money leaves: by deduction date; bills not due this month go last */
+  L.sort(function(x,y){return (x.applies===y.applies?0:x.applies?-1:1)||(x.due<y.due?-1:x.due>y.due?1:0)||(x.c.name<y.c.name?-1:1);});
   var uk=L.filter(function(b){return b.applies&&cFromUK(b.c);});
   return {list:L,expUK:sum(uk.map(function(b){return cGBP(b.c,b.amt);})),paidUK:sum(uk.filter(function(b){return b.paid;}).map(function(b){return cGBP(b.c,b.amt);})),dueUK:sum(uk.filter(function(b){return !b.paid;}).map(function(b){return cGBP(b.c,b.amt);}))};}
 function indiaFromUK(p){return sum(indiaLines(p).filter(function(l){return l.src!=='in';}).map(function(l){return l.amt;}));}
@@ -1323,7 +1325,7 @@ function spendTips(){var t=today(),k=mKey(),R=periodRange(k),C=cats(),items=S.it
   var by={};last30.forEach(function(x){var n=(x.note||'').trim().toLowerCase();if(n)by[n]=(by[n]||{n:x.note.trim(),v:0,c:0}),by[n].v+=+x.amt,by[n].c++;});var top=Object.keys(by).map(function(k2){return by[k2];}).sort(function(a,b){return b.v-a.v;})[0];
   if(top&&top.c>=4&&top.v>=40)tips.push({tone:'indigo',ic:'card',t:gbp(top.v)+' at '+top.n+' this month',x:'You’ve been there '+top.c+' times in 30 days. Worth a look if it’s more than you expected.',save:0});
   // repeating payments
-  var rec=sum((S.recur||[]).map(function(r){return +r.amt||0;}));if(rec>=30)tips.push({tone:'indigo',ic:'clock',t:'Repeating payments: '+gbp(rec)+' a month',x:'Check for subscriptions you no longer use. Cancelling one or two often saves £10 to £20 a month.',save:0});
+  var rec=sum(((S.profile||{}).ukItems||[]).map(function(r){return +r.amt||0;}));if(rec>=30)tips.push({tone:'indigo',ic:'clock',t:'Regular bills: '+gbp(rec)+' a month',x:'Check for subscriptions you no longer use. Cancelling one or two often saves £10 to £20 a month.',save:0});
   // weekends
   var wk=[0,0],wn=[0,0];last30.forEach(function(x){var d0=new Date(x.date+'T12:00').getDay(),w=d0===0||d0===6?1:0;wk[w]+=+x.amt;});wn[1]=Math.max(1,Math.round(30*2/7));wn[0]=30-wn[1];if(wk[1]/wn[1]>1.6*(wk[0]/wn[0])&&wk[1]>60)tips.push({tone:'teal',ic:'sun',t:'Weekends cost you most',x:'You spend about '+gbp(wk[1]/wn[1])+' a day at weekends, against '+gbp(wk[0]/wn[0])+' on weekdays. Planning one free weekend activity helps.',save:0});
   // good news
@@ -1413,11 +1415,11 @@ function vCheck(){
 
 /* ---------- Spending ---------- */
 S.recur=S.recur||[];
-function applyRecurring(){if(!S.profile||!S.recur.length)return 0;var added=0,now=new Date(),cur=calKey(now);
-  S.recur.forEach(function(r){var k=r.start||cur;while(k<=cur){var p2=k.split('-'),dim=new Date(+p2[0],+p2[1],0).getDate(),day=Math.min(+r.day||1,dim),dt=k+'-'+String(day).padStart(2,'0');
-      if(dt<=today()&&dt>=startDay()&&!S.items.some(function(x){return x.rid===r.id&&x.date.slice(0,7)===k;})){S.items.push({id:uid(),date:dt,cat:r.cat,amt:+r.amt||0,note:r.name,rid:r.id});added++;}
-      k=calKey(new Date(+p2[0],+p2[1],1));}});
-  if(added)save();return added;}
+/* Repeating spending was retired: each item becomes a bill. If this month's one was already logged as spending, the bill starts next month. */
+function recurToBills(){if(!S.profile||!(S.recur||[]).length)return 0;ensureUkItems(S.profile);var n=0,cur=mKey();
+  S.recur.forEach(function(r){if(!(+r.amt>0))return;var logged=S.items.some(function(x){return x.rid===r.id&&pKey(x.date)===cur;});
+    if(!S.profile.ukItems.some(function(x){return x.id==='rec-'+r.id;})){S.profile.ukItems.push({id:'rec-'+r.id,name:(r.name||'Regular payment').slice(0,40),amt:+r.amt,day:Math.min(31,Math.max(1,+r.day||1)),from:logged?shiftKey(cur,1):''});n++;}});
+  ensureUkItems(S.profile);S.recur=[];save();return n;}
 function syncEveryday(){if(S.profile&&S.cats)S.profile.everyday=sum(S.cats.map(function(c){return +c.budget||0;}));}
 function scaleBudgets(total){var C=cats(),cur=sum(C.map(function(c){return +c.budget||0;}));total=Math.max(0,Math.round(total));
   if(cur>0){var acc=0;C.forEach(function(c,i){if(i===C.length-1)c.budget=Math.max(0,total-acc);else{c.budget=Math.round((+c.budget||0)*total/cur);acc+=c.budget;}});}
@@ -1536,7 +1538,7 @@ function matchBill(note,amt,vm){var n=' '+String(note||'').toLowerCase()+' ',bes
 function vSpend(){
   var C=cats(),cur=mKey(),vm=viewMonth||cur;if(vm<mKey(startDay()))vm=viewMonth=mKey(startDay());var allItems=S.items.filter(function(x){return x.date>=startDay()&&pKey(x.date)===vm;}),items=allItems.filter(function(x){return !isInv(x);}),invested=sum(allItems.filter(isInv).map(function(x){return x.amt;})),tot=sum(items.map(function(x){return x.amt;})),bud=sum(C.map(function(c){return c.budget;})),left=bud-tot,used=pct(tot,bud);
   var h='<section class="card sphead"><div class="mhead"><button class="navb" data-month="'+shiftMonth(vm,-1)+'" aria-label="Previous month"'+(vm<=mKey(startDay())?' disabled':'')+'>‹</button><button class="mlabel" data-set="payday" title="Change the day your month starts" aria-label="'+mLabel(vm)+'. Change the day your month starts">'+mLabel(vm)+(payDay()>1?'':' <span aria-hidden="true">⚙</span>')+'</button><button class="navb" data-month="'+shiftMonth(vm,1)+'" aria-label="Next month"'+(vm>=cur?' disabled':'')+'>›</button></div>'+
-    '<div class="spsum"><div><span class="small soft">Spent</span><b class="f">'+gbp2(tot)+'</b><span class="small '+(left<0?'bad':'soft')+'">'+(left<0?gbp(-left)+' over your '+gbp(bud)+' budget':gbp(left)+' left of '+gbp(bud))+'</span></div>'+(invested>0?'<div><span class="small soft">Invested</span><b class="f">'+gbp(invested)+'</b><span class="small soft">not counted as spending</span></div>':'')+'</div>'+paceLine(vm,tot,bud)+'<button class="link small sprec" data-sheet="recur">Repeating spending'+(S.recur.length?' ('+S.recur.length+')':'')+' ›</button>'+moneyInRow(vm,tot,invested)+'</section>';
+    '<div class="spsum"><div><span class="small soft">Spent</span><b class="f">'+gbp2(tot)+'</b><span class="small '+(left<0?'bad':'soft')+'">'+(left<0?gbp(-left)+' over your '+gbp(bud)+' budget':gbp(left)+' left of '+gbp(bud))+'</span></div>'+(invested>0?'<div><span class="small soft">Invested</span><b class="f">'+gbp(invested)+'</b><span class="small soft">not counted as spending</span></div>':'')+'</div>'+paceLine(vm,tot,bud)+moneyInRow(vm,tot,invested)+'</section>';
   h+=rebalCard(vm,'rm')+rebalCard(vm,'rd');
   var la=lastAdded(),lc=la&&allCats().find(function(c){return c.k===la.cat;});
   h+=(la?'<div class="sptools">'+'<span class="undo"><span>Added '+esc(la.note||(lc?lc.label:'spending'))+' '+gbp2(la.amt)+'</span><button class="link bad" data-undo="'+la.id+'">Undo</button></span></div>':'');
@@ -2067,7 +2069,7 @@ var formSave=null,formDelete=null;
 var SHEETS_EXTRA=SHEETS_EXTRA||{};
 
 function setGroups(){var p=S.profile,pd=payDay(),sfx=function(n){return n===1||n===21||n===31?'st':n===2||n===22?'nd':n===3||n===23?'rd':'th';};
-  return {money:{t:'Your money setup',rows:[['setup','Edit my setup','Pay, rent, loans and savings'],['payday','Your month starts on',pd===1?'1st of the month':pd+sfx(pd)+' of the month, your pay day'],['costs','Monthly costs','Rent, bills, India payments and loans'],['budgets','Spending budgets',gbp(sum(cats().map(function(c){return c.budget;})))+' a month across '+cats().length+' categories'],['recur','Repeating spending',(S.recur||[]).length+' set up']]},
+  return {money:{t:'Your money setup',rows:[['setup','Edit my setup','Pay, rent, loans and savings'],['payday','Your month starts on',pd===1?'1st of the month':pd+sfx(pd)+' of the month, your pay day'],['costs','Monthly costs','Rent, bills, India payments and loans'],['budgets','Spending budgets',gbp(sum(cats().map(function(c){return c.budget;})))+' a month across '+cats().length+' categories']]},
     rates:{t:'Rates and assumptions',rows:[['fx','Rupee rate',fxLabel()+'. Tap to refresh.'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['transfer','Check a money transfer','See what your bank really charges to send money home']]},
     data:{t:'Your data and devices',rows:[['backup','Back up your data',S.lastBackup?'Last backup '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago':'Not backed up yet'],['move','Use Setu on another device','Send your data with a secure link'],['csvall','Download all spending (CSV)','Open it in Excel or Google Sheets']].concat(canInstall()?[['install','Install Setu as an app','Works offline and keeps your data safer']]:[]).concat(IS_APP?[['applock',(S.lock?'✓ ':'')+'Lock with Face ID or fingerprint',S.lock?'On':'Off'],['remind',(S.remind?'✓ ':'')+'Monthly reminders',S.remind?'On':'Off']]:[]).concat([['reset','Start over','Delete everything on this device']])},
     about:{t:'Help and about',rows:[['guides','Money guides','Checklist, take-home pay in rupees, NRO vs NRE'],['privacy','Privacy','What’s stored and where'],['terms','Terms of use','Guidance only, not advice'],['earn','How Setu makes money','Free, no ads, clearly labelled referrals'],['about','About Setu','What Setu is, and what it isn’t']].concat(MONEY_CFG.tipLink?[['tip','☕ Support Setu','Tip the maker if Setu helps you']]:[])}};}
@@ -2187,7 +2189,7 @@ var SHEETS={
       '<div class="acts" style="margin-top:14px;flex-wrap:wrap"><button class="btn go" data-cvlog="'+k+'">Log '+esc(c.label.toLowerCase())+'</button>'+(k==='invest'?'':'<button class="btn" data-cat-edit="'+k+'">Change budget</button>')+'</div>'};},
   bills:function(){var vm=viewMonth||mKey(),B=billsFor(vm),fx=fxNow();
     function row(b){var c=b.c,money=c.cur==='inr'?inr(b.amt)+'<small>≈ '+gbp(cGBP(c,b.amt))+'</small>':gbp(b.amt),dd=new Date(b.due+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-      var stt=!b.started?'Starts '+fromLabel(c.from):b.skipped?'Not paying this month':b.paid?'Paid'+(b.manual?'':' (due '+dd+')'):'Due '+dd;
+      var stt=!b.started?'Starts '+fromLabel(c.from):b.skipped?'Not paying this month':b.paid?'Paid, due '+dd:'Due '+dd;
       return '<div class="brow'+(b.applies?'':' bmuted')+(b.paid&&b.applies?' bpaid':'')+'"><button class="bchk" data-bill="'+esc(c.key)+'" aria-label="'+esc(c.name)+': '+stt+'. Change">'+(b.applies?(b.paid?'✓':''):'–')+'</button><button class="bmain" data-bill="'+esc(c.key)+'"><span class="grow"><b>'+esc(c.name)+'</b><span class="small soft">'+stt+(c.grp==='in'&&c.src==='in'?' · from Indian account':'')+'</span></span><span class="bamt">'+money+'</span></button></div>';}
     var uk=B.list.filter(function(b){return cFromUK(b.c);}),inAcc=B.list.filter(function(b){return !cFromUK(b.c);});
     return {title:'Bills, '+mLabel(vm),body:'<div class="bsum"><div><span>Still to pay</span><b class="f">'+gbp(B.dueUK)+'</b></div><div><span>Paid</span><b class="f">'+gbp(B.paidUK)+'</b></div><div><span>Expected</span><b class="f">'+gbp(B.expUK)+'</b></div></div>'+
@@ -2203,9 +2205,6 @@ var SHEETS={
   emails:function(){return {title:'Email drafts',body:'<p class="small soft">Ready-to-send emails for common jobs when you move. Open one, edit it, then copy it into any email service.</p><div class="list">'+Object.keys(EMAILS).map(function(k){return '<button class="li" data-email="'+k+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(EMAILS[k].title)+'</b><span class="small soft">To: '+esc(EMAILS[k].to)+'</span></span><span class="chev">›</span></button>';}).join('')+'</div>'};},
   budgets:function(){return {title:'Spending budgets',body:'<p class="small soft">Tap a category to change how much you plan to spend on it each month.</p>'+(histSpend()?'<button class="btn sm" data-sheet="rebalhist" style="margin:2px 0 10px">Rebalance from past months ›</button>':'<p class="small soft">After your first month of tracking, you can set budgets from what you actually spent.</p>')+'<div class="list">'+cats().map(function(c){var k=cc(c.k);return '<button class="li" data-cat-edit="'+c.k+'"><span class="grow" style="display:flex;align-items:center;gap:10px"><i class="bdot" style="background:'+k[0]+'"></i><b style="font-weight:700">'+esc(c.label)+'</b></span><span class="f" style="font-weight:800">'+gbp(c.budget)+'</span></button>';}).join('')+'</div>'};},
   install:function(){return {title:'Add Setu to your home screen',body:(isIOS?'<ol class="steps"><li>Tap the <b>Share</b> button at the bottom of Safari (the square with an arrow).</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. Setu now opens like an app.</li></ol>':'<ol class="steps"><li>Open your browser menu (⋮ or ⋯).</li><li>Choose <b>Install app</b> or <b>Add to Home screen</b>.</li><li>Confirm. Setu now opens like an app.</li></ol>')+'<p class="small soft">Installed, Setu works offline and your data is safer. On iPhone, Safari can clear data from websites you haven’t opened for a while, but home-screen apps are kept.</p>'};},
-  recur:function(){var C=allCats();return {title:'Repeating spending',body:'<p class="small soft">Costs you pay every month, like subscriptions or a gym. Setu adds them to your log automatically on their day.</p>'+
-      (S.recur.length?'<div class="list">'+S.recur.map(function(r){var c=C.find(function(y){return y.k===r.cat;});return '<button class="li" data-recur="'+r.id+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(r.name)+'</b><span class="small soft">'+esc(c?c.label:'')+', on the '+r.day+(r.day==1||r.day==21||r.day==31?'st':r.day==2||r.day==22?'nd':r.day==3||r.day==23?'rd':'th')+' of each month</span></span><span class="f" style="font-weight:800">'+gbp2(r.amt)+'</span></button>';}).join('')+'</div>':'<p class="small">Nothing set up yet.</p>')+
-      '<div class="acts" style="margin-top:12px"><button class="btn go" data-recur="new">+ Add a repeating cost</button></div>'};},
   transfer:function(){var p=S.profile||{},fx=fxNow(),amt=Math.round(indiaFromUK(p)/fx)||500;
     return {title:'Check the cost of sending money home',body:'<p class="small soft">Banks hide most of their charge in a worse exchange rate. Enter what your provider offers to see what it really costs you.</p>'+
       '<div class="fields"><div class="grid2"><label class="field"><span>You send</span><span class="adorn"><i>£</i><input id="tfA" type="number" inputmode="decimal" value="'+amt+'"></span></label><label class="field"><span>Their fee</span><span class="adorn"><i>£</i><input id="tfF" type="number" inputmode="decimal" value="0"></span></label></div>'+
@@ -2233,10 +2232,6 @@ document.addEventListener('click',function(e){
   if(t.hasAttribute('data-bkfile')){var ok=downloadFile('setu-backup-'+today()+'.json',JSON.stringify(S),'application/json');if(ok){S.lastBackup=Date.now();save();refreshSheet();toast('Backup file saved');}else toast('Download isn’t available here. Use copy and paste instead.');return;}
   if(d.csv){exportCSV(d.csv);return;}
   if(d.tff){document.querySelectorAll('[data-tff]').forEach(function(b){b.setAttribute('aria-checked',String(b===t));});tfCalc();return;}
-  if(d.recur){var rid=d.recur,R=rid==='new'?{id:uid(),name:'',cat:'other',amt:'',day:new Date().getDate(),start:calKey()}:S.recur.find(function(x){return x.id===rid;});
-    formDelete=rid==='new'?null:function(){S.recur=S.recur.filter(function(x){return x!==R;});};
-    var back=function(){setTimeout(function(){openSheet(function(){return SHEETS.recur();});},10);};
-    formSheet(rid==='new'?'Add a repeating cost':'Edit repeating cost',[{k:'name',label:'What is it? (e.g. Netflix, gym)',text:true},{k:'cat',label:'Category',options:allCats().map(function(c){return [c.k,c.label];})},{k:'amt',label:'Amount each month (£)'},{k:'day',label:'Day of the month it’s paid (1–31)'}],R,function(o){o.day=Math.min(31,Math.max(1,Math.round(o.day||1)));o.name=o.name||'Repeating cost';Object.assign(R,o);if(rid==='new')S.recur.push(R);var n=applyRecurring();back();toast(n?'Added '+n+' to this month':'Saved');},rid==='new'?'':'<button class="btn warn" data-form="delete">Delete</button>');return;}
   if(t.hasAttribute('data-costs-save')){var ib0=+S.profile.inBalance||0;readIndiaItems();readUkItems();var P=S.profile,ev0=+P.everyday||0,pds=document.querySelector('[data-paydaysel]');if(pds){P.payday=+pds.value||1;viewMonth=null;}document.querySelectorAll('[data-cost]').forEach(function(inp){var k=inp.dataset.cost,v=inp.value.trim();if(k==='pension'){P.pension=v===''?'':Math.max(0,Math.min(100,+v||0));return;}P[k]=Math.max(0,parseFloat(v)||0);});
     if(Math.round(+P.everyday||0)!==Math.round(ev0))scaleBudgets(+P.everyday||0);if((+P.inBalance||0)!==ib0)P.inBalAt=today();syncDebts(P);save();sheetFn=null;render();toast('Saved. Your dashboard now uses these figures');return;}
   if(t.hasAttribute('data-showall')){spendAll=true;refreshTable();return;}
@@ -2376,7 +2371,7 @@ document.addEventListener('click',function(e){
     if(s==='reset'){if(confirm('Delete everything you’ve added to Setu on this device? You can’t undo this.')){try{localStorage.removeItem(KEY);}catch(err){}S={v:1,profile:null,checks:{},items:[],cats:null};sheetFn=null;wz=null;phase=null;startWizard();}return;}
     openSheet(function(){return SHEETS[s]();});return;}
   if(d.form==='save'&&formSave){formSave();return;}
-  if(d.form==='delete'&&formDelete){var wasRecur=sheetFn&&/repeating cost/i.test((sheetFn().title||''));formDelete();save();closeSheet();if(wasRecur)openSheet(function(){return SHEETS.recur();});return;}
+  if(d.form==='delete'&&formDelete){formDelete();save();closeSheet();return;}
   if(d.cat){addCat=d.cat;var a=document.getElementById('amt').value,nn=document.getElementById('note').value;render();document.getElementById('amt').value=a;document.getElementById('note').value=nn;return;}
   if(d.month){if(t.disabled)return;viewMonth=d.month;render();return;}
   if(d.sdt!=null){var dd0=new Date();dd0.setDate(dd0.getDate()-(+d.sdt));var el0=document.getElementById('sdt');if(el0)el0.value=isoD(dd0);return;}
@@ -2460,7 +2455,7 @@ function syncFromLink(q){if(q.error_description||!q.access_token){toast('That li
 if(MOVE)setTimeout(function(){openSheet(function(){return SHEETS.movein();});setTimeout(function(){var mc=document.getElementById('movecode');if(mc)mc.focus();},120);},150);
 if(S.profile&&!S.startDate){var first0=S.items.map(function(x){return x.date;}).sort()[0];S.startDate=first0&&first0<today()?first0:today();save();}
 if(S.profile&&S.cats){syncEveryday();save();}
-applyRecurring();
+if(recurToBills())setTimeout(function(){toast('Your repeating spending is now in Bills');},600);
 render();
 if(QS.open==='transfer'){setTimeout(function(){openSheet(function(){return SHEETS.transfer();});},200);}
 fetchFx(false).then(function(ch){if(ch)render();});
