@@ -138,6 +138,17 @@ try:
     ds=[_d(x) for x in dues if _d(x)]
     check('Bills are sorted by deduction date',len(ds)>=2 and (ds==sorted(ds) or ds==sorted(ds,key=lambda v:((v[0]+6)%12,v[1]))),dues)
     pg.locator('.sheet .bmain').last.click();pg.wait_for_timeout(200);pg.click('[data-bskip]');pg.wait_for_timeout(200);check('A bill can be skipped for this month','Not paying this month' in pg.inner_text('.sheet'));pg.click('[data-close]');pg.wait_for_timeout(200)
+    # quarterly bill: counted only in the months it's charged
+    q=pg.evaluate("""(()=>{const T=window.__setuBills,S=T.S(),billsFor=T.billsFor,shiftKey=T.shiftKey,k=T.mKey(),ensureUkItems=T.ensure;S.profile.ukItems.push({id:'qsub',name:'Quarterly sub',amt:30,day:1,every:3,from:k});ensureUkItems(S.profile);
+      const on=billsFor(k).list.find(b=>b.c.key==='uk:qsub'),n1=billsFor(shiftKey(k,1)).list.find(b=>b.c.key==='uk:qsub'),n3=billsFor(shiftKey(k,3)).list.find(b=>b.c.key==='uk:qsub');
+      const gap=(new Date(n3.due).getFullYear()-new Date(on.due).getFullYear())*12+new Date(n3.due).getMonth()-new Date(on.due).getMonth();const r=[on.applies,n1.applies,n3.applies,Math.round(S.profile.bills*100),gap,on.due.slice(8),n3.due.slice(8)];S.profile.ukItems=S.profile.ukItems.filter(x=>x.id!=='qsub');ensureUkItems(S.profile);return r;})()""")
+    check('Quarterly bill counts only in the months it is charged',q[0] and not q[1] and q[2] and q[4]==3 and q[5]=='01' and q[6]=='01',q)
+    pg.click('.mimid');pg.wait_for_timeout(200);pg.click('.sheet [data-sheet="costs"]');pg.wait_for_timeout(200);pg.click('[data-ukadd]');pg.wait_for_timeout(100)
+    rw=pg.locator('#ukitems .urow').last;rw.locator('.uname').fill('Yearly app');rw.locator('.uval').fill('60');rw.locator('.uevery').select_option('12')
+    opts=rw.locator('.ufrom option').all_inner_texts();pg.click('[data-costs-save]');pg.wait_for_timeout(300)
+    yi=[x for x in pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile.ukItems") if x['name']=='Yearly app']
+    check('Bill editor saves how often a bill is paid',yi and yi[0].get('every')==12 and yi[0].get('from') and 'Charged this month' in opts,(yi,opts[:3]))
+    pg.evaluate("(()=>{const S=window.__setuBills.S();S.profile.ukItems=S.profile.ukItems.filter(x=>x.name!=='Yearly app');window.__setuBills.ensure();localStorage.setItem('setu-v1',JSON.stringify(S));})()");pg.keyboard.press('Escape');pg.wait_for_timeout(200)
     check('India payments paid from the Indian account are not in Still to pay',pg.evaluate("(()=>{const S0=JSON.parse(localStorage.getItem('setu-v1'));return S0.profile.indiaItems.some(x=>x.src==='in')})()"))
     pg.click('.reclink');pg.wait_for_timeout(200);bk=pg.evaluate("document.querySelector('.calct tr.big td').textContent");pg.fill('#recval','10');pg.wait_for_timeout(200)
     check('Bank balance can be matched',pg.locator('[data-recfix="adjust"]').count()==1);pg.click('[data-recfix="adjust"]');pg.wait_for_timeout(300)
