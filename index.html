@@ -443,6 +443,7 @@ main::-webkit-scrollbar{width:10px}main::-webkit-scrollbar-thumb{background:var(
 .v-spend .chips .chip{justify-content:flex-start;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:8px 10px}
 @media (min-width:560px){.v-spend .chips{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}}
 .daterow{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}.daterow input{flex:1 1 150px;min-width:0;font:inherit;font-size:14px;padding:8px 10px;border-radius:12px;border:0;background:var(--bg);color:var(--ink)}
+.addkind{margin:0 0 12px}.addkind [aria-pressed="true"]{background:var(--card);color:var(--indigo);box-shadow:0 2px 8px -4px rgba(15,23,42,.4)}.crlink{margin:6px 0 0}.crlink .link{padding:0;min-height:28px}.good{color:#096B51}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .good{color:#4ADE80}}:root[data-theme="dark"] .good{color:#4ADE80}
 .dchip{border:0;background:var(--t-indigo);color:var(--indigo);font:700 12.5px Manrope,sans-serif;padding:7px 11px;border-radius:999px;cursor:pointer;min-height:30px}
 .rtools{flex-wrap:wrap;align-items:center}.rtools select{flex:1 1 150px}.rtools input[type=date]{flex:1 1 130px;min-width:0;font:inherit;font-size:14px;padding:7px 9px;border-radius:12px;border:0;background:var(--bg);color:var(--ink)}
 .iacts{display:flex;gap:4px;flex-shrink:0;align-self:center;margin-left:4px}
@@ -845,7 +846,7 @@ function inAcctNow(){var p=S.profile||{},base=+p.inBalance||0;if(!base)return nu
   while(k<=end&&guard++<60){billsFor(k).list.forEach(function(b){if(!cFromUK(b.c)&&b.applies&&b.paid&&b.due>=from&&b.due<=today())used+=+b.amt||0;});k=shiftKey(k,1);}return {base:base,used:used,now:base-used,from:from};}
 function bankParts(vm){var p=S.profile,mi=moneyIn(vm),exp=takeHome(p.salary,p.pension).month,sal=mi.salary||exp,BL=billsFor(vm),its=S.items.filter(function(x){return x.date>=startDay()&&pKey(x.date)===vm;}),
     spent=sum(its.filter(function(x){return !isInv(x);}).map(function(x){return +x.amt||0;})),inv=sum(its.filter(isInv).map(function(x){return +x.amt||0;})),adj=+((S.bankAdj||{})[vm]||0);
-  return {sal:sal,estimated:!mi.salary,carry:mi.carry,moneyIn:sal+mi.carry,paid:BL.paidUK,paidList:BL.list.filter(function(b){return b.applies&&cFromUK(b.c)&&b.paid;}),unpaidList:BL.list.filter(function(b){return b.applies&&cFromUK(b.c)&&!b.paid;}),spent:spent,inv:inv,adj:adj,bank:sal+mi.carry-BL.paidUK-spent-inv+adj};}
+  return {sal:sal,estimated:!mi.salary,carry:mi.carry,other:mi.other,moneyIn:sal+mi.carry+mi.other,paid:BL.paidUK,paidList:BL.list.filter(function(b){return b.applies&&cFromUK(b.c)&&b.paid;}),unpaidList:BL.list.filter(function(b){return b.applies&&cFromUK(b.c)&&!b.paid;}),spent:spent,inv:inv,adj:adj,bank:sal+mi.carry+mi.other-BL.paidUK-spent-inv+adj};}
 function setPay(vm,key,st,amt){S.pay=S.pay||{};S.pay[vm]=S.pay[vm]||{};if(st==null)delete S.pay[vm][key];else S.pay[vm][key]={st:st,amt:amt};}
 function billsFor(vm){var L=commitments(S.profile).map(function(c){var st=cState(c,vm);return {c:c,applies:cApplies(c,vm),skipped:cSkipped(c,vm),started:cStarted(c,vm),off:cOff(c,vm),paid:st.paid,amt:st.amt,due:st.due,manual:st.manual};});
   /* in the order money leaves: by deduction date; bills not due this month go last */
@@ -873,7 +874,7 @@ function makeMoveLink(){var code=String(Math.floor(100000+Math.random()*900000))
 function openMoveLink(frag,code){var parts=frag.split('.');if(parts.length!==4)return Promise.reject('bad');var z=parts[0]==='1',salt=ub64u(parts[1]),iv=ub64u(parts[2]),ct=ub64u(parts[3]);
   return moveKey(code,salt).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);}).then(function(pt){return z?zip(new Uint8Array(pt),true):new Uint8Array(pt);}).then(function(b){var o=JSON.parse(new TextDecoder().decode(b));if(!o||o.v!==1||!o.profile)throw 'bad';return o;});}
 /* ================= Sync: email sign-in + end-to-end encryption (Supabase stores only encrypted data) ================= */
-var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','startDate','splitFrom','ilr','rebDis','rebHDis'];
+var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','credits','startDate','splitFrom','ilr','rebDis','rebHDis'];
 var SKEY='setu-sync',SBASE='setu-sync-base';
 function syncOn(){return !!(SYNC_CFG.url&&SYNC_CFG.anon);}
 function sGet(){try{return JSON.parse(localStorage.getItem(SKEY)||'null');}catch(e){return null;}}
@@ -988,7 +989,7 @@ function fetchFxMulti(){var t=new Date().toISOString().slice(0,10);if(fxmBusy||(
     var d=Object.keys(j.rates||{}).sort();if(d.length<5)throw 0;FXM={at:t,days:d,rates:j.rates};S.fxMulti=FXM;save();}).catch(function(){}).then(function(){refreshRail();});}
 function fxLabel(){return '₹'+fxNow().toFixed(2)+' = £1'+(FX.at?', updated '+new Date(FX.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):', last known rate');}
 function save(){_sd=null;try{var js=JSON.stringify(S);localStorage.setItem(KEY,js);storageOK=true;if(window.setuSyncSoon)window.setuSyncSoon();var PR=plug('Preferences');if(PR)PR.set({key:KEY,value:js}).catch(function(){});if(persisted===null){persisted=false;askPersist();}}catch(e){storageOK=false;}}
-var tab='home',phase=null,addCat='groceries',viewMonth=null,sheetFn=null,wz=null;
+var tab='home',phase=null,addCat='groceries',addKind='out',addCrType='refund',viewMonth=null,sheetFn=null,wz=null;
 try{tab=sessionStorage.getItem('setu-tab')||'home';}catch(e){}
 var QS=(function(){var o={};try{new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;});}catch(e){}return o;})();
 if(['home','check','spend','wealth','goals'].indexOf(QS.tab)>=0)tab=QS.tab;
@@ -1041,14 +1042,14 @@ function takeHome(g,penPct,scot){penPct=penPctOf(penPct);if(scot===undefined&&S.
 }
 
 /* ---------- money model ---------- */
-function moneyIn(k){var x=(S.months||{})[k]||{},po=paidOnOf(k);return {salary:+x.salary||0,carry:+x.carry||0,paidOn:po?isoD(po):''};}
+function moneyIn(k){var x=(S.months||{})[k]||{},po=paidOnOf(k),cr=creditsIn(k);return {salary:+x.salary||0,carry:+x.carry||0,other:sum(cr.map(function(c){return +c.amt||0;})),otherN:cr.length,paidOn:po?isoD(po):''};}
 function month(){
   var p=S.profile,th=takeHome(p.salary,p.pension),mi=moneyIn(mKey());if(mi.salary>0)th=Object.assign({},th,{month:mi.salary,actual:true});var BL=billsFor(mKey()),bsum=function(f){return sum(BL.list.filter(function(b){return b.applies&&cFromUK(b.c)&&f(b);}).map(function(b){return cGBP(b.c,b.amt);}));},india=bsum(function(b){return b.c.grp==='in';}),rentNow=bsum(function(b){return b.c.key==='rent';}),billsNow=bsum(function(b){return b.c.grp==='uk'&&b.c.key!=='rent';}),indiaIN=indiaFromIN(p);
   /* Personal spending: your budget, or what you've actually spent this month if that's already higher */
   var spent=sum((S.items||[]).filter(function(x){return !isInv(x)&&x.date>=startDay()&&pKey(x.date)===mKey();}).map(function(x){return +x.amt||0;})),personal=Math.max(+p.everyday||0,spent);
   var parts=[['Rent',rentNow,'--s-rent'],['Bills',billsNow,'--s-bills'],['Personal',personal,'--s-day'],['India',india,'--s-india']];
   /* Left to save = money in (salary + carried from last month) - rent - bills - personal spending - India payments (EMIs, family & insurance, SIPs) */
-  var moneyInAmt=th.month+mi.carry,left=moneyInAmt-sum(parts.map(function(x){return x[1];}));
+  var moneyInAmt=th.month+mi.carry+mi.other,left=moneyInAmt-sum(parts.map(function(x){return x[1];}));
   return {bl:BL,indiaIN:indiaIN,carry:mi.carry,moneyIn:moneyInAmt,spent:spent,personal:personal,th:th,india:india,parts:parts,left:left,ukCosts:(+p.rent||0)+(+p.bills||0)+(+p.everyday||0)};
 }
 function homeCalc(){
@@ -1422,7 +1423,11 @@ function vCheck(){
 }
 
 /* ---------- Spending ---------- */
-S.recur=S.recur||[];
+S.recur=S.recur||[];S.credits=S.credits||[];
+/* money that came in besides salary: refunds, transfers in, bonuses, cashback */
+var CREDIT_TYPES=[['refund','Refund'],['transfer','Transfer in'],['bonus','Bonus'],['cashback','Cashback'],['gift','Gift'],['other','Other']];
+function creditLabel(x){var t=CREDIT_TYPES.find(function(c){return c[0]===x.type;});return x.note||(t?t[1]:'Money in');}
+function creditsIn(k){return (S.credits||[]).filter(function(x){return x&&x.date>=startDay()&&pKey(x.date)===k;}).sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(b.created||0)-(a.created||0);});}
 /* Repeating spending was retired: each item becomes a bill. If this month's one was already logged as spending, the bill starts next month. */
 function recurToBills(){if(!S.profile||!(S.recur||[]).length)return 0;ensureUkItems(S.profile);var n=0,cur=mKey();
   S.recur.forEach(function(r){if(!(+r.amt>0))return;var logged=S.items.some(function(x){return x.rid===r.id&&pKey(x.date)===cur;});
@@ -1476,12 +1481,13 @@ function paceOf(vm,spent,bud){var now=new Date();if(vm!==mKey())return null;var 
 function paceLine(vm,tot,bud){var pc=paceOf(vm,tot,bud);if(!pc)return '';if(pc.early)return '<div class="pace soft">Pace check starts after a few days of logging</div>';
   return '<div class="pace '+(pc.over?'bad':'ok')+'">'+(pc.over?'▲ Spending too fast: heading for '+gbp(pc.proj):'✓ On pace: about '+gbp(pc.proj)+' by '+periodRange(vm).end.toLocaleDateString('en-GB',{day:'numeric',month:'short'}))+'</div>';}
 function moneyInRow(vm,spent,inv){inv=+inv||0;
-  var p=S.profile,mi=moneyIn(vm),exp=takeHome(p.salary,p.pension).month,sal=mi.salary||exp,inAmt=sal+mi.carry;
+  var p=S.profile,mi=moneyIn(vm),exp=takeHome(p.salary,p.pension).month,sal=mi.salary||exp,inAmt=sal+mi.carry+mi.other;
   var BL=billsFor(vm),cash=bankParts(vm).bank,pc=paceOf(vm,spent,sum(cats().map(function(c){return c.budget;}))),endM=pc&&!pc.early?cash-BL.dueUK-Math.max(0,pc.proj-spent):null;
-  return '<div class="moneyin"><button class="mileft" data-monthin="'+vm+'"><span class="milwrap"><span class="small soft">Money in</span><b class="f">'+gbp(inAmt)+'</b><span class="small '+(mi.salary?'soft':'addlink')+'">'+(mi.salary?'Salary'+(mi.paidOn?' on '+new Date(mi.paidOn+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'')+(mi.carry?' + '+gbp(mi.carry)+' carried':''):'+ Add salary & last month')+'</span></span></button>'+
+  return '<div class="moneyin"><button class="mileft" data-monthin="'+vm+'"><span class="milwrap"><span class="small soft">Money in</span><b class="f">'+gbp(inAmt)+'</b><span class="small '+(mi.salary?'soft':'addlink')+'">'+(mi.salary?'Salary'+(mi.paidOn?' on '+new Date(mi.paidOn+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'')+(mi.carry?' + '+gbp(mi.carry)+' carried':'')+(mi.other?' + '+gbp(mi.other)+' other':''):'+ Add salary & last month')+'</span></span></button>'+
     '<button class="mimid" data-sheet="bills"><span class="milwrap"><span class="small soft">Still to pay</span><b class="f">'+gbp(BL.dueUK)+'</b><span class="small addlink">Bills ›</span></span></button>'+
-    '<span class="r"><span class="small soft">In your bank now'+tip('cl','Money in, minus the bills you’ve paid and what you’ve spent or invested this month. It should match your bank balance.',true)+'</span><b class="f '+(cash<0?'bad':'')+'">'+bankAmt(gbp2,cash)+'</b><span class="small '+(endM!=null&&endM<0?'bad':'soft')+'">'+(endM!=null?'Month end ≈ '+bankAmt(gbp,endM):'after bills paid so far')+'</span><button class="link small reclink" data-sheet="recon">Doesn’t match your bank?</button></span></div>'+earlyLink(vm);
+    '<span class="r"><span class="small soft">In your bank now'+tip('cl','Money in, minus the bills you’ve paid and what you’ve spent or invested this month. It should match your bank balance.',true)+'</span><b class="f '+(cash<0?'bad':'')+'">'+bankAmt(gbp2,cash)+'</b><span class="small '+(endM!=null&&endM<0?'bad':'soft')+'">'+(endM!=null?'Month end ≈ '+bankAmt(gbp,endM):'after bills paid so far')+'</span><button class="link small reclink" data-sheet="recon">Doesn’t match your bank?</button></span></div>'+creditLink(vm,mi)+earlyLink(vm);
 }
+function creditLink(vm,mi){return '<p class="small crlink">'+(mi.otherN?'<button class="link" data-sheet="credits">Other money in: '+gbp2(mi.other)+' ('+mi.otherN+') ›</button>':'<button class="link" data-addin="1">+ Add money in (refund, transfer, bonus)</button>')+'</p>';}
 /* a few days before pay day: let the person start next month early if salary has already landed */
 function earlyLink(vm){if(vm!==mKey()||payDay()===1)return '';var nk=shiftKey(vm,1),ns=normStart(+nk.slice(0,4),+nk.slice(5,7)-1),t=new Date(),tn=new Date(t.getFullYear(),t.getMonth(),t.getDate(),12),gap=Math.round((ns-tn)/864e5);if(gap<1||gap>7||paidOnOf(nk))return '';
   return '<p class="small earlysal"><button class="link" data-monthin="'+nk+'" data-early="1">Salary arrived early? Start the new month today ›</button></p>';}
@@ -2085,9 +2091,15 @@ function setGroups(){var p=S.profile,pd=payDay(),sfx=function(n){return n===1||n
     about:{t:'Help and about',rows:[['guides','Money guides','Checklist, take-home pay in rupees, NRO vs NRE'],['privacy','Privacy','What’s stored and where'],['terms','Terms of use','Guidance only, not advice'],['earn','How Setu makes money','Free, no ads, clearly labelled referrals'],['about','About Setu','What Setu is, and what it isn’t']].concat(MONEY_CFG.tipLink?[['tip','☕ Support Setu','Tip the maker if Setu helps you']]:[])}};}
 var SHEETS={
   indebts:function(){var p=S.profile;return {title:'Add a loan in India',body:'<div class="list">'+DEBTS.map(function(x){var v=(p.debts||{})[x[0]]||{},has=(+v.bal||0)+(+v.emi||0)>0;return '<button class="li" data-debt="'+x[0]+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(debtName(p,x[0]))+'</b><span class="small soft">'+esc(x[4])+'</span></span><span class="small">'+(has?'Edit':'+ Add')+'</span></button>';}).join('')+'</div>'};},
-  addspend:function(){var vm=viewMonth||mKey();return {title:'Add spending',body:'<div class="chips">'+allCats().map(function(c){var k=cc(c.k);return '<button class="chip" data-cat="'+c.k+'" aria-pressed="'+(addCat===c.k)+'" style="--cc:'+k[0]+'"><i>'+gl(k[1])+'</i>'+esc(c.label)+'</button>';}).join('')+'</div>'+
+  addspend:function(){var vm=viewMonth||mKey(),isIn=addKind==='in',kindSw='<div class="seg addkind" role="group" aria-label="Type"><button data-addkind="out" aria-pressed="'+!isIn+'">Spent</button><button data-addkind="in" aria-pressed="'+isIn+'">Money in</button></div>';
+    if(isIn)return {title:'Add money in',body:kindSw+'<div class="chips">'+CREDIT_TYPES.map(function(c){return '<button class="chip" data-crtype="'+c[0]+'" aria-pressed="'+(addCrType===c[0])+'" style="--cc:#16A34A"><i>'+(c[0]==='refund'?'↩':c[0]==='transfer'?'⇄':c[0]==='bonus'?'★':c[0]==='cashback'?'%':c[0]==='gift'?'♥':'+')+'</i>'+c[1]+'</button>';}).join('')+'</div>'+
+      '<div class="inrow"><input id="amt" class="a" type="number" inputmode="decimal" step="any" placeholder="£ 0.00" aria-label="Amount received in pounds"><input id="note" placeholder="Where from?" aria-label="Where from"><button class="btn go" data-addcredit style="padding:12px 18px">Add</button></div>'+
+      '<div class="daterow"><label for="sdt" class="small soft">When</label><input id="sdt" type="date" min="'+isoD(new Date(Date.now()-366*864e5))+'" max="'+today()+'" value="'+(tab==='spend'?addDefaultDate(vm):(today()<startDay()?startDay():today()))+'"><button class="dchip" data-sdt="0">Today</button><button class="dchip" data-sdt="1">Yesterday</button></div><p class="small soft" style="margin-top:8px">It’s added to your money in and to “In your bank now”. Salary goes in Money in at the top of Spending.</p>'};
+    return {title:'Add spending',body:kindSw+'<div class="chips">'+allCats().map(function(c){var k=cc(c.k);return '<button class="chip" data-cat="'+c.k+'" aria-pressed="'+(addCat===c.k)+'" style="--cc:'+k[0]+'"><i>'+gl(k[1])+'</i>'+esc(c.label)+'</button>';}).join('')+'</div>'+
     '<div class="inrow"><input id="amt" class="a" type="number" inputmode="decimal" step="any" placeholder="£ 0.00" aria-label="Amount in pounds"><input id="note" placeholder="What was it?" aria-label="What was it"><button class="btn go" data-add style="padding:12px 18px">Add</button></div>'+
     '<div class="daterow"><label for="sdt" class="small soft">When</label><input id="sdt" type="date" min="'+isoD(new Date(Date.now()-366*864e5))+'" max="'+today()+'" value="'+(tab==='spend'?addDefaultDate(vm):(today()<startDay()?startDay():today()))+'"><button class="dchip" data-sdt="0">Today</button>'+'<button class="dchip" data-sdt="1">Yesterday</button></div>'};},
+  credits:function(){var vm=viewMonth||mKey(),L=creditsIn(vm);return {title:'Other money in, '+mLabel(vm),body:(L.length?'<div class="list">'+L.map(function(x){return '<button class="li" data-credit="'+x.id+'"><span class="grow"><b style="display:block">'+esc(creditLabel(x))+'</b><span class="small soft">'+new Date(x.date+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+(x.note?' · '+esc((CREDIT_TYPES.find(function(c){return c[0]===x.type;})||['',''])[1]):'')+'</span></span><b class="good">+'+gbp2(x.amt)+'</b></button>';}).join('')+'</div>':'<p class="soft">Nothing added this month.</p>')+
+    '<div class="acts" style="margin-top:12px"><button class="btn go" data-addin="1">+ Add money in</button></div>'};},
   rebalhist:function(){var sg=histSuggest(rebHMode);if(!sg)return {title:'Budgets from past months',body:'<p class="soft">Once you’ve tracked spending for most of a month, Setu can suggest budgets based on what you actually spend.</p>'};var h=sg.h;
     return {title:'Budgets from past months',body:'<p class="guidelead">Based on what you spent in '+histLabel(h)+'. That’s about '+gbp(h.avg)+' a month, against budgets of '+gbp(sg.now)+'.</p>'+
       '<div class="seg rbseg" role="radiogroup" aria-label="Total budget"><button role="radio" data-rebhmode="keep" aria-checked="'+(rebHMode==='keep')+'">Keep my total '+gbp(sg.now)+'</button><button role="radio" data-rebhmode="match" aria-checked="'+(rebHMode==='match')+'">Match my spending '+gbp(Math.round(h.avg/5)*5)+'</button></div>'+
@@ -2152,7 +2164,7 @@ var SHEETS={
     var dl=function(b){return new Date(b.due+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});};
     return {title:'How “In your bank now” is worked out',body:'<p class="small soft">What came into your account this month, minus only what has actually gone out: bills on or after their due day, and the spending and investments you’ve logged.</p><table class="calct">'+
       row(B.estimated?'Estimated take-home pay':'Salary credited',cur(B.sal),B.estimated?'After tax, NI and pension. Tap “Add the salary you got” on Home for the real figure':'')+
-      (B.carry>0?row('+ Carried from last month',cur(B.carry)):'')+
+      (B.carry>0?row('+ Carried from last month',cur(B.carry)):'')+(B.other>0?row('+ Other money in',cur(B.other),'Refunds, transfers and anything else you added'):'')+
       row('= Money in',cur(B.moneyIn),'','tot')+
       B.paidList.map(function(b){return row('− '+esc(b.c.name),cur(cGBP(b.c,b.amt)),'Paid '+dl(b));}).join('')+
       row('− Spending you’ve logged',cur(B.spent),'')+
@@ -2383,6 +2395,14 @@ document.addEventListener('click',function(e){
     openSheet(function(){return SHEETS[s]();});return;}
   if(d.form==='save'&&formSave){formSave();return;}
   if(d.form==='delete'&&formDelete){formDelete();save();closeSheet();return;}
+  if(d.addin){addKind='in';openSheet(function(){return SHEETS.addspend();});setTimeout(function(){var a=document.getElementById('amt');if(a)a.focus();},60);return;}
+  if(d.addkind||d.crtype){if(d.addkind)addKind=d.addkind;if(d.crtype)addCrType=d.crtype;var a1=(document.getElementById('amt')||{}).value||'',n1=(document.getElementById('note')||{}).value||'',s1=(document.getElementById('sdt')||{}).value||'';openSheet(function(){return SHEETS.addspend();});var A=document.getElementById('amt'),N=document.getElementById('note'),D=document.getElementById('sdt');if(A)A.value=a1;if(N)N.value=n1;if(D&&s1)D.value=s1;return;}
+  if(t.hasAttribute('data-addcredit')){var ac=parseFloat(document.getElementById('amt').value);if(!(ac>0)){document.getElementById('amt').focus();return;}
+    var dc=(document.getElementById('sdt')||{}).value;if(!/^\d{4}-\d{2}-\d{2}$/.test(dc||''))dc=today();if(dc>today())dc=today();var minC=isoD(new Date(Date.now()-366*864e5));if(dc<minC)dc=minC;if(dc<startDay())S.startDate=dc;
+    S.credits=S.credits||[];S.credits.push({id:uid(),date:dc,type:addCrType,amt:Math.round(ac*100)/100,note:document.getElementById('note').value.trim().slice(0,60),created:Date.now()});save();buzz();if(tab==='spend'&&pKey(dc)!==(viewMonth||mKey()))viewMonth=pKey(dc);sheetFn=null;closeSheet();render();toast('Added +'+gbp2(ac)+' money in on '+new Date(dc+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}));return;}
+  if(d.credit){var CR=(S.credits||[]).find(function(x){return x.id===d.credit;});if(!CR)return;
+    formDelete=function(){S.credits=S.credits.filter(function(x){return x!==CR;});};
+    formSheet('Edit money in',[{k:'type',label:'Type',options:CREDIT_TYPES},{k:'amt',label:'Amount (£)'},{k:'note',label:'Where from? (optional)',text:true},{k:'date',label:'Date',text:true,date:true}],{type:CR.type||'other',amt:CR.amt,note:CR.note||'',date:CR.date},function(o){CR.type=o.type;CR.amt=Math.max(0,Math.round((+o.amt||0)*100)/100);CR.note=String(o.note||'').trim().slice(0,60);var dd=String(o.date||'');if(/^\d{4}-\d{2}-\d{2}$/.test(dd)&&dd<=today()){CR.date=dd;if(dd<startDay())S.startDate=dd;}},'<button class="btn warn" data-form="delete">Delete</button>');return;}
   if(d.cat){addCat=d.cat;var a=document.getElementById('amt').value,nn=document.getElementById('note').value;render();document.getElementById('amt').value=a;document.getElementById('note').value=nn;return;}
   if(d.month){if(t.disabled)return;viewMonth=d.month;render();return;}
   if(d.sdt!=null){var dd0=new Date();dd0.setDate(dd0.getDate()-(+d.sdt));var el0=document.getElementById('sdt');if(el0)el0.value=isoD(dd0);return;}
