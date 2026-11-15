@@ -124,7 +124,7 @@ try:
     check('Growth projection table',pg.locator('.gtbl').count()>=1 and '10 years' in g)
     check('Growth: no horizontal overflow (phone)',overflow(pg)<=0,overflow(pg))
     # sync carries the new data
-    check('Sync keys include Autopilot and Freedom',pg.evaluate("document.documentElement.innerHTML.indexOf(\"'autoRules','fi','seen','gsHide']\")>0"))
+    keys=pg.evaluate("(()=>{const m=document.documentElement.innerHTML.match(/var SYNC_KEYS=\\[([^\\]]*)\\]/);return m?m[1]:''})()");check('Sync keys include Autopilot, Freedom and guided-setup state',all("'%s'"%k in keys for k in ['autoRules','fi','seen','gsHide','xtraSeen']),keys)
     # desktop
     pg.set_viewport_size({'width':1366,'height':900});pg.wait_for_timeout(300)
     for parent,sub in [('plan','free'),('wealth','wauto'),('wealth','wgrow')]:
