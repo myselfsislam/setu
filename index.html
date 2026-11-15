@@ -772,6 +772,28 @@ h3{font-size:17px;line-height:1.25}.ptitle{font-size:24px}.phd h1{font-size:30px
 .apbtns{display:flex;align-items:center;gap:8px;flex-shrink:0}.aprow .grow b{display:block;font-weight:700}
 .aproute{margin:8px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
 @media (min-width:880px){.v-free .fihero,.v-free .wchartcard,.v-free .wlink,.v-free .fine,.v-wauto .apmon,.v-wgrow .gmon{grid-column:1/-1}.v-free .fiset,.v-wauto .aprules,.v-wauto .apsug{align-self:start}}
+
+/* Easy mode */
+.guide{display:flex;gap:12px;align-items:center;background:var(--t-indigo);border-color:transparent}
+.guide .gtxt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.guide .gtxt b{font-size:15px}.guide .gtxt span{font-size:13px;color:var(--ink);opacity:.85;line-height:1.4}
+.guide .gacts{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}
+@media (max-width:519px){.guide{flex-direction:column;align-items:stretch}.guide .gacts{flex-direction:row;justify-content:space-between}}
+.gstart .gbar{margin:8px 0 4px}.gsteps{display:flex;flex-direction:column}
+.gs{display:flex;align-items:center;gap:12px;width:100%;border:0;border-top:1px solid var(--rule);background:none;padding:10px 0;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.gsteps .gs:first-child{border-top:0}.gs .grow b{display:block;font-weight:700;font-size:14.5px}.gs .grow span{display:block}
+.gsi{width:24px;height:24px;border-radius:50%;border:2px solid var(--rule);flex-shrink:0;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff}
+.gs.done .gsi{background:var(--mint);border-color:var(--mint)}.gs.done b{color:var(--soft);font-weight:600}
+.gs.cur .gsi{border-color:var(--indigo);box-shadow:inset 0 0 0 4px var(--card),inset 0 0 0 12px var(--indigo)}
+.gshide{font-size:12.5px;padding:8px 0 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.jgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.jt{border:0;background:var(--bg);border-radius:16px;padding:10px 10px 9px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0;color:inherit;font:inherit;transition:transform .1s ease}
+.jt:active{transform:scale(.96)}.jt i{width:28px;height:28px;border-radius:10px;background:var(--jc);display:grid;place-items:center;color:#fff;margin-bottom:4px}
+.jt i svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.jt .jl{font-size:12px;color:var(--soft);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.jt b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flag{font-size:22px;flex-shrink:0}
+.wback{align-self:flex-start;padding:2px 0}.wctylinks{display:flex;gap:16px;flex-wrap:wrap;padding:0 4px}@media (min-width:880px){.v-wealth .wctylinks{grid-column:1/-1}}
+@media (min-width:880px){main>.guide,.v-home .gstart,.v-home .jump,main>.wback,.v-wealth .wempty2{grid-column:1/-1}.jgrid{grid-template-columns:repeat(6,minmax(0,1fr))}.v-home .gsteps{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}.v-home .gsteps .gs:nth-child(2){border-top:0}}
 </style>
 </head>
 <body>
@@ -888,7 +910,7 @@ function makeMoveLink(){var code=String(Math.floor(100000+Math.random()*900000))
 function openMoveLink(frag,code){var parts=frag.split('.');if(parts.length!==4)return Promise.reject('bad');var z=parts[0]==='1',salt=ub64u(parts[1]),iv=ub64u(parts[2]),ct=ub64u(parts[3]);
   return moveKey(code,salt).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);}).then(function(pt){return z?zip(new Uint8Array(pt),true):new Uint8Array(pt);}).then(function(b){var o=JSON.parse(new TextDecoder().decode(b));if(!o||o.v!==1||!o.profile)throw 'bad';return o;});}
 /* ================= Sync: email sign-in + end-to-end encryption (Supabase stores only encrypted data) ================= */
-var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','credits','startDate','splitFrom','ilr','rebDis','rebHDis','autoRules','fi'];
+var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','credits','startDate','splitFrom','ilr','rebDis','rebHDis','autoRules','fi','seen','gsHide'];
 var SKEY='setu-sync',SBASE='setu-sync-base';
 function syncOn(){return !!(SYNC_CFG.url&&SYNC_CFG.anon);}
 function sGet(){try{return JSON.parse(localStorage.getItem(SKEY)||'null');}catch(e){return null;}}
@@ -1002,7 +1024,7 @@ function fetchFxMulti(){var t=new Date().toISOString().slice(0,10);if(fxmBusy||(
   fetch('https://api.frankfurter.dev/v1/'+st+'..?base=GBP&symbols=INR,USD,EUR',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
     var d=Object.keys(j.rates||{}).sort();if(d.length<5)throw 0;FXM={at:t,days:d,rates:j.rates};S.fxMulti=FXM;save();}).catch(function(){}).then(function(){refreshRail();});}
 function fxLabel(){return '₹'+fxNow().toFixed(2)+' = £1'+(FX.at?', updated '+new Date(FX.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):', last known rate');}
-function save(){_sd=null;try{var js=JSON.stringify(S);localStorage.setItem(KEY,js);storageOK=true;if(window.setuSyncSoon)window.setuSyncSoon();var PR=plug('Preferences');if(PR)PR.set({key:KEY,value:js}).catch(function(){});if(persisted===null){persisted=false;askPersist();}}catch(e){storageOK=false;}}
+function save(){_sd=null;try{/* never let an empty, not-yet-set-up state (e.g. another tab still on the setup screen) overwrite saved data */if(!S.profile){var prev=localStorage.getItem(KEY);if(prev&&/"profile"\s*:\s*\{/.test(prev))return;}var js=JSON.stringify(S);localStorage.setItem(KEY,js);storageOK=true;if(window.setuSyncSoon)window.setuSyncSoon();var PR=plug('Preferences');if(PR)PR.set({key:KEY,value:js}).catch(function(){});if(persisted===null){persisted=false;askPersist();}}catch(e){storageOK=false;}}
 var tab='home',phase=null,addCat='groceries',addKind='out',addCrType='refund',viewMonth=null,sheetFn=null,wz=null;
 try{tab=sessionStorage.getItem('setu-tab')||'home';}catch(e){}
 var QS=(function(){var o={};try{new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;});}catch(e){}return o;})();
@@ -1182,12 +1204,12 @@ var LOGO='<svg viewBox="0 0 40 40" role="img" aria-label="Setu logo"><path d="M9
 var ICON={home:'<path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/>',check:'<circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><path d="M5 16.5C5 11 19 13 19 7.5" stroke-dasharray="0.1 3.4" stroke-width="2.4"/>',spend:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/>',goals:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',wealth:'<path d="M4 19h16"/><path d="M6 15l4-4 3 3 6-7"/><path d="M15 7h4v4"/>',plan:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',insights:'<path d="M5 20V12"/><path d="M12 20V5"/><path d="M19 20v-6"/>',more:'<circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/>',stay:'<rect x="5" y="3" width="14" height="18" rx="2.5"/><circle cx="12" cy="10" r="3"/><path d="M9 17h6"/>'};
 var TABS=[['home','Home'],['spend','Spending'],['wealth','Wealth'],['plan','Plan']];
 /* each area has a few views, picked with the switch at the top of the page */
-var SUBS={spend:[['slog','Log'],['insights','Insights']],wealth:[['wport','Portfolio'],['wgrow','Growth'],['wauto','Autopilot'],['wuk','UK'],['win','India']],plan:[['goals','Goals'],['free','Freedom'],['check','Moving checklist'],['stay','ILR']]};
+var SUBS={spend:[['slog','Log'],['insights','Insights']],wealth:[['wport','Portfolio'],['wgrow','Growth'],['wauto','Autopilot']],plan:[['goals','Goals'],['free','Freedom'],['check','Checklist'],['stay','ILR']]};
 var SUB={spend:'slog',wealth:'wport',plan:'goals'},PARENT={slog:'spend',wport:'wealth',insights:'spend',wuk:'wealth',win:'wealth',wgrow:'wealth',wauto:'wealth',free:'plan',goals:'plan',check:'plan',stay:'plan',more:'home'};
 function normTab(){if(PARENT[tab]){var pa=PARENT[tab];if(pa!=='home')SUB[pa]=tab;tab=pa;}}
 function viewKey(){return SUBS[tab]?SUB[tab]:tab;}
 function inMore(t){return false;}
-function subnav(){var L=SUBS[tab];if(!L)return '';var cur=viewKey();return '<div class="subnav" role="tablist" aria-label="Views">'+L.map(function(x){return '<button role="tab" data-tab="'+x[0]+'" aria-selected="'+(cur===x[0])+'">'+x[1]+'</button>';}).join('')+'</div>';}
+function subnav(){var L=SUBS[tab];if(!L)return '';var cur=viewKey();if(cur==='wuk'||cur==='win')cur='wport';return '<div class="subnav" role="tablist" aria-label="Views">'+L.map(function(x){return '<button role="tab" data-tab="'+x[0]+'" aria-selected="'+(cur===x[0])+'">'+x[1]+'</button>';}).join('')+'</div>';}
 var GEAR='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
 var GL={home:'<path d="M4 11l8-6 8 6v8H4z"/><path d="M10 19v-5h4v5"/>',shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',chart:'<path d="M5 19V11M12 19V5M19 19v-6"/>',spark:'<path d="M12 3v5M12 16v5M3 12h5M16 12h5M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3"/>',card:'<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10h18"/>',rupee:'<path d="M7 5h10M7 9h10M9 5c4 0 6 1.5 6 4s-2 4-6 4l6 6"/>',basket:'<path d="M4 10h16l-1.5 9h-13z"/><path d="M8 10l3-5M16 10l-3-5"/>',bus:'<rect x="5" y="3.5" width="14" height="14" rx="3"/><path d="M5 11h14M8 21v-3M16 21v-3"/>',fork:'<path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M16 3c-2 1-2.5 4-2.5 7h2.5v11"/>',bag:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',dots:'<circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/>',chart:'<path d="M4 19h16"/><path d="M6 15l4-4 3 3 6-7"/><path d="M15 7h4v4"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/>',ext:'<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',car:'<path d="M5 16h14v-4l-2-5H7l-2 5z"/><path d="M5 12h14"/><circle cx="8" cy="16.5" r="1.6"/><circle cx="16" cy="16.5" r="1.6"/>',cash:'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9v6M17.5 9v6"/>',list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/>'};
 function gl(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+GL[k]+'</svg>';}
@@ -1219,7 +1241,7 @@ function render(){_sd=null;
     '<aside class="side"><div class="brand">'+LOGO+'Setu</div><button class="btn go sideadd" data-sheet="addspend"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add spending</button><nav class="snav" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'sn');}).join('')+'</nav>'+
       '<div class="sfoot"><button class="sn" data-sheet="settings">'+GEAR+'<span>Settings</span></button><p>Free and private. Everything stays on this device. General guidance, not financial advice.</p><p class="sidelinks"><a class="link" href="guides/">Guides</a> <button class="link" data-sheet="privacy">Privacy</button> <button class="link" data-sheet="terms">Terms</button> <button class="link" data-sheet="earn">How Setu makes money</button>'+(MONEY_CFG.tipLink?' <a class="link" href="'+esc(MONEY_CFG.tipLink)+'" target="_blank" rel="noopener noreferrer">☕ Support</a>':'')+'</p></div></aside>'+
     '<div class="col"><header class="mhd">'+mh+'<button class="gear" data-sheet="settings" aria-label="Settings">'+GEAR+'</button></header>'+
-    '<main id="main" class="v-'+({wuk:'wealth',win:'wealth',wport:'wealth',wgrow:'wealth wgrow',wauto:'wealth wauto',free:'free',slog:'spend'}[vk]||vk)+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+subnav()+V[vk]()+'</main>'+
+    '<main id="main" class="v-'+({wuk:'wealth',win:'wealth',wport:'wealth',wgrow:'wealth wgrow',wauto:'wealth wauto',free:'free',slog:'spend'}[vk]||vk)+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+subnav()+guideCard(vk)+V[vk]()+'</main>'+
     '<nav class="tabbar" aria-label="Sections">'+TABS.map(function(t,i){return (i===2?'<button class="tbadd" data-sheet="addspend" aria-label="Add spending"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>':'')+navBtn(t,'tb');}).join('')+'</nav></div><aside class="rail mode-'+railMode()+'" id="rail" aria-label="Markets and news">'+(railMode()!=='none'?railInner():'')+'</aside></div>'+(sheetFn?sheetHTML(anim):'');
   var m2=document.getElementById('main');if(m2)m2.scrollTop=keep;
   lastRailMode=railMode();document.body.classList.toggle('rail-overlay',lastRailMode==='overlay');afterRender(enter);lastTicked=null;bindSheet();fitRail();loadRail();var sh1=document.querySelector('.sheet');if(sh1&&shTop)sh1.scrollTop=shTop;
@@ -1279,7 +1301,7 @@ function nudges(){
   var mo=now.getMonth();if(mo===2||mo===3)out.push({tone:'indigo',ic:'sun',t:'New ISA allowance on 6 April',x:'You can save another £20,000 tax-free from 6 April.',cta:'Learn more',go:'task:isa'});
   var ish=m.india/Math.max(1,m.th.month);if(ish>0.2)out.push({tone:'marigold',ic:'rupee',t:'India takes '+Math.round(ish*100)+'% of your pay',x:'When an EMI ends, put that money into your plan instead.',cta:'Edit setup',go:'set:setup'});
   var since=S.lastBackup?Math.floor((Date.now()-S.lastBackup)/864e5):null,started=S.profile&&S.profile.moved?daysSince(S.profile.moved):0;
-  var syncSigned=sGet()&&sGet().key;if(syncOn()&&!syncSigned)out.unshift({tone:'indigo',ic:'shield',t:'Keep your data safe',x:'Create a free account so your spending is saved online and comes back on any device.',cta:'Create account',go:'sheet:sync'});
+  var syncSigned=sGet()&&sGet().key;if(syncOn()&&!syncSigned&&!startCard())out.unshift({tone:'indigo',ic:'shield',t:'Keep your data safe',x:'Create a free account so your spending is saved online and comes back on any device.',cta:'Create account',go:'sheet:sync'});
   else if(!isStandalone&&(since===null?started>=14:since>=30))out.unshift({tone:'indigo',ic:'shield',t:since===null?'Back up your data':'Last backup '+since+' days ago',x:'Everything lives on this device. A backup file keeps it safe if you change phone.',cta:'Back up now',go:'sheet:backup'});
   if(canInstall()&&!S.installSeen)out.splice(1,0,{tone:'teal',ic:'home',t:'Add Setu to your home screen',x:'It opens like an app, works offline, and keeps your data safer on iPhone.',cta:'Show me how',go:'install'});
   var dupItems=S.items.filter(function(x){return !isInv(x)&&x.date>=startDay()&&pKey(x.date)===mKey()&&matchBill(x.note,x.amt,mKey());});
@@ -1409,7 +1431,7 @@ function vHome(){
   var p=S.profile,m=month(),plan=split(),take=Math.max(1,m.moneyIn),fx=fxNow();function rs(g){return inr(Math.max(0,g)*fx);}
   var B=bankParts(mKey()),bud=sum(cats().map(function(c){return +c.budget||0;})),budLeft=Math.max(0,bud-B.spent),due=m.bl.dueUK,likely=B.bank-due-budLeft,inTot=Math.max(1,B.moneyIn,B.paid+B.spent+B.inv+Math.max(0,B.bank));
   var segs=[['Bills paid',B.paid,'--s-rent'],['Spent',B.spent,'--s-day'],['Invested',B.inv,'--s-india'],['In your bank',Math.max(0,B.bank),'--s-left']];
-  var h=todayCard()+setupLeftCard()+'<section class="hero">'+ILL.jar+'<div class="lbl">In your bank now '+eyeBtn()+' <button class="herohow" data-sheet="leftcalc" aria-label="How is this worked out?"><span class="hl">How is this worked out?</span><span class="hs">How?</span> ›</button></div><div class="bigrow"><div class="big f"'+(HIDE?'':' data-count="'+Math.round(B.bank)+'" data-key="bank"')+'>'+bankAmt(gbp,B.bank)+'</div><div class="inr f">≈ '+(HIDE?'₹••••':rs(B.bank))+'</div></div>'+
+  var h=todayCard()+setupLeftCard()+startCard()+jumpCard()+'<section class="hero">'+ILL.jar+'<div class="lbl">In your bank now '+eyeBtn()+' <button class="herohow" data-sheet="leftcalc" aria-label="How is this worked out?"><span class="hl">How is this worked out?</span><span class="hs">How?</span> ›</button></div><div class="bigrow"><div class="big f"'+(HIDE?'':' data-count="'+Math.round(B.bank)+'" data-key="bank"')+'>'+bankAmt(gbp,B.bank)+'</div><div class="inr f">≈ '+(HIDE?'₹••••':rs(B.bank))+'</div></div>'+
     '<div class="sub">'+(B.estimated?'Using your estimated pay. <button class="herolink" data-monthin="'+mKey()+'">Add the salary you got</button>':'Money in this month '+gbp(B.moneyIn))+'</div>'+
     '<div class="flow">'+segs.map(function(x){return '<div data-w="'+pct(x[1],inTot).toFixed(1)+'" style="width:'+pct(x[1],inTot).toFixed(1)+'%;background:var('+x[2]+')"></div>';}).join('')+'</div>'+
     '<div class="key k4">'+segs.map(function(x,i){var hid=HIDE&&i===3;return '<span style="--c:var('+x[2]+')">'+x[0]+'<b>'+(hid?'£••••':gbp(x[1]))+'</b><small>'+(hid?'₹••••':rs(x[1]))+'</small></span>';}).join('')+'</div>'+
@@ -1735,20 +1757,21 @@ function debtsCard(cty){var L=debtsOf(cty),money=cty==='in'?inr:gbp,tot=sum(L.ma
   var add=cty==='uk'?'<button class="btn sm" data-ukdebt="new">+ Add a debt</button>':'<button class="btn sm" data-sheet="indebts">+ Add a loan</button>';
   return '<section class="card debts"><div class="row-b"><h3>Debts '+(cty==='uk'?'in the UK':'in India')+'</h3>'+add+'</div>'+(L.length?'<div class="list">'+rows+'</div><div class="row-b small" style="margin-top:8px"><span class="soft">Total owed, paying '+money(pay)+' a month</span><b>'+money(tot)+'</b></div>':'<p class="small soft" style="margin:6px 0 0">'+(cty==='uk'?'No UK debts. Add credit cards, car finance, overdrafts or buy-now-pay-later so they count against your net worth and your monthly bills.':'No loans in India. Add home, car, personal or card debt so they count against your net worth.')+'</p>')+'</section>';}
 function vWealth(){loadWealthPx();refreshLinked();if(!MKT)loadMarket().then(function(){if(tab==='wealth'&&!sheetFn){var y=(document.getElementById('main')||{}).scrollTop;render();var m=document.getElementById('main');if(m)m.scrollTop=y;}}).catch(function(){});var W=worth(),fx=fxNow(),fr=pxFresh(),H=holdings();
-  var h='<section class="card whero"><div class="small soft">Your net worth</div><div class="bigrow"><div class="big f">'+gbp(W.net)+'</div><div class="inr f">≈ '+inr(W.net*fx)+'</div></div>'+
+  var empty=!H.length&&!W.debts,h=empty?'':'<section class="card whero"><div class="small soft">Your net worth</div><div class="bigrow"><div class="big f">'+gbp(W.net)+'</div><div class="inr f">≈ '+inr(W.net*fx)+'</div></div>'+
     '<div class="small">'+gbp(W.assets)+' invested and saved, minus '+gbp(W.debts)+' owed'+(W.day!=null?'. Today '+chgTag(W.day,null,gbp,''):'')+'</div>'+
     '<div class="wsplit"><button class="wcty" data-tab="wuk"><span class="small soft">🇬🇧 UK</span><b class="f">'+gbp(W.ukA-W.ukD)+'</b><small class="soft">'+gbp(W.ukA)+' owned'+(W.ukD?', '+gbp(W.ukD)+' owed':'')+'</small></button><button class="wcty" data-tab="win"><span class="small soft">🇮🇳 India</span><b class="f">'+inr(W.inA-W.inD*fx)+'</b><small class="soft">≈ '+gbp(W.inAg-W.inD)+(W.inD?', '+inr(W.inD*fx)+' owed':'')+'</small></button></div>'+
     '<div class="wbar" aria-hidden="true"><i style="width:'+(W.assets>0?W.ukA/W.assets*100:50).toFixed(1)+'%;background:#0C7F60"></i><i style="flex:1;background:var(--marigold)"></i></div>'+
     '<p class="small soft" style="margin:8px 0 0">'+(W.linked?'Live prices for '+W.linked+' investment'+(W.linked>1?'s':'')+(fr?', last price '+new Date(fr+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'')+'. Indian funds update daily, UK ETFs and NSE shares every few hours.':'Add your fund, ETF or share names to get live prices.')+'</p></section>';
-  h+=moodCard();
   h+=typeTiles();
-  h+='<section class="card wchartcard"><div class="row-b"><h3>Growth over time</h3><span class="small soft">in £, at today’s rate</span></div>'+lineChart(wealthSeries())+'</section>';
+  if(empty)h+='<div class="wctylinks"><button class="link" data-tab="wuk">🇬🇧 UK details and debts ›</button><button class="link" data-tab="win">🇮🇳 India details and debts ›</button></div>';
+  if(H.length)h+='<section class="card wchartcard"><div class="row-b"><h3>Growth over time</h3><button class="link" data-tab="wgrow">More detail ›</button></div>'+lineChart(wealthSeries())+'</section>';
   var un=S.items.filter(function(x){return isInv(x)&&!x.hid&&x.date>=startDay();});
   if(un.length&&H.length)h+='<section class="card wlink"><div class="grow"><b>'+gbp(sum(un.map(function(x){return x.amt;})))+' logged in Spending</b><span class="small soft">'+un.length+' investment'+(un.length>1?'s':'')+' not yet added to a holding</span></div><button class="btn sm go" data-hassign>Add to a holding</button></section>';
+  h+=moodCard();
   h+='<p class="fine">Values you enter yourself only change when you update them. Past growth doesn’t guarantee future returns.</p>';
   return h;}
 function vCountry(cty){loadWealthPx();refreshLinked();var W=worth(),fx=fxNow(),money=cty==='in'?inr:gbp,own=cty==='in'?W.inA:W.ukA,owe=cty==='in'?W.inD*fx:W.ukD;
-  var h='<section class="card whero"><div class="small soft">'+(cty==='in'?'🇮🇳 Your net worth in India':'🇬🇧 Your net worth in the UK')+'</div><div class="bigrow"><div class="big f">'+money(own-owe)+'</div>'+(cty==='in'?'<div class="inr f">≈ '+gbp((own-owe)/fx)+'</div>':'<div class="inr f">≈ '+inr((own-owe)*fx)+'</div>')+'</div><div class="small">'+money(own)+' owned, '+money(owe)+' owed</div></section>';
+  var h='<button class="link wback" data-tab="wport">‹ All investments</button><section class="card whero"><div class="small soft">'+(cty==='in'?'🇮🇳 Your net worth in India':'🇬🇧 Your net worth in the UK')+'</div><div class="bigrow"><div class="big f">'+money(own-owe)+'</div>'+(cty==='in'?'<div class="inr f">≈ '+gbp((own-owe)/fx)+'</div>':'<div class="inr f">≈ '+inr((own-owe)*fx)+'</div>')+'</div><div class="small">'+money(own)+' owned, '+money(owe)+' owed</div></section>';
   h+=typeTiles(cty)+debtsCard(cty);
   h+='<section class="card wchartcard"><div class="row-b"><h3>Growth over time</h3><span class="small soft">in £, at today’s rate</span></div>'+lineChart(wealthSeries(function(x){return x.cty===cty;}))+'</section>';
   return h;}
@@ -1854,8 +1877,8 @@ function vGoalsOld(){
       '<div class="bar" style="--cc:var(--marigold)"><div data-w="'+hp.toFixed(1)+'" style="width:'+hp.toFixed(1)+'%"></div></div><p class="gp">'+(hc.need>0?'Save about <b>'+gbp(hc.need/fx)+' a month</b> for it.'+tip('hl','A home loan for part of it, or buying a bit later, makes this smaller.',true):'You’re on track for your home.')+' <span class="soft">'+Math.round(hp)+'% of the way</span></p>'+fundRow('home')+'</section>';}
   if(!h)h='<section class="card goal">'+ILL.house+'<h3>What are you saving for?</h3><p class="gp soft" style="padding-right:70px">Add when you’d like to retire, or a home in India. Setu will show how much to save each month.</p></section>';
   if((h.match(/class="card goal"/g)||[]).length===1)h=h.replace('class="card goal"','class="card goal solo"');
-  h=top+goalCheck()+h+extraCard(lt)+goalsSection();
-  h+='<div class="acts"><button class="btn go" data-sheet="goals">Change goals</button></div><p class="fine">We assume prices in India rise 6% a year. Growth depends on the fund type you choose.</p>';
+  h=goalCheck()+h+extraCard(lt)+goalsSection();
+  h+='<div class="acts"><button class="btn go" data-sheet="goals">Change goals</button></div><p class="fine">We assume prices in India rise 6% a year. Growth depends on the fund type you choose.</p>'+top;
   return h;
 }
 
@@ -2342,7 +2365,7 @@ function fiLevels(R){var c=R.c,m=R.money;return '<div class="filv">'+[['Lean',0.
   return '<div><span class="small soft">'+x[0]+' freedom</span><b class="f">'+(r.hit===0?'Now':r.hit!=null?'Age '+Math.floor(r.fiAge):'50+ yrs')+'</b><small>'+m(c.spend*x[1])+' a month · needs '+m(r.target)+'</small><small class="soft">'+x[2]+'</small></div>';}).join('')+'</div>';}
 function fiSlider(k,label,v,min,max,step,fmt){return '<label class="field fisl"><span>'+label+' <b id="fiv-'+k+'">'+fmt(v)+'</b></span><input type="range" data-fi="'+k+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+v+'" aria-label="'+esc(label)+'"></label>';}
 var FI_FMT={extra:function(v){return '+'+gbp(v)+' a month';},step:function(v){return v+'% a year';},ret:function(v){return (+v).toFixed(1)+'% a year';},inf:function(v){return (+v).toFixed(1)+'% a year';},wd:function(v){return (+v).toFixed(2)+'%';},spend:function(v){return (S.fi&&S.fi.where==='uk'?gbp:inr)(+v)+' a month';}};
-function vFree(){applyAuto();refreshLinked();var R=fiCalc(),c=R.c,sp=c.where==='in'?[20000,500000,5000]:[500,10000,50];
+function vFree(){applyAuto();refreshLinked();markSeen('v-free');var R=fiCalc(),c=R.c,sp=c.where==='in'?[20000,500000,5000]:[500,10000,50];
   var h='<section class="card whero fihero" id="fihero">'+fiHero(R)+'</section>';
   h+='<section class="card wchartcard"><div class="row-b"><h3>Your path to freedom</h3><span class="small soft">in today’s money</span></div><div id="fichart">'+fiChart(R)+'</div><p class="small soft" style="margin:4px 0 0">Using '+(autoMonthly().fi>0?'your Autopilot investments':'the long-term amount from your plan')+'. Returns shown after '+c.inf+'% inflation.</p></section>';
   h+='<section class="card fiset"><div class="row-b"><h3>What if…</h3><button class="link" data-fireset>Reset</button></div>'+
@@ -2378,7 +2401,7 @@ function monthRows(){var t=today(),out=[],first=null;holdings().forEach(function
 function growthProj(mGBP,now,ret,step){var rows=[],mr=Math.pow(1+ret/100,1/12)-1,v=now,put=now,k=mGBP,cross=null;
   for(var m=1;m<=360;m++){var g=v*mr;if(cross===null&&k>0&&g>=k)cross=m;v=v+g+k;put+=k;if(m%12===0)k*=1+step/100;if([60,120,180,240,300].indexOf(m)>=0)rows.push({y:m/12,v:v,put:put});}return {rows:rows,cross:cross};}
 var MILES=[10000,25000,50000,100000,250000,500000,1000000];
-function vGrowth(){loadWealthPx();applyAuto();refreshLinked();var Sx=growthSeries(),W=worth(),fx=fxNow(),pd=Sx.length?Sx[Sx.length-1].paid:0,val=W.assets,gain=val-pd,fc=fiCfg(),a=autoMonthly(),mG=a.gbp>0?a.gbp:planLT()+(+(S.profile||{}).sip||0)/fx;
+function vGrowth(){loadWealthPx();applyAuto();refreshLinked();if(!holdings().length)return '<section class="card wempty2"><h3>Nothing to grow yet</h3><p class="small soft">Add the investments and savings you already have. Then this page shows what you put in, what it’s worth, and how it grows each month.</p><div class="acts"><button class="btn go" data-sheet2="haddpick">+ Add an investment</button></div></section>';var Sx=growthSeries(),W=worth(),fx=fxNow(),pd=Sx.length?Sx[Sx.length-1].paid:0,val=W.assets,gain=val-pd,fc=fiCfg(),a=autoMonthly(),mG=a.gbp>0?a.gbp:planLT()+(+(S.profile||{}).sip||0)/fx;
   var fl=[];holdings().filter(hLinked).forEach(function(h){var conv=function(v){return h.cty==='in'?v/fx:v;},c=hCalc(h);if(!c.last)return;if(h.hold&&h.hold.units)fl.push([h.hold.d,-conv(h.hold.value)]);(h.tx||[]).forEach(function(t){if(t.units)fl.push([t.d,-conv(t.amt)]);});fl.push([c.last[0],conv(c.value)]);});
   fl.sort(function(x,y){return x[0]<y[0]?-1:1;});var xr=null;if(fl.length>2){var tot={};fl.forEach(function(x){tot[x[0]]=(tot[x[0]]||0)+x[1];});xr=xirr(Object.keys(tot).sort().map(function(k){return [k,tot[k]];}));}
   var mc=month().ukCosts||1,pass=val*fc.wd/100/12;
@@ -2467,6 +2490,56 @@ document.addEventListener('click',function(e){var t=e.target.closest&&e.target.c
 });
 document.addEventListener('input',function(e){var el=e.target;if(!el||!el.dataset||!el.dataset.fi)return;var k=el.dataset.fi,v=+el.value;fiSet(k,v);var lab=document.getElementById('fiv-'+k);if(lab)lab.textContent=FI_FMT[k](v);fiRefresh();});
 document.addEventListener('change',function(e){if(e.target&&e.target.dataset&&e.target.dataset.fi)save();});
+
+/* =====================================================================
+   Easy mode: a guided Home, one-tap shortcuts, and a plain intro on every section
+   ===================================================================== */
+function seen(k){return !!((S.seen||{})[k]);}
+function markSeen(k){if(!S.seen||typeof S.seen!=='object')S.seen={};if(!S.seen[k]){S.seen[k]=1;save();}}
+/* [title, what it is, action label, action attributes] */
+var GUIDE={
+  insights:['Where your money goes','Your spending by category and week, and simple ways to keep more of it each month.',null,''],
+  wport:['Everything you own, in one place','Add your ISA, pension and savings in the UK, and mutual funds, shares, EPF, PPF or FDs in India. Funds and shares get live prices, so you can watch them move.','+ Add an investment','data-sheet2="haddpick"'],
+  wgrow:['Watch your money grow','Compare what you put in with what it’s worth now, month by month, and see when you’ll reach milestones like £100,000.',null,''],
+  wauto:['Invest every month without thinking','Add each regular payment once: an ISA standing order, your pension, an Indian SIP. Setu records it on the day, so your investments grow here by themselves.','+ Add a monthly investment','data-apnew'],
+  goals:['Are you saving enough?','A live check of your emergency fund, a home in India and retirement, and where to put any extra money.','Set my goals','data-sheet="goals"'],
+  free:['When could you stop working?','Your freedom date is when your investments could pay for your life. Drag the sliders to see what brings it closer.',null,''],
+  stay:['Settling in the UK (ILR)','See when you can apply to settle, and add trips abroad so you stay under the 180-day limit.',null,'']
+};
+function guideCard(vk){var g=GUIDE[vk];if(!g||seen('g-'+vk))return '';
+  return '<section class="card guide" role="note" aria-label="About this page"><div class="gtxt"><b>'+esc(g[0])+'</b><span>'+esc(g[1])+'</span></div><div class="gacts">'+(g[2]?'<button class="btn sm go" '+g[3]+'>'+esc(g[2])+'</button>':'')+'<button class="link" data-gseen="'+vk+'">Got it</button></div></section>';}
+SHEETS_EXTRA.haddpick=function(){return {title:'Add an investment',body:'<p class="small soft">Where is it held?</p><div class="list">'+
+  '<button class="li" data-hadd="uk"><span class="flag" aria-hidden="true">🇬🇧</span><span class="grow"><b style="display:block;font-weight:700">In the UK</b><span class="small soft">ISA, pension, savings account, Premium Bonds, shares</span></span><span class="chev" aria-hidden="true">›</span></button>'+
+  '<button class="li" data-hadd="in"><span class="flag" aria-hidden="true">🇮🇳</span><span class="grow"><b style="display:block;font-weight:700">In India</b><span class="small soft">Mutual funds and SIPs, shares, EPF, PPF, NPS, FDs, gold</span></span><span class="chev" aria-hidden="true">›</span></button></div>'+
+  '<p class="fine">Rough values are fine. You can update them any time.</p>'};};
+/* the getting-started list on Home */
+function startSteps(){var H=holdings(),R=autoRules(),ss=syncOn()?sGet():null;
+  return [
+    {t:'Set up your money',x:'Pay, rent and bills',done:true},
+    {t:'Log your first spend',x:'Tap + any time. It takes 5 seconds.',done:(S.items||[]).some(function(i){return !isInv(i);}),a:'data-sheet="addspend"'},
+    {t:'Add what you’ve saved or invested',x:'ISA, pension, mutual funds, PPF…',done:H.some(function(h){return (+h.value||0)>0||hLinked(h);}),a:'data-sheet2="haddpick"'},
+    {t:'See when you could stop working',x:'Your financial freedom date',done:seen('v-free'),a:'data-tab="free"'},
+    {t:'Put monthly investing on Autopilot',x:'Set it once, then watch it grow',done:R.length>0||H.some(function(h){return h.sip;}),a:'data-tab="wauto"'},
+    {t:'Keep your data safe',x:syncOn()?'A free account, or a backup file':'Download a backup file',done:!!(ss&&ss.key)||!!S.lastBackup,a:syncOn()?'data-sheet="sync"':'data-sheet="backup"'}];}
+function startCard(){if(S.gsHide)return '';var L=startSteps(),dn=L.filter(function(x){return x.done;}).length;if(dn===L.length)return '';var next=L.find(function(x){return !x.done;});
+  return '<section class="card gstart"><div class="row-b"><h3>Get started</h3><span class="small soft">'+dn+' of '+L.length+' done</span></div><div class="gbar" aria-hidden="true"><i style="width:'+(dn/L.length*100).toFixed(0)+'%"></i></div>'+
+    '<div class="gsteps">'+L.map(function(x){var cur=x===next;return x.done?'<div class="gs done"><span class="gsi" aria-hidden="true">✓</span><span class="grow"><b>'+esc(x.t)+'</b></span><span class="sr">Done</span></div>':
+      '<button class="gs'+(cur?' cur':'')+'" '+x.a+'><span class="gsi" aria-hidden="true"></span><span class="grow"><b>'+esc(x.t)+'</b><span class="small soft">'+esc(x.x)+'</span></span>'+(cur?'<span class="btn sm go" aria-hidden="true">Start</span>':'<span class="chev" aria-hidden="true">›</span>')+'</button>';}).join('')+'</div>'+
+    '<button class="link gshide" data-gshide>Hide this list</button></section>';}
+/* one-tap shortcuts that also show where you stand */
+function jumpCard(){var W=worth(),fi=fiCalc(),a=autoMonthly(),dn=doneCount(TASKS),H=holdings();
+  var T=[
+    ['wealth','chart','Net worth',H.length?gbp(W.net):'Add yours','var(--teal)','data-tab="wealth"'],
+    ['free','sun','Free at',fi.hit===0?'Now':fi.hit!=null?'Age '+Math.floor(fi.fiAge):'Plan it','var(--mint)','data-tab="free"'],
+    ['wauto','clock','Autopilot',a.gbp>0?gbp(a.gbp)+'/mo':'Set up','var(--indigo)','data-tab="wauto"'],
+    ['goals','home','Goals','Check','var(--marigold)','data-tab="goals"'],
+    ['check','shield','Checklist',dn+' of '+TASKS.length,'var(--rani)','data-tab="check"'],
+    ['add','rupee','Investment','+ Add','var(--ink)','data-sheet2="haddpick"']];
+  return '<section class="card jump"><h3>Your money at a glance</h3><div class="jgrid">'+T.map(function(x){return '<button class="jt" '+x[5]+' style="--jc:'+x[4]+'"><i>'+gl(x[1])+'</i><span class="jl">'+x[2]+'</span><b class="f">'+esc(x[3])+'</b></button>';}).join('')+'</div></section>';}
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('button');if(!t)return;var d=t.dataset;
+  if(d.gseen){markSeen('g-'+d.gseen);var y=(document.getElementById('main')||{}).scrollTop;render();var m=document.getElementById('main');if(m)m.scrollTop=y;return;}
+  if(t.hasAttribute('data-gshide')){S.gsHide=1;save();render();toast('Hidden. Everything is still in the tabs below');return;}
+});
 
 /* ---------- events ---------- */
 document.addEventListener('click',function(e){

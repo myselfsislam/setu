@@ -14,6 +14,7 @@
 - Plans for retirement and a home back in India
 
 ## Features
+- **Easy to start:** a "Get started" list on Home walks new users through each feature in order, one-tap shortcuts show where you stand (net worth, freedom age, Autopilot, goals, checklist), and every section opens with a short plain-English intro and one clear next step
 - **Monthly money:** take-home pay (England, Wales, NI or Scotland, 2026/27 rates), costs, India payments and what's left, in pounds and rupees
 - **Spending:** quick logging, budgets by category, spending-pace warning, month-end forecast, repeating costs, search and filter, CSV export
 - **Checklist:** first 90 days in the UK and India, with dates from your move

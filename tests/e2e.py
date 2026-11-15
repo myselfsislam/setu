@@ -9,6 +9,7 @@ URL=f'http://localhost:{PORT}/'
 R=[]
 PAR={'insights':'spend','spend':'spend','wealth':'wealth','wuk':'wealth','win':'wealth','goals':'plan','check':'plan','stay':'plan','plan':'plan','home':'home'}
 def go(pg,t):
+    pg.wait_for_selector('[data-tab="home"]:visible',timeout=8000)  # wait for the app to render, not a fixed sleep
     if pg.locator(f'[data-tab="{t}"]:visible').count()==0:
         pg.locator('[data-tab="%s"]:visible'%PAR.get(t,t)).first.click();pg.wait_for_timeout(150)
     pg.locator(f'[data-tab="{t}"]:visible').first.click()
@@ -162,7 +163,7 @@ try:
     check('Fund choice saved',pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile.retFund")=='n50')
     pg.click('[data-sheet="goals"]');pg.fill('[data-f="retireAge"]','55');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     check('Goals edit works','55' in pg.inner_text('main'))
-    check('Rates and pound-to-rupee are at the top of Goals',pg.evaluate("document.querySelector('main .subnav').nextElementSibling.className")=='gtop')
+    check('Goals lead with your goals; rates and the rupee sit below',pg.evaluate("(()=>{const m=document.querySelector('main'),k=[...m.children],g=m.querySelector('.gtop');return !!g&&k.indexOf(g)>k.indexOf(m.querySelector('.gcheck'))})()"))
     check('Goals has no sideways scroll',pg.evaluate('document.documentElement.scrollWidth-innerWidth')<=0)
     # --- Investments ---
     go(pg,'wealth');pg.wait_for_timeout(300)
@@ -207,6 +208,7 @@ try:
     pg.goto(URL)
     old={"v":1,"profile":{"name":"Old","age":33,"moved":"2026-07-26","household":"couple","salary":72000,"pension":5,"rent":1600,"bills":350,"everyday":900,"india":96389,"fx":129,"debt":"card","debtINR":25000,"invested":2600000,"savedUK":0,"efMonths":4,"retireAge":43,"retireSpend":75000,"homeOn":True,"homeCost":15000000,"homeYear":2031,"homeSaved":0,"inf":6,"ret":10,"wd":3.5},"checks":{},"items":[],"cats":None}
     pg.evaluate("s=>localStorage.setItem('setu-v1',s)",json.dumps(old));pg.reload();pg.wait_for_timeout(600)
+    pg.wait_for_selector('.hero',timeout=8000)
     check('Old data migrates without errors',pg.locator('.hero').count()==1 and not pe,pe[:2])
     ctx.close()
     # --- salary arrives early (pay day 25th falls on a weekend) ---
@@ -321,7 +323,7 @@ try:
     check('Insights shows the month and categories',pg.locator('.inshead svg.bars').count()==1 and pg.locator('.icrow').count()>=5 and 'Pret' in pg.text_content('.insplaces'))
     pg.click('.tabbar [data-tab="plan"]');pg.wait_for_timeout(300);pg.click('.subnav [data-tab="stay"]');pg.wait_for_timeout(300)
     check('Plan groups goals, freedom, the moving checklist and ILR',pg.locator('.ilrhero').count()==1 and pg.locator('.tabbar [data-tab="plan"][aria-current="page"]').count()==1 and pg.locator('.subnav button').count()==4 and not pe,pe[:2])
-    pg.click('.tabbar [data-tab="wealth"]');pg.wait_for_timeout(300);pg.click('.subnav [data-tab="wuk"]');pg.wait_for_timeout(300);pg.click('[data-ukdebt="new"]');pg.wait_for_timeout(200)
+    pg.click('.tabbar [data-tab="wealth"]');pg.wait_for_timeout(300);pg.locator('[data-tab="wuk"]:visible').first.click();pg.wait_for_timeout(300);pg.click('[data-ukdebt="new"]');pg.wait_for_timeout(200)
     pg.fill('[data-f="bal"]','640');pg.fill('[data-f="pay"]','80');pg.fill('[data-f="day"]','12');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     P5=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile")
     check('UK debts can be added and count in net worth',len(P5.get('ukDebts',[]))==1 and '£640' in pg.text_content('.debts') and '£640 owed' in pg.text_content('.whero'),pg.text_content('.whero'))

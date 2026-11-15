@@ -29,6 +29,26 @@ try:
     pg.fill('[data-k="savedUK"]','8000');pg.fill('[data-k="invested"]','500000');pg.click('[data-wz="next"]')
     pg.fill('[data-k="retireAge"]','50');pg.click('.foot [data-wz="finish"].go');pg.wait_for_timeout(800)
     check('Setup completes',pg.locator('.hero').count()==1)
+    # easy mode: guided Home
+    check('Home shows Get started with progress',pg.locator('.gstart').count()==1 and 'of 6 done' in pg.inner_text('.gstart'))
+    check('Home shows shortcuts to every area',pg.locator('.jump .jt').count()==6)
+    pg.locator('.jump [data-sheet2="haddpick"]').click();pg.wait_for_timeout(250)
+    check('Add investment shortcut asks UK or India',pg.locator('.sheet [data-hadd="uk"]').count()==1 and pg.locator('.sheet [data-hadd="in"]').count()==1)
+    pg.click('[data-close]');pg.wait_for_timeout(150)
+    pg.locator('.jump [data-tab="free"]').click();pg.wait_for_timeout(300)
+    check('Shortcut opens Freedom',pg.locator('#fihero').count()==1 and pg.locator('.guide').count()==1)
+    pg.click('[data-gseen="free"]');pg.wait_for_timeout(200)
+    check('Got it hides the page intro for good',pg.locator('.guide').count()==0 and state(pg)['seen'].get('g-free')==1)
+    pg.locator('[data-tab="home"]:visible').first.click();pg.wait_for_timeout(250)
+    check('Visiting Freedom ticks its Get started step','see when you could stop working' not in pg.inner_text('.gstart button.gs').lower() if pg.locator('.gstart button.gs').count() else True)
+    pg.click('[data-gshide]');pg.wait_for_timeout(200)
+    check('Get started can be hidden',pg.locator('.gstart').count()==0 and state(pg).get('gsHide')==1)
+    st=state(pg);keep=st.get('holdings');st['holdings']=[];pg.evaluate("s=>localStorage.setItem('setu-v1',JSON.stringify(s))",st);pg.reload();pg.wait_for_timeout(500)
+    pg.locator('[data-tab="wealth"]:visible').first.click();pg.wait_for_timeout(250)
+    check('Wealth has three simple tabs',pg.locator('.subnav button').count()==3)
+    check('Empty Wealth leads with what to do',pg.locator('main .guide').count()==1 and pg.locator('main .whero').count()==0 and pg.locator('.wctylinks [data-tab="wuk"]').count()==1)
+    pg.locator('.wctylinks [data-tab="wuk"]').click();pg.wait_for_timeout(250)
+    check('UK view has a way back and keeps Portfolio selected',pg.locator('.wback').count()==1 and pg.locator('.subnav [data-tab="wport"][aria-selected="true"]').count()==1)
     # seed a manual UK ISA holding so rules have a target
     st=state(pg);t0=(date.today()-timedelta(days=200)).isoformat()
     st['holdings']=[{'id':'isa1','name':'Global ISA','cty':'uk','type':'isa','value':10000,'paid':9000,'hist':[[t0,9000],[date.today().isoformat(),10000]]},
@@ -104,7 +124,7 @@ try:
     check('Growth projection table',pg.locator('.gtbl').count()>=1 and '10 years' in g)
     check('Growth: no horizontal overflow (phone)',overflow(pg)<=0,overflow(pg))
     # sync carries the new data
-    check('Sync keys include Autopilot and Freedom',pg.evaluate("document.documentElement.innerHTML.indexOf(\"'autoRules','fi']\")>0"))
+    check('Sync keys include Autopilot and Freedom',pg.evaluate("document.documentElement.innerHTML.indexOf(\"'autoRules','fi','seen','gsHide']\")>0"))
     # desktop
     pg.set_viewport_size({'width':1366,'height':900});pg.wait_for_timeout(300)
     for parent,sub in [('plan','free'),('wealth','wauto'),('wealth','wgrow')]:
