@@ -794,6 +794,7 @@ h3{font-size:17px;line-height:1.25}.ptitle{font-size:24px}.phd h1{font-size:30px
 .flag{font-size:22px;flex-shrink:0}
 .wback{align-self:flex-start;padding:2px 0}.wctylinks{display:flex;gap:16px;flex-wrap:wrap;padding:0 4px}@media (min-width:880px){.v-wealth .wctylinks{grid-column:1/-1}}
 @media (min-width:880px){main>.guide,.v-home .gstart,.v-home .jump,main>.wback,.v-wealth .wempty2{grid-column:1/-1}.jgrid{grid-template-columns:repeat(6,minmax(0,1fr))}.v-home .gsteps{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}.v-home .gsteps .gs:nth-child(2){border-top:0}}
+.impbtn{display:block;text-align:center;margin:12px 0 4px}.implist{max-height:46vh;overflow:auto;margin-top:10px}.impli{background:var(--t-indigo);border-radius:16px;padding:12px!important;width:100%}
 </style>
 </head>
 <body>
@@ -1634,7 +1635,7 @@ function pxBefore(k,d){var P=pxPts(k),v=null;for(var i=0;i<P.length;i++){if(P[i]
 function pxLast(k){var P=pxPts(k);return P.length?P[P.length-1]:null;}
 function thin(pts){var cut=isoD(new Date(Date.now()-120*864e5)),out=[],lastW='';pts.forEach(function(x){if(x[0]>=cut){out.push(x);return;}var d=new Date(x[0]+'T12:00'),w=d.getFullYear()+'-'+Math.floor((d-new Date(d.getFullYear(),0,1))/6048e5);if(w!==lastW){out.push(x);lastW=w;}});return out.slice(-700);}
 function loadMFpx(code,force){var k='mf:'+code,o=S.px[k];if(pxBusy[k]||(!force&&o&&Date.now()-o.at<12*36e5))return Promise.resolve(false);pxBusy[k]=1;
-  return fetchT('https://api.mfapi.in/mf/'+code,9000,{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){var pts=(j.data||[]).map(function(d){var a=String(d.date).split('-');return [a[2]+'-'+a[1]+'-'+a[0],+d.nav];}).filter(function(x){return x[1]>0&&/^\d{4}-\d{2}-\d{2}$/.test(x[0]);}).sort(function(a,b){return a[0]<b[0]?-1:1;});
+  var mu='https://api.mfapi.in/mf/'+code;return fetchT(mu,9000,{cache:'no-store'}).catch(function(){return fetchT(mfURLfresh(mu),9000,{cache:'no-store'});}).then(function(r){return r.json();}).then(function(j){var pts=(j.data||[]).map(function(d){var a=String(d.date).split('-');return [a[2]+'-'+a[1]+'-'+a[0],+d.nav];}).filter(function(x){return x[1]>0&&/^\d{4}-\d{2}-\d{2}$/.test(x[0]);}).sort(function(a,b){return a[0]<b[0]?-1:1;});
     if(pts.length<2)return false;S.px[k]={at:Date.now(),name:(j.meta&&j.meta.scheme_name)||'',cur:'INR',pts:thin(pts)};save();return true;}).catch(function(){return false;}).then(function(v){pxBusy[k]=0;return v;});}
 var MKT=null,mktP=null,STOCKS=[];
 function loadMarket(force){if(MKT&&!force)return Promise.resolve(MKT);if(mktP&&!force)return mktP;
@@ -1651,9 +1652,9 @@ function hKey(h){return h.src+':'+h.code;}
 function monthlyDates(start,day,end){var out=[],d=new Date(start+'T12:00');d.setDate(1);var e=end||today();while(true){var dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),dt=isoD(new Date(d.getFullYear(),d.getMonth(),Math.min(day,dim),12));if(dt>e)break;if(dt>=start)out.push(dt);d.setMonth(d.getMonth()+1);if(out.length>600)break;}return out;}
 /* keep monthly SIP purchases up to date */
 function extendSIP(h){if(!h.sip)return;monthlyDates(h.sip.start,h.sip.day,today()).forEach(function(dt){var id='sip-'+dt.slice(0,7);if(!h.tx.some(function(t){return t.id===id;}))h.tx.push({id:id,d:dt,amt:+h.sip.amt,sip:1});});h.tx.sort(function(a,b){return a.d<b.d?-1:1;});}
-function hCalc(h){if(!hLinked(h))return {value:+h.value||0,paid:+h.paid||0};extendSIP(h);var k=hKey(h),last=pxLast(k);if(!last)return {value:+h.value||0,paid:sum((h.tx||[]).map(function(t){return +t.amt||0;})),stale:true};
+function hCalc(h){if(!hLinked(h))return {value:+h.value||0,paid:+h.paid||0};extendSIP(h);var k=hKey(h),last=pxLast(k);if(!last)return {value:+h.value||0,paid:(h.hold?(+h.hold.paid||+h.hold.value||0):0)+sum((h.tx||[]).map(function(t){return +t.amt||0;})),stale:true};
   var units=0,paid=0;if(h.src==='stk'){if(h.hold){units+=+h.hold.units||0;paid+=+h.hold.paid||0;}(h.tx||[]).forEach(function(t){units+=+t.units||0;paid+=+t.amt||0;if(!t.px&&t.units)t.px=t.amt/t.units;});return {value:units*last[1],paid:paid||units*last[1],units:units,last:last};}
-  if(h.hold){var hp=pxOn(k,h.hold.d);if(hp){h.hold.units=h.hold.value/hp;units+=h.hold.units;paid+=+h.hold.paid||h.hold.value;}}
+  if(h.hold){var hp=pxOn(k,h.hold.d);if(hp){if(h.hold.known&&+h.hold.units>0)h.hold.value=h.hold.units*hp;else h.hold.units=h.hold.value/hp;units+=h.hold.units;paid+=+h.hold.paid||h.hold.value;}}
   (h.tx||[]).forEach(function(t){var pz=pxOn(k,t.d);if(pz&&t.d<=last[0]){t.px=pz;t.units=t.amt/pz;}if(t.units){units+=t.units;paid+=+t.amt;}});
   return {value:units*last[1],paid:paid,units:units,last:last};}
 function refreshLinked(){holdings().forEach(function(h){if(hLinked(h)){var c=hCalc(h);h.value=c.value;h.paid=c.paid;}else if(hRate(h)&&h.hist.length){h.value=valueOn(h,today());}});}
@@ -1914,9 +1915,9 @@ function mfMetrics(data){
 function loadFund(id){
   var f=FUNDS[id],t=today();if(!f||f.fixed||mfBusy[id]||mfTried[id]||(S.mf[id]&&S.mf[id].at===t))return;
   mfBusy[id]=true;mfTried[id]=true;
-  fetch('https://api.mfapi.in/mf/search?q='+encodeURIComponent(f.q)).then(function(r){return r.json();}).then(function(list){
+  getMF('https://api.mfapi.in/mf/search?q='+encodeURIComponent(f.q),9000).then(function(list){
     var pick=(list||[]).filter(function(x){var n=x.schemeName||'';return /direct/i.test(n)&&/growth/i.test(n)&&!/idcw|dividend|bonus/i.test(n);})[0]||(list||[])[0];
-    if(!pick)throw 0;return fetch('https://api.mfapi.in/mf/'+pick.schemeCode).then(function(r){return r.json();});
+    if(!pick)throw 0;return getMF('https://api.mfapi.in/mf/'+pick.schemeCode,12000);
   }).then(function(j){var m=mfMetrics(j.data||[]);if(!m)throw 0;m.at=t;m.src=(j.meta&&j.meta.scheme_name)||'';S.mf[id]=m;save();})
   .catch(function(){if(!S.mf[id]||S.mf[id].fail)S.mf[id]={fail:true,at:null};}).then(function(){mfBusy[id]=false;refreshSheet();refreshRail();});
 }
@@ -2006,6 +2007,9 @@ function newsTopics(){var p=S.profile||{},ids=[];[p.retFund,p.homeFund].forEach(
 S.news=S.news||{};var newsPrefetched=false,newsBusy=false,newsFail={},newsTriedAt=0,newsFileTried=false,newsFileFailed=false;
 function gdeltURL(terms,extra,span,n){return 'https://api.gdeltproject.org/api/v2/doc/doc?query='+encodeURIComponent('('+terms.join(' OR ')+') sourcelang:english'+(extra?' '+extra:''))+'&mode=artlist&maxrecords='+(n||20)+'&sort=datedesc&timespan='+(span||'3d')+'&format=json';}
 function fetchT(url,ms,opt){var c=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(c)c.abort();},ms||8000);return fetch(url,Object.assign({signal:c?c.signal:undefined},opt||{})).then(function(r){clearTimeout(tm);return r;},function(e){clearTimeout(tm);throw e;});}
+/* mfapi.in's CDN sometimes serves a cached copy without the CORS header, which the browser rejects; asking for a fresh copy fixes it */
+function mfURLfresh(u){return u+(u.indexOf('?')>=0?'&':'?')+'t='+Date.now();}
+function getMF(url,ms){return getJSON(url,ms).catch(function(){return getJSON(mfURLfresh(url),ms);});}
 function getJSON(url,ms){return fetchT(url,ms||9000,{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.text();}).then(function(t){return JSON.parse(t);});}
 function cleanArts(j){var seen={};return ((j&&j.articles)||[]).filter(function(a){var k=(a.title||'').toLowerCase().slice(0,60);if(!a.title||seen[k])return false;seen[k]=1;return true;}).map(function(a){return {t:a.title.replace(/\s+/g,' ').trim(),u:a.url,d:a.domain||'',at:a.seendate||''};});}
 var newsRaw=null;
@@ -2125,7 +2129,7 @@ var SHEETS_EXTRA=SHEETS_EXTRA||{};
 function setGroups(){var p=S.profile,pd=payDay(),sfx=function(n){return n===1||n===21||n===31?'st':n===2||n===22?'nd':n===3||n===23?'rd':'th';};
   return {money:{t:'Your money setup',rows:[['setup','Edit my setup','Pay, rent, loans and savings'],['payday','Your month starts on',pd===1?'1st of the month':pd+sfx(pd)+' of the month, your pay day'],['costs','Monthly costs','Rent, bills, India payments and loans'],['budgets','Spending budgets',gbp(sum(cats().map(function(c){return c.budget;})))+' a month across '+cats().length+' categories']]},
     rates:{t:'Rates and assumptions',rows:[['fx','Rupee rate',fxLabel()+'. Tap to refresh.'],['assume','How we do the maths',p.inf+'% India inflation, '+p.ret+'% growth, '+p.wd+'% withdrawal'],['transfer','Check a money transfer','See what your bank really charges to send money home']]},
-    data:{t:'Your data and devices',rows:[['backup','Back up your data',S.lastBackup?'Last backup '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago':'Not backed up yet'],['move','Use Setu on another device','Send your data with a secure link'],['csvall','Download all spending (CSV)','Open it in Excel or Google Sheets']].concat(canInstall()?[['install','Install Setu as an app','Works offline and keeps your data safer']]:[]).concat(IS_APP?[['applock',(S.lock?'✓ ':'')+'Lock with Face ID or fingerprint',S.lock?'On':'Off'],['remind',(S.remind?'✓ ':'')+'Monthly reminders',S.remind?'On':'Off']]:[]).concat([['reset','Start over','Delete everything on this device']])},
+    data:{t:'Your data and devices',rows:[['import','Import investments','From a statement file (.xlsx or .csv)'],['backup','Back up your data',S.lastBackup?'Last backup '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago':'Not backed up yet'],['move','Use Setu on another device','Send your data with a secure link'],['csvall','Download all spending (CSV)','Open it in Excel or Google Sheets']].concat(canInstall()?[['install','Install Setu as an app','Works offline and keeps your data safer']]:[]).concat(IS_APP?[['applock',(S.lock?'✓ ':'')+'Lock with Face ID or fingerprint',S.lock?'On':'Off'],['remind',(S.remind?'✓ ':'')+'Monthly reminders',S.remind?'On':'Off']]:[]).concat([['reset','Start over','Delete everything on this device']])},
     about:{t:'Help and about',rows:[['guides','Money guides','Checklist, take-home pay in rupees, NRO vs NRE'],['privacy','Privacy','What’s stored and where'],['terms','Terms of use','Guidance only, not advice'],['earn','How Setu makes money','Free, no ads, clearly labelled referrals'],['about','About Setu','What Setu is, and what it isn’t']].concat(MONEY_CFG.tipLink?[['tip','☕ Support Setu','Tip the maker if Setu helps you']]:[])}};}
 var SHEETS={
   indebts:function(){var p=S.profile;return {title:'Add a loan in India',body:'<div class="list">'+DEBTS.map(function(x){var v=(p.debts||{})[x[0]]||{},has=(+v.bal||0)+(+v.emi||0)>0;return '<button class="li" data-debt="'+x[0]+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(debtName(p,x[0]))+'</b><span class="small soft">'+esc(x[4])+'</span></span><span class="small">'+(has?'Edit':'+ Add')+'</span></button>';}).join('')+'</div>'};},
@@ -2508,7 +2512,7 @@ var GUIDE={
 };
 function guideCard(vk){var g=GUIDE[vk];if(!g||seen('g-'+vk))return '';
   return '<section class="card guide" role="note" aria-label="About this page"><div class="gtxt"><b>'+esc(g[0])+'</b><span>'+esc(g[1])+'</span></div><div class="gacts">'+(g[2]?'<button class="btn sm go" '+g[3]+'>'+esc(g[2])+'</button>':'')+'<button class="link" data-gseen="'+vk+'">Got it</button></div></section>';}
-SHEETS_EXTRA.haddpick=function(){return {title:'Add an investment',body:'<p class="small soft">Where is it held?</p><div class="list">'+
+SHEETS_EXTRA.haddpick=function(){return {title:'Add an investment',body:'<button class="li impli" data-impopen><span class="flag" aria-hidden="true">📄</span><span class="grow"><b style="display:block;font-weight:700">Import from a statement</b><span class="small soft">Add all your Indian mutual funds at once from a .xlsx or .csv holdings report</span></span><span class="chev" aria-hidden="true">›</span></button><p class="small soft" style="margin:12px 0 4px">Or add one at a time. Where is it held?</p><div class="list">'+
   '<button class="li" data-hadd="uk"><span class="flag" aria-hidden="true">🇬🇧</span><span class="grow"><b style="display:block;font-weight:700">In the UK</b><span class="small soft">ISA, pension, savings account, Premium Bonds, shares</span></span><span class="chev" aria-hidden="true">›</span></button>'+
   '<button class="li" data-hadd="in"><span class="flag" aria-hidden="true">🇮🇳</span><span class="grow"><b style="display:block;font-weight:700">In India</b><span class="small soft">Mutual funds and SIPs, shares, EPF, PPF, NPS, FDs, gold</span></span><span class="chev" aria-hidden="true">›</span></button></div>'+
   '<p class="fine">Rough values are fine. You can update them any time.</p>'};};
@@ -2541,6 +2545,89 @@ document.addEventListener('click',function(e){var t=e.target.closest&&e.target.c
   if(t.hasAttribute('data-gshide')){S.gsHide=1;save();render();toast('Hidden. Everything is still in the tabs below');return;}
 });
 
+/* =====================================================================
+   Import investments from a statement (.xlsx or .csv holdings report)
+   - read on this device only: the file is never uploaded
+   - each fund is matched to its live price by ISIN (mfapi.in), then added as a live holding
+   - re-importing a newer statement updates the same funds instead of adding them twice
+   ===================================================================== */
+var IMP={st:'idle'};
+/* minimal .xlsx reader: unzip with the browser's own DecompressionStream, then read the XML */
+function unzipEntries(buf){var dv=new DataView(buf),u8=new Uint8Array(buf),eocd=-1;
+  for(var i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-66000);i--){if(dv.getUint32(i,true)===0x06054b50){eocd=i;break;}}
+  if(eocd<0)throw new Error('notzip');var n=dv.getUint16(eocd+10,true),off=dv.getUint32(eocd+16,true),out={},td=new TextDecoder();
+  for(var k=0;k<n;k++){if(dv.getUint32(off,true)!==0x02014b50)break;var meth=dv.getUint16(off+10,true),csz=dv.getUint32(off+20,true),nl=dv.getUint16(off+28,true),el=dv.getUint16(off+30,true),cl=dv.getUint16(off+32,true),lo=dv.getUint32(off+42,true),name=td.decode(u8.subarray(off+46,off+46+nl));
+    var ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true);out[name]={m:meth,data:u8.subarray(ds,ds+csz)};off+=46+nl+el+cl;}
+  return out;}
+function unzipText(e){if(e.m===0)return Promise.resolve(new TextDecoder().decode(e.data));if(e.m!==8||typeof DecompressionStream==='undefined')return Promise.reject(new Error('unzip'));
+  return new Response(new Blob([e.data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();}
+function colNum(ref){var m=/^([A-Z]+)/.exec(ref||''),n=0;if(!m)return 0;for(var i=0;i<m[1].length;i++)n=n*26+m[1].charCodeAt(i)-64;return n-1;}
+function readXlsx(buf){var Z=unzipEntries(buf),sheets=Object.keys(Z).filter(function(k){return /^xl\/worksheets\/sheet\d+\.xml$/.test(k);}).sort();if(!sheets.length)throw new Error('nosheet');
+  var ss=Z['xl/sharedStrings.xml'];return Promise.all([ss?unzipText(ss):Promise.resolve(''),unzipText(Z[sheets[0]])]).then(function(r){var P=new DOMParser(),strs=[];
+    if(r[0]){var sd=P.parseFromString(r[0],'application/xml');[].forEach.call(sd.getElementsByTagName('si'),function(si){strs.push([].map.call(si.getElementsByTagName('t'),function(t){return t.textContent;}).join(''));});}
+    var sh=P.parseFromString(r[1],'application/xml'),rows=[];[].forEach.call(sh.getElementsByTagName('row'),function(rw){var row=[];[].forEach.call(rw.getElementsByTagName('c'),function(c){var t=c.getAttribute('t'),v=c.getElementsByTagName('v')[0],val='';
+        if(t==='s')val=strs[+(v&&v.textContent)]||'';else if(t==='inlineStr')val=[].map.call(c.getElementsByTagName('t'),function(x){return x.textContent;}).join('');else val=v?v.textContent:'';row[colNum(c.getAttribute('r'))]=val;});rows.push(row);});
+    return rows;});}
+function readCsv(text){return text.split(/\r?\n/).map(function(line){var out=[],cur='',q=false;for(var i=0;i<line.length;i++){var ch=line[i];if(q){if(ch==='"'&&line[i+1]==='"'){cur+='"';i++;}else if(ch==='"')q=false;else cur+=ch;}else if(ch==='"')q=true;else if(ch===','){out.push(cur);cur='';}else cur+=ch;}out.push(cur);return out;});}
+/* find the holdings table: a header row with ISIN and units */
+function parseHoldings(rows){var num=function(v){var x=parseFloat(String(v==null?'':v).replace(/[₹,\s]/g,''));return isFinite(x)?x:0;},hi=-1,H=null,asOf=null;
+  rows.forEach(function(r){var s=(r||[]).join(' ');var m=/as on\s*(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/i.exec(s);if(m&&!asOf)asOf=m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);});
+  for(var i=0;i<rows.length;i++){var r=(rows[i]||[]).map(function(x){return String(x==null?'':x).trim().toLowerCase();});var ci=r.findIndex(function(x){return /isin/.test(x);}),cu=r.findIndex(function(x){return /unit/.test(x);});
+    if(ci>=0&&cu>=0){hi=i;H={isin:ci,units:cu,name:r.findIndex(function(x){return /fund|scheme|security|name/.test(x)&&!/folio/.test(x);}),paid:r.findIndex(function(x){return /invest|cost|purchase|amount/.test(x);}),val:r.findIndex(function(x){return /current|market|valuation/.test(x)||(/value/.test(x)&&!/invest/.test(x));})};break;}}
+  if(!H)return {list:[],asOf:asOf};var by={},order=[];
+  for(var j=hi+1;j<rows.length;j++){var R=rows[j]||[],isin=String(R[H.isin]||'').trim().toUpperCase();if(!/^IN[A-Z0-9]{10}$/.test(isin))continue;var u=num(R[H.units]);if(!(u>0))continue;
+    var o=by[isin];if(!o){o=by[isin]={isin:isin,name:String(H.name>=0?R[H.name]:isin).trim(),units:0,paid:0,val:0,folios:0};order.push(isin);}o.units+=u;o.paid+=H.paid>=0?num(R[H.paid]):0;o.val+=H.val>=0?num(R[H.val]):0;o.folios++;}
+  return {list:order.map(function(k){return by[k];}),asOf:asOf};}
+/* match a fund to its live price by ISIN */
+function mfQ(n){return String(n).replace(/\b(direct|regular|plan|growth|option|fund)\b/gi,' ').replace(/[^A-Za-z0-9 ]/g,' ').split(/\s+/).filter(Boolean).slice(0,6).join(' ');}
+function isoFromDMY(s){var p=String(s||'').split('-');return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:null;}
+function mfFind(isin,name){var q=mfQ(name),terms=[q,q.split(' ').slice(0,4).join(' '),q.split(' ').slice(0,3).join(' '),q.split(' ').slice(0,2).join(' ')].filter(function(t,i,a){return t&&a.indexOf(t)===i;}),seenC={};
+  function check(C,j){if(j>=C.length)return Promise.resolve(null);var c=C[j];if(seenC[c.schemeCode])return check(C,j+1);seenC[c.schemeCode]=1;
+    return getMF('https://api.mfapi.in/mf/'+c.schemeCode+'/latest',9000).then(function(L){var m=(L&&L.meta)||{},d=(L&&L.data||[])[0];if(m.isin_growth===isin||m.isin_div_reinvestment===isin)return {code:String(c.schemeCode),scheme:m.scheme_name||c.schemeName,nav:d?+d.nav:null,date:d?isoFromDMY(d.date):null};return check(C,j+1);},function(){return check(C,j+1);});}
+  function term(i){if(i>=terms.length)return Promise.resolve(null);return getMF('https://api.mfapi.in/mf/search?q='+encodeURIComponent(terms[i]),9000).then(function(res){res=Array.isArray(res)?res:[];
+      var dg=res.filter(function(c){return /direct/i.test(c.schemeName)&&/growth/i.test(c.schemeName)&&!/idcw|dividend/i.test(c.schemeName);}),bare=res.filter(function(c){return !/regular|idcw|dividend|direct|growth|bonus/i.test(c.schemeName);});
+      var rest=res.filter(function(c){return dg.indexOf(c)<0&&bare.indexOf(c)<0&&!/regular|idcw|dividend|bonus|payout/i.test(c.schemeName);});/* every candidate is confirmed by ISIN, so checking a few more is safe */
+      return check(dg.concat(bare,rest).slice(0,16),0);},function(){return null;}).then(function(hit){return hit||term(i+1);});}
+  return term(0);}
+function impStart(file){IMP={st:'reading',name:file.name};refreshSheet();
+  var isCsv=/\.csv$/i.test(file.name)||/csv/.test(file.type);
+  (isCsv?file.text().then(readCsv):file.arrayBuffer().then(readXlsx)).then(function(rows){var P=parseHoldings(rows);if(!P.list.length)throw new Error('empty');
+    IMP={st:'matching',name:file.name,asOf:P.asOf,list:P.list,done:0};refreshSheet();var i=0;
+    function next(){if(i>=IMP.list.length)return Promise.resolve();var f=IMP.list[i++];return mfFind(f.isin,f.name).then(function(m){f.m=m;IMP.done++;refreshSheet();return next();});}
+    return Promise.all([next(),next()]).then(function(){var miss=IMP.list.filter(function(f){return !f.m;}),k=0;function again(){if(k>=miss.length)return Promise.resolve();var f=miss[k++];return mfFind(f.isin,f.name).then(function(m){f.m=m;return again();});}return again();});}).then(function(){if(IMP.st==='matching'){IMP.st='ready';refreshSheet();}}).catch(function(e){IMP={st:'error',msg:e&&e.message==='empty'?'No funds found. Use a holdings report or statement with ISIN and Units columns.':e&&e.message==='unzip'?'This browser can’t open .xlsx files. Save it as .csv and import that instead.':'That file couldn’t be read. Try a .xlsx or .csv holdings report.'};refreshSheet();});}
+function impExisting(f){return holdings().find(function(h){return h.cty==='in'&&((f.m&&h.src==='mf'&&String(h.code)===f.m.code)||h.isin===f.isin);});}
+function impApply(){var L=(IMP.list||[]),t=today(),added=0,upd=0,dd=L.filter(function(f){return f.m&&f.m.date;}).map(function(f){return f.m.date;}).sort(),d0=dd[0]||IMP.asOf||t;
+  L.forEach(function(f){var m=f.m,d=m?d0:(IMP.asOf||t),nav=m&&m.nav,val=nav?f.units*nav:(f.val||f.paid),paid=f.paid||val,ex=impExisting(f),goal=/liquid|overnight|money market|arbitrage/i.test(f.name)?'emergency':null;
+    var name=String((m&&m.scheme)||f.name).replace(/\s*-\s*(Direct|Regular)\s*Plan.*$/i,'').replace(/\s*-?\s*Direct.*$/i,'').trim().slice(0,60)||f.name;
+    if(ex){upd++;if(m&&ex.src==='mf'){ex.hold={d:d,value:val,paid:paid,units:f.units,known:1};ex.tx=(ex.tx||[]).filter(function(x){return x.d>d;});if(ex.sip&&ex.sip.start<=d){var nx=new Date(d+'T12:00');nx.setDate(nx.getDate()+1);ex.sip.start=isoD(nx);}}
+      else{ex.value=val;ex.paid=paid;ex.hist=(ex.hist||[]).filter(function(x){return x[0]!==d;});ex.hist.push([d,val]);ex.hist.sort(function(a,b){return a[0]<b[0]?-1:1;});}ex.isin=f.isin;return;}
+    added++;var h={id:uid(),name:name,cty:'in',type:'mf',isin:f.isin,tx:[],hist:[],value:val,paid:paid,imp:t};if(goal)h.goal=goal;
+    if(m){h.src='mf';h.code=m.code;h.hold={d:d,value:val,paid:paid,units:f.units,known:1};}else h.hist=[[d,val]];
+    holdings().push(h);});
+  S.lastImport={at:t,file:IMP.name,n:L.length};save();
+  var codes=L.filter(function(f){return f.m;}).map(function(f){return f.m.code;});IMP={st:'idle'};sheetFn=null;tab='wealth';SUB.wealth='wport';render();
+  toast('Imported '+L.length+' fund'+(L.length>1?'s':'')+(upd?' ('+upd+' updated)':''));
+  Promise.all(codes.map(function(c){return loadMFpx(c,true);})).then(function(){refreshLinked();save();if(tab==='wealth'&&!sheetFn)render();});}
+SHEETS_EXTRA.import=function(){var I=IMP,body='';
+  if(I.st==='idle'||I.st==='error')body='<p class="small">Import your Indian mutual funds from a statement, and Setu will track them with live prices every day.</p>'+
+    '<ol class="aproute small"><li>Download a <b>holdings report</b> (.xlsx or .csv) from your investing app, MF Central or CAMS.</li><li>Choose the file below.</li><li>Check the list, then tap Import.</li></ol>'+
+    (I.st==='error'?'<p class="recdiff bad" role="alert">'+esc(I.msg)+'</p>':'')+
+    '<label class="btn go impbtn" for="impfile">Choose a statement file</label><input type="file" id="impfile" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" class="sr">'+
+    '<p class="fine">The file is read on this device only and never uploaded. Setu looks up each fund’s price by its ISIN code; your name, PAN and folio numbers aren’t sent anywhere. Funds you already track are updated, not added twice.</p>';
+  else if(I.st==='reading')body='<p class="small" role="status">Reading '+esc(I.name)+'…</p>';
+  else{var L=I.list||[],fx=fxNow(),tot=0,pd=0;L.forEach(function(f){var v=f.m&&f.m.nav?f.units*f.m.nav:(f.val||f.paid);tot+=v;pd+=f.paid||v;});var miss=L.filter(function(f){return I.st==='ready'&&!f.m;}).length;
+    body=(I.st==='matching'?'<p class="small" role="status">Finding live prices… '+I.done+' of '+L.length+'</p><div class="gbar" aria-hidden="true"><i style="width:'+(I.done/L.length*100).toFixed(0)+'%"></i></div>':
+      '<div class="pgrid"><div><span>Funds</span><b>'+L.length+'</b><small>'+(L.length-miss)+' with live prices</small></div><div><span>Put in</span><b>'+inr(pd)+'</b></div><div><span>Worth now</span><b>'+inr(tot)+'</b><small>≈ '+gbp(tot/fx)+'</small></div><div><span>Gain</span><b class="'+(tot>=pd?'ok':'bad')+'">'+(tot>=pd?'+':'−')+inr(Math.abs(tot-pd))+'</b><small>'+(pd?((tot/pd-1)*100).toFixed(1)+'%':'')+'</small></div></div>')+
+      '<div class="list implist">'+L.map(function(f){var v=f.m&&f.m.nav?f.units*f.m.nav:(f.val||f.paid),ex=I.st==='ready'&&impExisting(f);return '<div class="li"><span class="grow"><b style="display:block;font-weight:700">'+esc(f.name)+'</b><span class="small soft">'+f.units.toFixed(3)+' units'+(f.folios>1?' · '+f.folios+' folios':'')+' · '+(f.m?'<span class="livebadge">Live</span>':I.st==='ready'?'value from statement':'…')+(ex?' · updates your existing one':'')+'</span></span><b class="f">'+inr(v)+'</b></div>';}).join('')+'</div>'+
+      (I.st==='ready'?(miss?'<p class="small soft">'+miss+' fund'+(miss>1?'s':'')+' couldn’t be matched to a live price. They’ll use the value from the statement, which you can update by hand.</p>':'')+'<div class="acts" style="margin-top:12px"><button class="btn go" data-impgo>Import '+L.length+' fund'+(L.length>1?'s':'')+'</button><button class="btn" data-impreset>Choose another file</button></div>':'');}
+  return {title:'Import investments',body:body};};
+document.addEventListener('change',function(e){if(e.target&&e.target.id==='impfile'&&e.target.files&&e.target.files[0])impStart(e.target.files[0]);});
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('button');if(!t)return;
+  if(t.hasAttribute('data-impgo')){impApply();return;}
+  if(t.hasAttribute('data-impreset')){IMP={st:'idle'};refreshSheet();return;}
+  if(t.hasAttribute('data-impopen')){IMP={st:'idle'};openSheet(function(){return SHEETS_EXTRA.import();});return;}
+});
+SHEETS.import=function(){return SHEETS_EXTRA.import();};
 /* ---------- events ---------- */
 document.addEventListener('click',function(e){
   if(railMode()==='overlay'&&!sheetFn&&e.target.closest&&!e.target.closest('#rail')&&!e.target.closest('.sheet-bg')){setRail(false);return;}
@@ -2568,7 +2655,7 @@ document.addEventListener('click',function(e){
     if(hn==='etf'){loadETFpx().then(function(){openSheet(function(){return SHEETS_EXTRA.etfpick();});});openSheet(function(){return SHEETS_EXTRA.etfpick();});return;}
     closeSheet();hForm(null,hn.split(':')[1]);return;}
   if(d.sheet2){var n2=d.sheet2;openSheet(function(){return SHEETS_EXTRA[n2]();});return;}
-  if(d.mftype){var ft=FUNDS[d.mftype];if(!ft)return;toast('Finding a '+ft.name.toLowerCase()+'…');fetchT('https://api.mfapi.in/mf/search?q='+encodeURIComponent(ft.q),8000).then(function(r){return r.json();}).then(function(L){var pick=(L||[]).filter(function(x){return /direct/i.test(x.schemeName)&&/growth/i.test(x.schemeName);})[0]||(L||[])[0];if(!pick)throw 0;
+  if(d.mftype){var ft=FUNDS[d.mftype];if(!ft)return;toast('Finding a '+ft.name.toLowerCase()+'…');getMF('https://api.mfapi.in/mf/search?q='+encodeURIComponent(ft.q),8000).then(function(L){var pick=(L||[]).filter(function(x){return /direct/i.test(x.schemeName)&&/growth/i.test(x.schemeName);})[0]||(L||[])[0];if(!pick)throw 0;
     var he2={id:uid(),name:ft.name.replace(' fund','')+' funds (estimated)',cty:'in',type:'mf',src:'mf',code:String(pick.schemeCode),est:pick.schemeName,tx:[],hist:[],value:0,paid:0};loadMFpx(he2.code);buyForm(he2,true);}).catch(function(){toast('Couldn’t reach fund prices. Try again in a moment');});return;}
   if(t.hasAttribute('data-hsplit')){S.splitFrom=t.dataset.hsplit;save();var hsx=holdings().find(function(x){return x.id===S.splitFrom;});if(hsx&&hsx.cty==='in'&&hsx.type==='shares'){openSheet(function(){return SHEETS_EXTRA.stksearch();});loadMarket().then(function(){var q1=document.getElementById('stq');if(q1)q1.focus();});return;}if(hsx&&hsx.cty==='uk'){loadETFpx().then(function(){if(sheetFn)refreshSheet();});openSheet(function(){return SHEETS_EXTRA.etfpick();});return;}openSheet(function(){return SHEETS_EXTRA.mfsearch();});setTimeout(function(){var q=document.getElementById('mfq');if(q)q.focus();},80);return;}
   if(d.stkpick){var sy=d.stkpick,nm0=(STOCKS.find(function(x){return x[0]===sy;})||[sy,sy])[1];stockPx(sy);var lp=pxLast('stk:'+sy);
@@ -2736,7 +2823,7 @@ document.addEventListener('input',function(e){if(!e.target||e.target.id!=='stq')
   var L=STOCKS.filter(function(x){return x[1].toLowerCase().indexOf(q)>=0||x[0].toLowerCase().indexOf(q)>=0;}).sort(function(a,b){var ai=a[0].toLowerCase()===q||a[1].toLowerCase().indexOf(q)===0?0:1,bi=b[0].toLowerCase()===q||b[1].toLowerCase().indexOf(q)===0?0:1;return ai-bi;}).slice(0,20);
   box.innerHTML=L.length?L.map(function(x){var o=((MKT||{}).stocks||{}).s||{},l=o[x[0]]&&o[x[0]].l;return '<button class="li" data-stkpick="'+esc(x[0])+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(x[1])+'</b><span class="small soft">NSE: '+esc(x[0])+(l?' · ₹'+(+l).toFixed(2):'')+'</span></span><span class="chev">›</span></button>';}).join(''):'<p class="small soft">'+(STOCKS.length?'No match in the Nifty 500. Try the NSE symbol, or add it as “other shares”.':'Share prices will appear after the next daily update.')+'</p>';});
 var mfT=null;document.addEventListener('input',function(e){if(!e.target||e.target.id!=='mfq')return;var q=e.target.value.trim(),box=document.getElementById('mfres');clearTimeout(mfT);if(q.length<3){if(box)box.innerHTML='';return;}
-  mfT=setTimeout(function(){if(box)box.innerHTML='<p class="small soft">Searching…</p>';fetchT('https://api.mfapi.in/mf/search?q='+encodeURIComponent(q),8000).then(function(r){return r.json();}).then(function(L){var b=document.getElementById('mfres');if(!b)return;L=(L||[]).slice(0,25);
+  mfT=setTimeout(function(){if(box)box.innerHTML='<p class="small soft">Searching…</p>';getMF('https://api.mfapi.in/mf/search?q='+encodeURIComponent(q),8000).then(function(L){var b=document.getElementById('mfres');if(!b)return;L=(L||[]).slice(0,25);
     L.sort(function(a,c){var s1=/direct/i.test(a.schemeName)&&/growth/i.test(a.schemeName)?0:1,s2=/direct/i.test(c.schemeName)&&/growth/i.test(c.schemeName)?0:1;return s1-s2;});
     b.innerHTML=L.length?L.map(function(x){return '<button class="li" data-mfpick="'+esc(String(x.schemeCode)+'|'+x.schemeName)+'"><span class="grow"><b style="display:block;font-weight:600;font-size:14px">'+esc(x.schemeName)+'</b></span><span class="chev">›</span></button>';}).join(''):'<p class="small soft">No funds found. Try a shorter name.</p>';}).catch(function(){var b=document.getElementById('mfres');if(b)b.innerHTML='<p class="small bad">Couldn’t search right now. Check your connection and try again.</p>';});},350);});
 document.addEventListener('input',function(e){if(e.target&&e.target.id==='sq'){spendQ=e.target.value;refreshTable();}if(e.target&&/^tf[AFR]$/.test(e.target.id))tfCalc();});
