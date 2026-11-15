@@ -18,6 +18,9 @@
 - **Spending:** quick logging, budgets by category, spending-pace warning, month-end forecast, repeating costs, search and filter, CSV export
 - **Checklist:** first 90 days in the UK and India, with dates from your move
 - **Goals:** retirement and a home in India, with fund types and their past performance
+- **Freedom:** your financial freedom date and age, freedom number, coast number, lean/comfortable/fat freedom, live "what if" sliders (extra investing, yearly step-up, growth, inflation, withdrawal rate) and what brings the date sooner; retire in India (₹) or stay in the UK (£)
+- **Growth:** what you put in vs what it's grown to, month-by-month growth, yearly return (XIRR), what your investments could pay you each month, milestones with expected dates, and a 5–25 year projection
+- **Autopilot:** monthly investment rules (standing order, payroll pension, SIP auto-debit, scheduled transfer, or a reminder) with yearly step-ups; automatic ones record themselves into your holdings on the date, reminders get a "Mark done"; suggestions from your plan, a payday routine, a calendar (.ics) file with monthly reminders, and how to set each one up for real. Setu never moves money.
 - **Live markets:** pound vs rupee, dollar and euro; Indian index moves; key UK and India rates
 - **News:** headlines about your chosen investments, plus UK and India tax and policy changes (wide screens)
 - **Email drafts:** ready-to-send emails (bank NRO/NRE, fund houses, lenders, council tax, payroll, HR) to copy into any email service
