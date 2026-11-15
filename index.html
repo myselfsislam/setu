@@ -758,6 +758,20 @@ h3{font-size:17px;line-height:1.25}.ptitle{font-size:24px}.phd h1{font-size:30px
 .setacct{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--bg);border-radius:16px;padding:12px;margin-bottom:12px;text-align:left;cursor:pointer;color:var(--ink)}.setacct b,.setrow b{display:block;font-weight:700}
 .setic{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:var(--t-indigo);color:var(--indigo)}.setic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.setrow{gap:12px}.setback{padding:0;min-height:28px;margin-bottom:4px}
 .eye{border:0;background:rgba(255,255,255,.16);color:#fff;width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;cursor:pointer;vertical-align:middle;margin-left:4px;padding:0}.eye svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.eye:hover{background:rgba(255,255,255,.26)}
+
+/* Freedom, Growth, Autopilot */
+.fihero .big{font-size:clamp(28px,8vw,40px);line-height:1.1;margin:4px 0}
+.fisl>span{display:flex;justify-content:space-between;gap:8px}.fisl>span b{color:var(--ink);font-weight:800}
+.fisl input[type=range]{padding:0;height:28px;background:none;border:0;accent-color:var(--indigo);cursor:pointer}
+.fil .li,.aprow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--rule)}.fil .li:first-child{border-top:0}
+.fir{flex-shrink:0;text-align:right;font-size:13.5px;max-width:48%}
+.filv{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}.filv>div{background:var(--bg);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:1px}.filv b{font-size:20px}.filv small{font-size:12px}
+@media (min-width:560px){.filv{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.tblwrap{overflow-x:auto;margin-top:6px}
+.gtbl{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}.gtbl th,.gtbl td{padding:7px 6px;text-align:right;border-top:1px solid var(--rule);white-space:nowrap}.gtbl thead th{border-top:0;font-size:11.5px;color:var(--soft);font-weight:700}.gtbl th:first-child{text-align:left;font-weight:700}
+.apbtns{display:flex;align-items:center;gap:8px;flex-shrink:0}.aprow .grow b{display:block;font-weight:700}
+.aproute{margin:8px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+@media (min-width:880px){.v-free .fihero,.v-free .wchartcard,.v-free .wlink,.v-free .fine,.v-wauto .apmon,.v-wgrow .gmon{grid-column:1/-1}.v-free .fiset,.v-wauto .aprules,.v-wauto .apsug{align-self:start}}
 </style>
 </head>
 <body>
@@ -874,7 +888,7 @@ function makeMoveLink(){var code=String(Math.floor(100000+Math.random()*900000))
 function openMoveLink(frag,code){var parts=frag.split('.');if(parts.length!==4)return Promise.reject('bad');var z=parts[0]==='1',salt=ub64u(parts[1]),iv=ub64u(parts[2]),ct=ub64u(parts[3]);
   return moveKey(code,salt).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);}).then(function(pt){return z?zip(new Uint8Array(pt),true):new Uint8Array(pt);}).then(function(b){var o=JSON.parse(new TextDecoder().decode(b));if(!o||o.v!==1||!o.profile)throw 'bad';return o;});}
 /* ================= Sync: email sign-in + end-to-end encryption (Supabase stores only encrypted data) ================= */
-var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','credits','startDate','splitFrom','ilr','rebDis','rebHDis'];
+var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','credits','startDate','splitFrom','ilr','rebDis','rebHDis','autoRules','fi'];
 var SKEY='setu-sync',SBASE='setu-sync-base';
 function syncOn(){return !!(SYNC_CFG.url&&SYNC_CFG.anon);}
 function sGet(){try{return JSON.parse(localStorage.getItem(SKEY)||'null');}catch(e){return null;}}
@@ -1168,8 +1182,8 @@ var LOGO='<svg viewBox="0 0 40 40" role="img" aria-label="Setu logo"><path d="M9
 var ICON={home:'<path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/>',check:'<circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><path d="M5 16.5C5 11 19 13 19 7.5" stroke-dasharray="0.1 3.4" stroke-width="2.4"/>',spend:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/>',goals:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',wealth:'<path d="M4 19h16"/><path d="M6 15l4-4 3 3 6-7"/><path d="M15 7h4v4"/>',plan:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',insights:'<path d="M5 20V12"/><path d="M12 20V5"/><path d="M19 20v-6"/>',more:'<circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/>',stay:'<rect x="5" y="3" width="14" height="18" rx="2.5"/><circle cx="12" cy="10" r="3"/><path d="M9 17h6"/>'};
 var TABS=[['home','Home'],['spend','Spending'],['wealth','Wealth'],['plan','Plan']];
 /* each area has a few views, picked with the switch at the top of the page */
-var SUBS={spend:[['slog','Log'],['insights','Insights']],wealth:[['wport','Portfolio'],['wuk','UK'],['win','India']],plan:[['goals','Goals'],['check','Moving checklist'],['stay','ILR']]};
-var SUB={spend:'slog',wealth:'wport',plan:'goals'},PARENT={slog:'spend',wport:'wealth',insights:'spend',wuk:'wealth',win:'wealth',goals:'plan',check:'plan',stay:'plan',more:'home'};
+var SUBS={spend:[['slog','Log'],['insights','Insights']],wealth:[['wport','Portfolio'],['wgrow','Growth'],['wauto','Autopilot'],['wuk','UK'],['win','India']],plan:[['goals','Goals'],['free','Freedom'],['check','Moving checklist'],['stay','ILR']]};
+var SUB={spend:'slog',wealth:'wport',plan:'goals'},PARENT={slog:'spend',wport:'wealth',insights:'spend',wuk:'wealth',win:'wealth',wgrow:'wealth',wauto:'wealth',free:'plan',goals:'plan',check:'plan',stay:'plan',more:'home'};
 function normTab(){if(PARENT[tab]){var pa=PARENT[tab];if(pa!=='home')SUB[pa]=tab;tab=pa;}}
 function viewKey(){return SUBS[tab]?SUB[tab]:tab;}
 function inMore(t){return false;}
@@ -1192,12 +1206,12 @@ var ILL={
 function greet(){var h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening';}
 function whenTxt(){var d=daysSince(S.profile.moved);return d<0?'You move in '+(-d)+' day'+(d===-1?'':'s'):'Day '+(d+1)+' in the UK';}
 function pageHead(){var p=S.profile;
-  var vk0=viewKey(),T={spend:'Spending',wealth:'Wealth',plan:'Plan'}[tab];var r=({home:[greet()+(p.name?', '+p.name:''),whenTxt()],check:['Your first 90 days','NRE, NRO, tax and the other things to sort out after moving'],spend:['Spending',mLabel(viewMonth||mKey())],goals:['Goals','Live check of the home, retirement and savings you’re aiming for'],wealth:['Your investments','Everything you own and owe, in the UK and India'],wport:['Wealth','Everything you own and owe, in the UK and India'],slog:['Spending',mLabel(viewMonth||mKey())],wuk:['UK','Investments and debts in the UK'],win:['India','Investments and debts in India'],stay:['ILR and time away','Your path to settlement and the 180-day limit'],insights:['Insights','Where your money goes, and how to keep more of it']})[vk0]||['',''];if(T)r=[T,r[1]];return r;}
+  var vk0=viewKey(),T={spend:'Spending',wealth:'Wealth',plan:'Plan'}[tab];var r=({home:[greet()+(p.name?', '+p.name:''),whenTxt()],check:['Your first 90 days','NRE, NRO, tax and the other things to sort out after moving'],spend:['Spending',mLabel(viewMonth||mKey())],goals:['Goals','Live check of the home, retirement and savings you’re aiming for'],wealth:['Your investments','Everything you own and owe, in the UK and India'],wport:['Wealth','Everything you own and owe, in the UK and India'],slog:['Spending',mLabel(viewMonth||mKey())],wuk:['UK','Investments and debts in the UK'],win:['India','Investments and debts in India'],free:['Freedom','When your investments can pay for the life you want'],wgrow:['Growth','What you put in, and what it has grown to'],wauto:['Autopilot','Monthly investments that record themselves'],stay:['ILR and time away','Your path to settlement and the 180-day limit'],insights:['Insights','Where your money goes, and how to keep more of it']})[vk0]||['',''];if(T)r=[T,r[1]];return r;}
 var lastTab=null,lastTicked=null,countFrom={};
 function render(){_sd=null;
   var app=document.getElementById('app'),anim=sheetAnim;sheetAnim=false;var sh0=document.querySelector('.sheet'),shTop=sh0&&sheetFn?sh0.scrollTop:0;
   if(!S.profile||wz){app.innerHTML='<div class="wzshell"><div class="wzcard">'+vWizard()+'</div></div>'+(sheetFn?sheetHTML(anim):'');bindWizard();bindSheet();return;}
-  normTab();var V={home:vHome,check:vCheck,spend:vSpend,wealth:vWealth,goals:vGoals,stay:vStay,insights:vInsights,slog:vSpend,wport:vWealth,wuk:function(){return vCountry('uk');},win:function(){return vCountry('in');}};var vk=viewKey();if(!V[vk]){tab='home';vk='home';}
+  normTab();var V={home:vHome,check:vCheck,spend:vSpend,wealth:vWealth,goals:vGoals,stay:vStay,insights:vInsights,slog:vSpend,wport:vWealth,wuk:function(){return vCountry('uk');},win:function(){return vCountry('in');},wgrow:vGrowth,wauto:vAuto,free:vFree};var vk=viewKey();if(!V[vk]){tab='home';vk='home';}
   var enter=lastTab!==tab,m=document.getElementById('main'),keep=(!enter&&m)?m.scrollTop:0;lastTab=tab;
   var ph=pageHead(),p=S.profile,navBtn=function(t,cls){return '<button class="'+cls+'" data-tab="'+t[0]+'"'+(tab===t[0]||(cls==='tb'&&t[0]==='more'&&inMore(tab))?' aria-current="page"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true">'+ICON[t[0]]+'</svg>'+(cls==='tb'&&t[0]==='wealth'?'<span class="tl">'+t[1]+'</span><span class="ts" aria-hidden="true">Invest</span>':'<span>'+t[1]+'</span>')+'</button>';};
   var mh=tab==='home'?'<div class="ava" aria-hidden="true">'+esc((p.name||'S').charAt(0).toUpperCase())+'</div><div class="hi"><b>'+esc(p.name?'Hey '+p.name:greet())+'</b><span>'+esc(whenTxt())+'</span></div>':'<h1 class="ptitle">'+esc(ph[0])+'</h1>';
@@ -1205,7 +1219,7 @@ function render(){_sd=null;
     '<aside class="side"><div class="brand">'+LOGO+'Setu</div><button class="btn go sideadd" data-sheet="addspend"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add spending</button><nav class="snav" aria-label="Sections">'+TABS.map(function(t){return navBtn(t,'sn');}).join('')+'</nav>'+
       '<div class="sfoot"><button class="sn" data-sheet="settings">'+GEAR+'<span>Settings</span></button><p>Free and private. Everything stays on this device. General guidance, not financial advice.</p><p class="sidelinks"><a class="link" href="guides/">Guides</a> <button class="link" data-sheet="privacy">Privacy</button> <button class="link" data-sheet="terms">Terms</button> <button class="link" data-sheet="earn">How Setu makes money</button>'+(MONEY_CFG.tipLink?' <a class="link" href="'+esc(MONEY_CFG.tipLink)+'" target="_blank" rel="noopener noreferrer">☕ Support</a>':'')+'</p></div></aside>'+
     '<div class="col"><header class="mhd">'+mh+'<button class="gear" data-sheet="settings" aria-label="Settings">'+GEAR+'</button></header>'+
-    '<main id="main" class="v-'+({wuk:'wealth',win:'wealth',wport:'wealth',slog:'spend'}[vk]||vk)+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+subnav()+V[vk]()+'</main>'+
+    '<main id="main" class="v-'+({wuk:'wealth',win:'wealth',wport:'wealth',wgrow:'wealth wgrow',wauto:'wealth wauto',free:'free',slog:'spend'}[vk]||vk)+(enter?' enter':'')+'"><div class="phd"><h1>'+esc(ph[0])+'</h1><p>'+esc(ph[1])+'</p></div>'+subnav()+V[vk]()+'</main>'+
     '<nav class="tabbar" aria-label="Sections">'+TABS.map(function(t,i){return (i===2?'<button class="tbadd" data-sheet="addspend" aria-label="Add spending"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>':'')+navBtn(t,'tb');}).join('')+'</nav></div><aside class="rail mode-'+railMode()+'" id="rail" aria-label="Markets and news">'+(railMode()!=='none'?railInner():'')+'</aside></div>'+(sheetFn?sheetHTML(anim):'');
   var m2=document.getElementById('main');if(m2)m2.scrollTop=keep;
   lastRailMode=railMode();document.body.classList.toggle('rail-overlay',lastRailMode==='overlay');afterRender(enter);lastTicked=null;bindSheet();fitRail();loadRail();var sh1=document.querySelector('.sheet');if(sh1&&shTop)sh1.scrollTop=shTop;
@@ -1253,6 +1267,7 @@ function nudges(){
   var p=S.profile,m=month(),out=[],fx=+p.fx||129,now=new Date();
   var due=TASKS.filter(function(t){var d=dueDate(t);return !S.checks[t.id]&&d&&(d-now)<7*864e5;});
   var late=due.filter(function(t){return dueDate(t)<now;});
+  var apd=typeof apDueSoon==='function'?apDueSoon():[];if(apd.length)out.push({tone:'indigo',ic:'chart',t:apd.length+' Autopilot payment'+(apd.length>1?'s':'')+' due',x:apd.map(function(r){return r.name;}).join(', ')+'. Make the payment, then mark it done.',cta:'Open Autopilot',go:'tab:wauto'});
   if(due.length)out.push({tone:'rani',ic:'clock',t:late.length?late.length+' checklist step'+(late.length>1?'s are':' is')+' overdue':due.length+' step'+(due.length>1?'s':'')+' due this week',x:'Start with: '+(late[0]||due[0]).title+'.',cta:'Open checklist',go:'tab:check'});
   var efT=m.ukCosts*(+p.efMonths||4),have=+p.savedUK||0;
   if(have<efT)out.push({tone:'indigo',ic:'shield',t:have>0?'Your savings last '+Math.round(have/Math.max(1,m.ukCosts)*4.3)+' weeks':'No emergency savings yet',x:'Try to build this up to '+(p.efMonths||4)+' months of costs ('+gbp(efT)+'). It’s step 1 of your plan.',cta:'See why',go:'plan:0'});
@@ -2242,6 +2257,216 @@ var SHEETS={
     '<p class="small soft">Referral links open the partner’s website, which has its own privacy policy. Setu doesn’t share anything with them. You can delete everything at any time from Settings, then Start over. Backups you download stay wherever you save them.</p>'};},
   about:function(){return {title:'About Setu',body:'<p>Setu helps people who move from India to the UK. It shows how much money you have left each month, gives you a checklist for both countries, and helps you plan for a home and retirement in India.</p><p>It gives general guidance only. It is not financial, tax or immigration advice, and rules can change. Check the official websites, and talk to a qualified adviser before big decisions.</p><p class="small soft">Pay after tax uses 2026/27 tax rates for England, Wales and Northern Ireland, or Scotland if you choose it in setup. Everything you enter stays on this device and is never sent anywhere.</p>'};}
 };
+
+/* =====================================================================
+   Freedom, Growth and Autopilot
+   - Freedom: when your investments can pay for your life, and what brings that date closer
+   - Growth: what you put in vs what it has grown to, month by month, plus milestones
+   - Autopilot: monthly investment rules that record themselves (Setu never moves money)
+   ===================================================================== */
+function sfxN(n){n=+n;return n===1||n===21||n===31?'st':n===2||n===22?'nd':n===3||n===23?'rd':'th';}
+function monLab(dt){return new Date(dt+'T12:00').toLocaleDateString('en-GB',{month:'short',year:'numeric'});}
+function inMonths(m){if(m==null)return 'not within 50 years';if(m<=0)return 'now';var y=Math.floor(m/12),r=m%12;return (y?y+' year'+(y>1?'s':''):'')+(y&&r?' ':'')+(r?r+' month'+(r>1?'s':''):'');}
+function dateIn(m){var d=new Date();d.setDate(1);d.setMonth(d.getMonth()+m);return d.toLocaleDateString('en-GB',{month:'short',year:'numeric'});}
+
+/* ---------- Autopilot rules ---------- */
+var HOWS=[['sip','SIP auto-debit (NACH or e-mandate)'],['so','Standing order from my UK bank'],['sal','Taken from my pay (workplace pension)'],['wise','Scheduled transfer to India (e.g. Wise)'],['manual','I do it myself (reminder only)']];
+function howLabel(k){var x=HOWS.find(function(y){return y[0]===k;});return x?x[1]:'';}
+function autoRules(){if(!Array.isArray(S.autoRules))S.autoRules=[];S.autoRules=S.autoRules.filter(function(r){return r&&typeof r==='object'&&r.id;});
+  S.autoRules.forEach(function(r){if(!r.done||typeof r.done!=='object'||Array.isArray(r.done))r.done={};r.day=Math.max(1,Math.min(31,Math.round(+r.day||1)));if(!/^\d{4}-\d{2}-\d{2}$/.test(r.start||''))r.start=today();if(!r.made)r.made=r.start;});return S.autoRules;}
+function ruleHolding(r){return r.hid?holdings().find(function(h){return h.id===r.hid;}):null;}
+function ruleCty(r){var h=ruleHolding(r);return h?h.cty:'uk';}
+function ruleMoney(r){return ruleCty(r)==='in'?inr:gbp;}
+/* yearly step-up: the amount rises by step% on each anniversary of the start date */
+function ruleAmt(r,dt){var y=Math.floor((new Date((dt||today())+'T12:00')-new Date(r.start+'T12:00'))/31557600000);return Math.round((+r.amt||0)*Math.pow(1+(+r.step||0)/100,Math.max(0,y)));}
+function ruleGBP(r,dt){var a=ruleAmt(r,dt);return ruleCty(r)==='in'?a/fxNow():a;}
+function ruleDue(r,ym){ym=ym||today().slice(0,7);var p=ym.split('-'),dim=new Date(+p[0],+p[1],0).getDate();return ym+'-'+String(Math.min(r.day,dim)).padStart(2,'0');}
+/* record one month's investment into its holding */
+function ruleRecord(r,dt,amt){var ym=dt.slice(0,7);if(r.done[ym])return false;var h=ruleHolding(r);amt=amt!=null?amt:ruleAmt(r,dt);r.done[ym]=dt;if(!h||!(amt>0))return true;
+  if(hLinked(h)){if(h.src==='stk')return true;if(!Array.isArray(h.tx))h.tx=[];if(!h.tx.some(function(t){return t.id==='ap-'+r.id+'-'+ym;}))h.tx.push({id:'ap-'+r.id+'-'+ym,d:dt,amt:amt,ap:1});h.tx.sort(function(a,b){return a.d<b.d?-1:1;});return true;}
+  var lastD=h.hist.length?h.hist[h.hist.length-1][0]:dt,at=dt>lastD?dt:lastD,base=valueOn(h,at);if(base==null)base=+h.value||0;
+  h.value=base+amt;h.paid=(+h.paid||0)+amt;h.hist=h.hist.filter(function(x){return x[0]!==at;});h.hist.push([at,h.value]);h.hist.sort(function(a,b){return a[0]<b[0]?-1:1;});
+  if(!Array.isArray(h.contrib))h.contrib=[];h.contrib.push([at,amt]);return true;}
+/* automatic rules record themselves on their date (manual ones wait for "Mark done") */
+function applyAuto(){var ch=false,t=today();autoRules().forEach(function(r){if(r.off||r.how==='manual')return;var h=ruleHolding(r),from=h&&!hLinked(h)?(r.made>r.start?r.made:r.start):r.start;
+    monthlyDates(from,r.day,t).forEach(function(dt){if(ruleRecord(r,dt))ch=true;});});if(ch)save();return ch;}
+function autoMonthly(){var R=autoRules().filter(function(r){return !r.off&&r.hid&&ruleHolding(r);}),fx=fxNow(),sips=holdings().filter(function(h){return h.sip&&+h.sip.amt>0;});
+  var gbpM=sum(R.map(function(r){return ruleGBP(r);}))+sum(sips.map(function(h){return h.cty==='in'?h.sip.amt/fx:+h.sip.amt;}));
+  var fiM=sum(R.filter(function(r){var g=goalOf(ruleHolding(r));return g!=='emergency'&&g!=='home';}).map(function(r){return ruleGBP(r);}))+sum(sips.filter(function(h){var g=goalOf(h);return g!=='emergency'&&g!=='home';}).map(function(h){return h.cty==='in'?h.sip.amt/fx:+h.sip.amt;}));
+  return {gbp:gbpM,fi:fiM,rules:R.length,sips:sips.length};}
+function planLT(){var x=split().find(function(y){return y.title==='Long-term investing';});return x?x.amt:0;}
+
+/* ---------- Freedom (financial independence) ---------- */
+function fiCfg(){if(!S.fi||typeof S.fi!=='object')S.fi={};var p=S.profile||{},f=S.fi,w=f.where==='uk'?'uk':'in',o=(f[w]&&typeof f[w]==='object')?f[w]:{};
+  var D=w==='uk'?{spend:Math.round(month().ukCosts)||2000,ret:7,inf:3}:{spend:+p.retireSpend||75000,ret:+p.ret||10,inf:+p.inf||6};
+  var num=function(v,d){return v!=null&&v!==''&&isFinite(+v)?+v:d;};
+  return {where:w,spend:num(o.spend,D.spend),ret:num(o.ret,D.ret),inf:num(o.inf,D.inf),wd:num(f.wd,+p.wd||3.5),extra:num(f.extra,0),step:num(f.step,5)};}
+function fiSet(k,v){if(!S.fi||typeof S.fi!=='object')S.fi={};var w=S.fi.where==='uk'?'uk':'in';if(k==='spend'||k==='ret'||k==='inf'){if(!S.fi[w]||typeof S.fi[w]!=='object')S.fi[w]={};S.fi[w][k]=v;}else S.fi[k]=v;}
+/* what counts towards freedom: everything except the emergency fund and home savings */
+function fiHave(cur){var fx=fxNow(),H=holdings().filter(function(h){var g=goalOf(h);return g!=='emergency'&&g!=='home';});
+  if(!H.length){var inv=+(S.profile||{}).invested||0;return cur==='in'?inv:inv/fx;}
+  return sum(H.map(function(h){var v=+h.value||0;return cur==='in'?(h.cty==='in'?v:v*fx):(h.cty==='in'?v/fx:v);}));}
+function fiMonthlyGBP(){var a=autoMonthly();return a.fi>0?a.fi:planLT()+(+(S.profile||{}).sip||0)/fxNow();}
+/* month-by-month, in today's money: the target stays flat, the portfolio grows at the real return */
+function fiSim(o){var real=(1+o.ret/100)/(1+o.inf/100)-1,mr=Math.pow(1+real,1/12)-1,stepR=(1+o.step/100)/(1+o.inf/100)-1,v=o.now,k=o.monthly,pts=[[0,v]],hit=v>=o.target?0:null,put=o.now;
+  for(var m=1;m<=600;m++){v=v*(1+mr)+k;put+=k;if(m%12===0)k*=1+stepR;if(hit===null&&v>=o.target)hit=m;if(m%3===0)pts.push([m,v]);if(m>=Math.max(120,(hit||0)+24)&&(hit!==null||m>=480))break;}
+  return {hit:hit,pts:pts,end:v};}
+function fiCalc(over){var c=Object.assign(fiCfg(),over||{}),p=S.profile||{},fx=fxNow(),cur=c.where,toCur=function(g){return cur==='in'?g*fx:g;};
+  var target=c.spend*12/(c.wd/100),now=fiHave(cur),baseM=fiMonthlyGBP(),monthly=toCur(baseM+c.extra);
+  var sim=fiSim({now:now,monthly:monthly,target:target,ret:c.ret,inf:c.inf,step:c.step}),age=+p.age||30,yrsToRet=Math.max(1,(+p.retireAge||55)-age);
+  var real=(1+c.ret/100)/(1+c.inf/100)-1,coast=target/Math.pow(1+real,yrsToRet);
+  return {c:c,cur:cur,money:cur==='in'?inr:gbp,target:target,now:now,monthly:monthly,baseM:baseM,sim:sim,hit:sim.hit,age:age,fiAge:sim.hit==null?null:age+sim.hit/12,pct:target>0?Math.min(100,now/target*100):0,coast:coast,coastAge:+p.retireAge||55,passive:now*c.wd/100/12};}
+function fiChart(R){var W=innerWidth>=880?720:340,H=170,pad=22,P=R.sim.pts,mx=Math.max(R.target*1.15,P[P.length-1][1]*1.02)||1,maxM=P[P.length-1][0]||12,money=R.money;
+  function X(m){return pad+m/maxM*(W-2*pad);}function Y(v){return H-pad-Math.min(v,mx)/mx*(H-2*pad);}
+  var line=P.map(function(x,i){return (i?'L':'M')+X(x[0]).toFixed(1)+','+Y(x[1]).toFixed(1);}).join(' '),area=line+' L'+X(maxM).toFixed(1)+','+(H-pad)+' L'+X(0).toFixed(1)+','+(H-pad)+' Z',ty=Y(R.target).toFixed(1);
+  var hit=R.hit!=null&&R.hit>0?'<circle cx="'+X(R.hit).toFixed(1)+'" cy="'+ty+'" r="6" fill="#0C7F60"/><text x="'+X(R.hit).toFixed(1)+'" y="'+(+ty-12)+'" text-anchor="'+(X(R.hit)>W*0.8?'end':X(R.hit)<W*0.2?'start':'middle')+'" class="wlab" style="fill:#0C7F60;font-weight:800">Free '+dateIn(R.hit)+'</text>':'';
+  return '<svg class="wchart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Investments grow from '+money(R.now)+' towards the freedom number of '+money(R.target)+(R.hit!=null?', reached in '+inMonths(R.hit):'')+'"><defs><linearGradient id="fig" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--indigo)" stop-opacity=".25"/><stop offset="1" stop-color="var(--indigo)" stop-opacity="0"/></linearGradient></defs>'+
+    '<line x1="'+pad+'" x2="'+(W-pad)+'" y1="'+ty+'" y2="'+ty+'" stroke="#0C7F60" stroke-width="1.5" stroke-dasharray="3 4"/><text x="'+pad+'" y="'+(+ty-6)+'" class="wlab" style="fill:#0C7F60;font-weight:800">Freedom number '+money(R.target)+'</text>'+
+    '<path d="'+area+'" fill="url(#fig)"/><path d="'+line+'" fill="none" stroke="var(--indigo)" stroke-width="3" stroke-linejoin="round"/>'+hit+
+    '<text x="'+pad+'" y="'+(H-5)+'" class="wlab">Now</text><text x="'+(W-pad)+'" y="'+(H-5)+'" text-anchor="end" class="wlab">'+dateIn(maxM)+'</text></svg>';}
+function fiHero(R){var m=R.money,st=R.hit===0?'You’re there':R.hit!=null?'Age '+Math.floor(R.fiAge)+' · '+dateIn(R.hit):'Not yet in sight';
+  return '<div class="small soft">Financial freedom</div><div class="big f" id="fiwhen">'+st+'</div><div class="small">'+(R.hit===0?'Your investments could already pay for the life you chose.':R.hit!=null?'In '+inMonths(R.hit)+', your investments could pay '+m(R.c.spend)+' a month (in today’s money) for life.':'At this pace your investments won’t reach your freedom number within 50 years. Try the levers below.')+'</div>'+
+    '<div class="gbar" aria-hidden="true" style="margin-top:10px"><i style="width:'+R.pct.toFixed(1)+'%"></i></div>'+
+    '<div class="pgrid"><div><span>Freedom number'+tip('fin','Yearly spending divided by your withdrawal rate ('+R.c.wd+'%). Money this size can usually pay that spending for life.',false)+'</span><b>'+m(R.target)+'</b><small>'+R.pct.toFixed(1)+'% there</small></div><div><span>You have</span><b>'+m(R.now)+'</b><small>pays '+m(R.passive)+' a month</small></div><div><span>Investing</span><b>'+m(R.monthly)+'</b><small>a month, +'+R.c.step+'% a year</small></div><div><span>Coast number'+tip('coast','If you had this much today, you could stop investing and still reach freedom by '+R.coastAge+' from growth alone.',true)+'</span><b>'+m(R.coast)+'</b><small>'+(R.now>=R.coast?'<span class="ok">✓ reached</span>':'by age '+R.coastAge)+'</small></div></div>';}
+function fiLevers(R){var c=R.c,base=R.hit,unit=c.where==='in'?'₹':'£',fx=fxNow();
+  function diff(over){var r=fiCalc(over);if(base==null)return r.hit==null?'still not in sight':'reachable in '+inMonths(r.hit);if(r.hit==null)return 'not in sight';var d=base-r.hit;return d>0?'<b class="ok">'+inMonths(d)+' sooner</b>':d<0?'<b class="bad">'+inMonths(-d)+' later</b>':'no change';}
+  var p=S.profile||{},L=[];
+  L.push(['Invest £100 more a month',diff({extra:c.extra+100})]);
+  L.push(['Step up your investing by 10% each year',diff({step:Math.max(c.step,10)})]);
+  L.push(['Live on 10% less in freedom',diff({spend:c.spend*0.9})]);
+  L.push(['Earn 1% a year more (lower fees, more in shares)',diff({ret:c.ret+1})]);
+  if(+p.salary>50270){var net=Math.round(100*(1-(+p.salary>125140?0.47:0.42)));L.push(['Salary sacrifice into your pension: £100 more costs you about £'+net+' after tax relief','<span class="soft small">Pensions can be taken from 57 (from 2028), so pair with an ISA for the years before</span>']);}
+  if(+p.cardBal>0||+p.plBal>0)L.push(['Clear expensive debt first','<span class="soft small">Card and personal loan interest costs more than investments earn</span>']);
+  return '<div class="list fil">'+L.map(function(x){return '<div class="li"><span class="grow">'+esc(x[0])+'</span><span class="fir">'+x[1]+'</span></div>';}).join('')+'</div>';}
+function fiLevels(R){var c=R.c,m=R.money;return '<div class="filv">'+[['Lean',0.7,'Basics covered, small treats'],['Comfortable',1,'The life you set'],['Fat',1.5,'Travel, family and plenty to spare']].map(function(x){var r=fiCalc({spend:c.spend*x[1]});
+  return '<div><span class="small soft">'+x[0]+' freedom</span><b class="f">'+(r.hit===0?'Now':r.hit!=null?'Age '+Math.floor(r.fiAge):'50+ yrs')+'</b><small>'+m(c.spend*x[1])+' a month · needs '+m(r.target)+'</small><small class="soft">'+x[2]+'</small></div>';}).join('')+'</div>';}
+function fiSlider(k,label,v,min,max,step,fmt){return '<label class="field fisl"><span>'+label+' <b id="fiv-'+k+'">'+fmt(v)+'</b></span><input type="range" data-fi="'+k+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+v+'" aria-label="'+esc(label)+'"></label>';}
+var FI_FMT={extra:function(v){return '+'+gbp(v)+' a month';},step:function(v){return v+'% a year';},ret:function(v){return (+v).toFixed(1)+'% a year';},inf:function(v){return (+v).toFixed(1)+'% a year';},wd:function(v){return (+v).toFixed(2)+'%';},spend:function(v){return (S.fi&&S.fi.where==='uk'?gbp:inr)(+v)+' a month';}};
+function vFree(){applyAuto();refreshLinked();var R=fiCalc(),c=R.c,sp=c.where==='in'?[20000,500000,5000]:[500,10000,50];
+  var h='<section class="card whero fihero" id="fihero">'+fiHero(R)+'</section>';
+  h+='<section class="card wchartcard"><div class="row-b"><h3>Your path to freedom</h3><span class="small soft">in today’s money</span></div><div id="fichart">'+fiChart(R)+'</div><p class="small soft" style="margin:4px 0 0">Using '+(autoMonthly().fi>0?'your Autopilot investments':'the long-term amount from your plan')+'. Returns shown after '+c.inf+'% inflation.</p></section>';
+  h+='<section class="card fiset"><div class="row-b"><h3>What if…</h3><button class="link" data-fireset>Reset</button></div>'+
+    '<div class="seg" role="radiogroup" aria-label="Where you’ll live" style="margin:6px 0 10px"><button role="radio" data-fiwhere="in" aria-checked="'+(c.where==='in')+'">Retire in India 🇮🇳</button><button role="radio" data-fiwhere="uk" aria-checked="'+(c.where==='uk')+'">Stay in the UK 🇬🇧</button></div>'+
+    '<div class="fields">'+fiSlider('spend','Monthly spending in freedom',Math.min(sp[1],Math.max(sp[0],Math.round(c.spend/sp[2])*sp[2])),sp[0],sp[1],sp[2],FI_FMT.spend)+fiSlider('extra','Extra investing',c.extra,0,3000,50,FI_FMT.extra)+fiSlider('step','Step up each year',c.step,0,20,1,FI_FMT.step)+fiSlider('ret','Expected growth',c.ret,4,15,0.5,FI_FMT.ret)+fiSlider('inf','Inflation',c.inf,1,9,0.5,FI_FMT.inf)+fiSlider('wd','Safe withdrawal rate',c.wd,2.5,5,0.25,FI_FMT.wd)+'</div></section>';
+  h+='<section class="card"><h3>What gets you there sooner</h3><div id="filev">'+fiLevers(R)+'</div></section>';
+  h+='<section class="card"><h3>Three kinds of freedom</h3><div id="filvl">'+fiLevels(R)+'</div></section>';
+  h+='<section class="card wlink"><div class="grow"><b>Make it automatic</b><span class="small soft">Set your monthly investments once on Autopilot, and Setu records each one so you can watch it grow.</span></div><button class="btn sm go" data-tab="wauto">Open Autopilot</button></section>';
+  h+='<p class="fine">A guide, not a promise. Markets go down as well as up, and returns aren’t guaranteed. The 3–4% withdrawal rule comes from long-run market history. Investments in India can be taxed in both countries; get advice before big decisions.</p>';
+  return h;}
+function fiRefresh(){var R=fiCalc(),a=document.getElementById('fihero'),b=document.getElementById('fichart'),c=document.getElementById('filev'),d=document.getElementById('filvl');if(a)a.innerHTML=fiHero(R);if(b)b.innerHTML=fiChart(R);if(c)c.innerHTML=fiLevers(R);if(d)d.innerHTML=fiLevels(R);}
+
+/* ---------- Growth: put in vs grown to ---------- */
+function paidOn(h,d){if(hLinked(h)){var p=0,any=false;if(h.hold&&h.hold.d<=d){p+=+h.hold.paid||+h.hold.value||0;any=true;}(h.tx||[]).forEach(function(t){if(t.d<=d){p+=+t.amt||0;any=true;}});if(!any&&h.prehist&&h.prehist.length){var pv=null;h.prehist.forEach(function(x){if(x[0]<=d)pv=x[1];});return pv||0;}return p;}
+  var f=h.hist.length?h.hist[0][0]:null;if(!f||d<f)return 0;var C=h.contrib||[],cAll=sum(C.map(function(x){return x[1];})),cTo=sum(C.filter(function(x){return x[0]<=d;}).map(function(x){return x[1];})),v=valueOn(h,d)||0,vNow=+h.value||0,base=Math.max(0,(+h.paid||0)-cAll),baseV=Math.max(1,vNow-cAll);
+  /* contributions before Setu are unknown: assume the same put-in share of value as today */
+  return Math.max(0,Math.min(base,(v-cTo)*Math.min(1.5,base/baseV)))+cTo;}
+function growthSeries(){var H=holdings(),fx=fxNow();return wealthSeries().map(function(s){var pd=0;H.forEach(function(h){var v=paidOn(h,s.d);pd+=h.cty==='in'?v/fx:v;});return {d:s.d,tot:s.tot,paid:pd};});}
+function totalOn(d){var H=holdings(),fx=fxNow(),v=0,pd=0;H.forEach(function(h){var x=hLinked(h)?linkedValueOn(h,d):valueOn(h,d),y=paidOn(h,d);if(x!=null)v+=h.cty==='in'?x/fx:x;pd+=h.cty==='in'?y/fx:y;});return {v:v,pd:pd};}
+function growthChart(S2){if(S2.length<2)return '<div class="wempty small soft">'+gl('chart')+'<span>Add investments and your growth will show here.</span></div>';
+  var W=innerWidth>=880?760:360,H=180,pad=22,xs=S2.map(function(_,i){return pad+i*(W-2*pad)/(S2.length-1);}),mx=Math.max.apply(null,S2.map(function(s){return Math.max(s.tot,s.paid);}))*1.08||1;
+  function y(v){return H-pad-(v/mx)*(H-2*pad);}function path(k){return S2.map(function(s,i){return (i?'L':'M')+xs[i].toFixed(1)+','+y(s[k]).toFixed(1);}).join(' ');}
+  var base=' L'+xs[xs.length-1].toFixed(1)+','+(H-pad)+' L'+xs[0].toFixed(1)+','+(H-pad)+' Z',L=S2[S2.length-1],lab=function(i){return new Date(S2[i].d+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});};
+  return '<svg class="wchart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="You put in '+gbp(L.paid)+' and it is now worth '+gbp(L.tot)+'">'+
+    '<path d="'+path('tot')+base+'" fill="var(--t-mint)" opacity=".9"/><path d="'+path('paid')+base+'" fill="var(--t-indigo)"/>'+
+    '<path d="'+path('paid')+'" fill="none" stroke="var(--indigo)" stroke-width="2" stroke-dasharray="5 4"/><path d="'+path('tot')+'" fill="none" stroke="#0C7F60" stroke-width="3" stroke-linejoin="round"/>'+
+    '<text x="'+xs[xs.length-1]+'" y="'+(y(L.tot)-8).toFixed(1)+'" class="wlab wtop" text-anchor="end">'+gbp(L.tot)+'</text><text x="'+xs[0]+'" y="'+(H-6)+'" class="wlab">'+lab(0)+'</text><text x="'+xs[xs.length-1]+'" y="'+(H-6)+'" class="wlab" text-anchor="end">'+lab(S2.length-1)+'</text></svg>'+
+    '<div class="wkey"><span><i style="background:#0C7F60"></i>Worth</span><span><i style="background:var(--indigo)"></i>You put in</span><span><i style="background:var(--t-mint);box-shadow:inset 0 0 0 1px #0C7F60"></i>Growth</span></div>';}
+function monthRows(){var t=today(),out=[],first=null;holdings().forEach(function(h){var f=hLinked(h)?firstDate(h):(h.hist[0]||[])[0];if(f&&(!first||f<first))first=f;});if(!first)return out;
+  var d=new Date();d.setDate(1);d.setMonth(d.getMonth()-12);var prev=null;
+  for(var i=0;i<=12;i++){var end=new Date(d.getFullYear(),d.getMonth()+1,0,12),e=isoD(end)>t?t:isoD(end);if(e>=first){var x=totalOn(e);if(prev&&prev.pd>0)out.push({m:e,v:x.v,add:x.pd-prev.pd,grow:(x.v-prev.v)-(x.pd-prev.pd)});prev=x;}else prev={v:0,pd:0};d.setMonth(d.getMonth()+1);}
+  return out.reverse();}
+function growthProj(mGBP,now,ret,step){var rows=[],mr=Math.pow(1+ret/100,1/12)-1,v=now,put=now,k=mGBP,cross=null;
+  for(var m=1;m<=360;m++){var g=v*mr;if(cross===null&&k>0&&g>=k)cross=m;v=v+g+k;put+=k;if(m%12===0)k*=1+step/100;if([60,120,180,240,300].indexOf(m)>=0)rows.push({y:m/12,v:v,put:put});}return {rows:rows,cross:cross};}
+var MILES=[10000,25000,50000,100000,250000,500000,1000000];
+function vGrowth(){loadWealthPx();applyAuto();refreshLinked();var Sx=growthSeries(),W=worth(),fx=fxNow(),pd=Sx.length?Sx[Sx.length-1].paid:0,val=W.assets,gain=val-pd,fc=fiCfg(),a=autoMonthly(),mG=a.gbp>0?a.gbp:planLT()+(+(S.profile||{}).sip||0)/fx;
+  var fl=[];holdings().filter(hLinked).forEach(function(h){var conv=function(v){return h.cty==='in'?v/fx:v;},c=hCalc(h);if(!c.last)return;if(h.hold&&h.hold.units)fl.push([h.hold.d,-conv(h.hold.value)]);(h.tx||[]).forEach(function(t){if(t.units)fl.push([t.d,-conv(t.amt)]);});fl.push([c.last[0],conv(c.value)]);});
+  fl.sort(function(x,y){return x[0]<y[0]?-1:1;});var xr=null;if(fl.length>2){var tot={};fl.forEach(function(x){tot[x[0]]=(tot[x[0]]||0)+x[1];});xr=xirr(Object.keys(tot).sort().map(function(k){return [k,tot[k]];}));}
+  var mc=month().ukCosts||1,pass=val*fc.wd/100/12;
+  var h='<section class="card whero"><div class="small soft">Your investments are worth</div><div class="bigrow"><div class="big f">'+gbp(val)+'</div><div class="inr f">≈ '+inr(val*fx)+'</div></div>'+
+    '<div class="pgrid"><div><span>You put in</span><b>'+(pd?gbp(pd):'–')+'</b></div><div><span>Growth</span><b class="'+(gain>=0?'ok':'bad')+'">'+(pd?(gain>=0?'+':'−')+gbp(Math.abs(gain)):'–')+'</b><small>'+(pd?((val/pd-1)*100).toFixed(1)+'%':'')+'</small></div><div><span>Yearly return'+tip('gx','XIRR across your live-tracked funds and shares, allowing for when each purchase was made.',true)+'</span><b>'+(xr!=null?'<span class="'+(xr>=0?'ok':'bad')+'">'+(xr>=0?'+':'')+(xr*100).toFixed(1)+'%</span>':'–')+'</b></div><div><span>Working for you'+tip('wfy','What your investments could pay you each month at a '+fc.wd+'% withdrawal rate.',true)+'</span><b>'+gbp(pass)+'</b><small>a month · '+Math.round(pass/mc*100)+'% of UK costs</small></div></div></section>';
+  h+='<section class="card wchartcard"><div class="row-b"><h3>Put in vs grown to</h3><span class="small soft">in £, at today’s rate</span></div>'+growthChart(Sx)+'</section>';
+  var MR=monthRows();
+  h+='<section class="card gmon"><div class="row-b"><h3>Month by month</h3><span class="small soft">last 12 months</span></div>'+(MR.length?'<div class="tblwrap"><table class="gtbl"><thead><tr><th scope="col">Month</th><th scope="col">Worth</th><th scope="col">Added</th><th scope="col">Growth</th></tr></thead><tbody>'+MR.map(function(r){return '<tr><th scope="row">'+monLab(r.m)+'</th><td>'+gbp(r.v)+'</td><td>'+(r.add>0.5?'+'+gbp(r.add):'–')+'</td><td class="'+(r.grow>=0?'ok':'bad')+'">'+(Math.abs(r.grow)<0.5?'–':(r.grow>=0?'+':'−')+gbp(Math.abs(r.grow)))+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="small soft">Your monthly growth shows here once you’ve tracked investments for a month.</p>')+'</section>';
+  var P=growthProj(mG,val,fc.ret,fc.step),reach={};Sx.forEach(function(s){MILES.forEach(function(M){if(!reach[M]&&s.tot>=M)reach[M]=s.d;});});
+  var nxt=MILES.filter(function(M){return !reach[M];}).slice(0,4),mr=Math.pow(1+fc.ret/100,1/12)-1;
+  function when(M){var v=val,k=mG;for(var m=1;m<=600;m++){v=v*(1+mr)+k;if(m%12===0)k*=1+fc.step/100;if(v>=M)return m;}return null;}
+  h+='<section class="card"><div class="row-b"><h3>Milestones</h3><span class="small soft">at '+fc.ret+'% a year</span></div><div class="list">'+MILES.filter(function(M){return reach[M];}).slice(-2).map(function(M){return '<div class="li"><span class="grow"><b>'+gbp(M)+'</b><span class="small soft"> ≈ '+inr(M*fx)+'</span></span><span class="ok small"><b>✓ '+monLab(reach[M])+'</b></span></div>';}).join('')+
+    nxt.map(function(M){var w=when(M);return '<div class="li"><span class="grow"><b>'+gbp(M)+'</b><span class="small soft"> ≈ '+inr(M*fx)+'</span></span><span class="small">'+(w?dateIn(w)+' <span class="soft">('+inMonths(w)+')</span>':'<span class="soft">50+ years</span>')+'</span></div>';}).join('')+'</div></section>';
+  h+='<section class="card"><div class="row-b"><h3>If you keep going</h3><span class="small soft">'+gbp(mG)+' a month, +'+fc.step+'% a year</span></div><div class="tblwrap"><table class="gtbl"><thead><tr><th scope="col">In</th><th scope="col">You put in</th><th scope="col">Worth</th><th scope="col">Growth</th></tr></thead><tbody>'+P.rows.map(function(r){return '<tr><th scope="row">'+r.y+' years</th><td>'+gbp(r.put)+'</td><td><b>'+gbp(r.v)+'</b></td><td class="ok">+'+gbp(r.v-r.put)+'</td></tr>';}).join('')+'</tbody></table></div>'+
+    (P.cross?'<p class="small" style="margin:8px 0 0">📈 In about <b>'+inMonths(P.cross)+'</b> ('+dateIn(P.cross)+'), your investments should grow more each month than you put in. That’s compounding taking over.</p>':'')+'<p class="fine">Not adjusted for inflation. Change the growth rate on the Freedom page.</p></section>';
+  h+='<p class="fine">Values you enter yourself only change when you update them or Autopilot adds to them. Past growth doesn’t guarantee future returns.</p>';
+  return h;}
+
+/* ---------- Autopilot view ---------- */
+function vAuto(){applyAuto();refreshLinked();var R=autoRules(),a=autoMonthly(),fx=fxNow(),fc=fiCfg(),t=today(),ym=t.slice(0,7),sips=holdings().filter(function(h){return h.sip&&+h.sip.amt>0;});
+  var mr=Math.pow(1+fc.ret/100,1/12)-1,v10=0,k=a.gbp;for(var m=1;m<=120;m++){v10=v10*(1+mr)+k;if(m%12===0)k*=1+fc.step/100;}
+  var h='<section class="card whero"><div class="small soft">On autopilot each month</div><div class="bigrow"><div class="big f">'+gbp(a.gbp)+'</div><div class="inr f">≈ '+inr(a.gbp*fx)+'</div></div>'+
+    '<div class="small">'+(a.gbp>0?gbp(a.gbp*12)+' a year. Kept up with '+fc.step+'% step-ups at '+fc.ret+'%, that could be <b>'+gbp(v10)+'</b> in 10 years.':'Nothing set up yet. Add a rule for each standing order, payroll pension or SIP, and Setu records every one so your portfolio grows by itself.')+'</div>'+
+    '<div class="pgrid"><div><span>Automatic</span><b>'+R.filter(function(r){return !r.off&&r.how!=='manual';}).length+(sips.length?' + '+sips.length+' SIP'+(sips.length>1?'s':''):'')+'</b><small>record themselves</small></div><div><span>Reminders</span><b>'+R.filter(function(r){return !r.off&&r.how==='manual';}).length+'</b><small>you mark as done</small></div><div><span>Done this month</span><b>'+R.filter(function(r){return r.done[ym]&&r.done[ym]!=='skip';}).length+' of '+R.filter(function(r){return !r.off;}).length+'</b></div><div><span>Plan suggests</span><b>'+gbp(planLT())+'</b><small>long-term, a month</small></div></div></section>';
+  /* this month */
+  var rows=R.filter(function(r){return !r.off;}).map(function(r){return {r:r,due:ruleDue(r,ym)};}).sort(function(x,y){return x.due<y.due?-1:1;});
+  h+='<section class="card apmon"><div class="row-b"><h3>'+new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'})+'</h3><button class="btn sm" data-apics>📅 Add to calendar</button></div>'+(rows.length||sips.length?'<div class="list">'+rows.map(function(x){var r=x.r,dn=r.done[ym],h0=ruleHolding(r),days=Math.round((new Date(x.due+'T12:00')-new Date(t+'T12:00'))/864e5),money=ruleMoney(r);
+      var st=dn==='skip'?'<span class="soft small">Skipped</span>':dn?'<span class="ok small"><b>✓ Done '+new Date(dn+'T12:00').getDate()+' '+new Date(dn+'T12:00').toLocaleDateString('en-GB',{month:'short'})+'</b></span>':r.how==='manual'?(days<=3?'<span class="apbtns"><button class="btn sm go" data-apdone="'+r.id+'">Mark done</button><button class="link" data-apskip="'+r.id+'">Skip</button></span>':'<span class="soft small">Due in '+days+' days</span>'):'<span class="soft small">Automatic in '+days+' day'+(days===1?'':'s')+'</span>';
+      return '<div class="li aprow"><span class="grow"><b>'+esc(r.name||'Investment')+' · '+money(ruleAmt(r))+'</b><span class="small soft">'+new Date(x.due+'T12:00').getDate()+sfxN(new Date(x.due+'T12:00').getDate())+' · '+esc(howLabel(r.how))+(h0?' → '+esc(h0.name):'')+'</span></span>'+st+'</div>';}).join('')+
+    sips.map(function(h0){return '<button class="li" data-hdet="'+h0.id+'"><span class="grow"><b>'+esc(h0.name)+' · '+(h0.cty==='in'?inr:gbp)(h0.sip.amt)+'</b><span class="small soft">'+h0.sip.day+sfxN(h0.sip.day)+' · SIP set on the fund</span></span><span class="soft small">Automatic</span></button>';}).join('')+'</div>':'<p class="small soft">No monthly investments yet.</p>')+'</section>';
+  /* rules */
+  h+='<section class="card aprules"><div class="row-b"><h3>Your rules</h3><button class="btn sm go" data-apnew>+ Add a rule</button></div>'+(R.length?'<div class="list">'+R.map(function(r){var h0=ruleHolding(r),money=ruleMoney(r);return '<button class="li" data-apedit="'+r.id+'"><span class="grow"><b style="display:block;font-weight:700">'+esc(r.name||'Investment')+(r.off?' <em class="tag both">Paused</em>':'')+'</b><span class="small soft">'+money(ruleAmt(r))+' on the '+r.day+sfxN(r.day)+(+r.step?', +'+r.step+'% each year':'')+' · '+esc(howLabel(r.how))+(h0?' → '+esc(h0.name):r.hid?' → (removed holding)':'')+'</span></span><span class="chev" aria-hidden="true">›</span></button>';}).join('')+'</div>':'<p class="small soft">A rule is one regular payment, like “£500 into my ISA on the 28th” or “₹10,000 SIP on the 5th”. Start from your plan:</p>')+'</section>';
+  /* suggestions from the plan */
+  var plan=split(),Hn=holdings();
+  h+='<section class="card apsug"><h3>Suggested from your plan</h3><p class="small soft" style="margin:4px 0 8px">Based on the '+gbp(Math.max(0,month().left))+' left after costs this month. Tap one to make it a rule.</p><div class="list">'+plan.map(function(x,i){return '<button class="li" data-apsug="'+i+'"><span class="num" style="background:'+x.col+'">'+(i+1)+'</span><span class="grow"><b style="display:block;font-weight:700">'+esc(x.title)+'</b><span class="small soft">'+esc(x.where)+'</span></span><b class="f">'+gbp(x.amt)+'</b></button>';}).join('')+'</div>'+
+    (Hn.length?'':'<p class="small soft" style="margin:8px 0 0">Tip: add your ISA, pension and funds on the Portfolio tab first, so each rule can add to the right one.</p>')+'</section>';
+  /* payday routine */
+  var fi=fxInsight(),hasWise=R.some(function(r){return !r.off&&r.how==='wise';});
+  h+='<section class="card"><h3>Your payday routine</h3><ol class="aproute">'+['<li><b>Payday, the '+payDay()+sfxN(payDay())+'.</b> Your salary arrives. Pension is already taken from your pay.</li>'].concat(rows.slice().sort(function(a,b){var pd0=payDay(),f=function(x){return (new Date(x.due+'T12:00').getDate()-pd0+31)%31;};return f(a)-f(b);}).map(function(x){var r=x.r;return '<li><b>'+new Date(x.due+'T12:00').getDate()+sfxN(new Date(x.due+'T12:00').getDate())+':</b> '+esc(r.name||'Investment')+', '+ruleMoney(r)(ruleAmt(r))+(r.how==='manual'?' (you do this)':' (automatic)')+'</li>';})).join('')+'</ol>'+
+    (hasWise||fi?'<p class="small" style="margin:8px 0 0">💱 '+(fi?esc(fi.say)+' Today £1 = ₹'+fxNow().toFixed(2)+'.':'')+'</p>':'')+'<button class="link" data-sheet2="aphow">How to make each step automatic ›</button></section>';
+  h+='<p class="fine">Setu never moves your money and never asks for bank or broker logins. Your bank, employer, transfer service and fund house do the investing; Setu records it on the date so you can watch it grow. Check your statements now and then.</p>';
+  return h;}
+SHEETS_EXTRA.aphow=function(){return {title:'Make it automatic',body:
+  '<p class="small soft">Set each of these up once. After that, your money invests itself every month and Setu’s Autopilot keeps the record.</p>'+
+  '<h3 class="csub">1. Workplace pension (payroll)</h3><p class="small">Ask HR or payroll to raise your contribution, ideally by <b>salary sacrifice</b>: you also save National Insurance. Always take the full employer match: it’s free money.</p>'+
+  '<h3 class="csub">2. Stocks & shares ISA (standing order)</h3><p class="small">In your bank app, set a monthly <b>standing order</b> to your ISA provider for the day after payday, and set the ISA to <b>auto-invest</b> into your chosen fund. Up to £20,000 a year, free of UK tax. A global or India-focused ETF in an ISA gives India exposure without the UK tax on Indian funds.</p>'+
+  '<h3 class="csub">3. Sending money to India (scheduled transfer)</h3><p class="small">Most transfer services let you schedule a repeating transfer to your <b>NRE account</b>. Check the total cost with the transfer checker in Settings; the exchange-rate markup is often the biggest fee.</p>'+
+  '<h3 class="csub">4. SIPs in India (auto-debit)</h3><p class="small">Register an <b>e-mandate or NACH</b> on your NRE account with the fund house or your investing app, and choose <b>step-up SIP</b> to raise it each year. Set the SIP date a few days after your transfer lands.</p>'+
+  '<h3 class="csub">5. Each April</h3><p class="small">Step up every rule (Setu does the maths if you set a yearly step-up), use your new ISA allowance from 6 April, and check your tax: UK residents usually pay UK tax on Indian interest and fund gains, with credit for Indian tax under the UK–India treaty. If you recently arrived, the 4-year foreign income relief may apply.</p>'+
+  '<p class="fine">General guidance, not financial or tax advice.</p>'};};
+function ruleForm(r,pre){var isNew=!r;pre=pre||{};r=r||{id:uid(),name:pre.name||'',hid:pre.hid||'',how:pre.how||'so',amt:pre.amt||'',day:pre.day||Math.min(28,payDay()+1),start:today(),step:pre.step!=null?pre.step:10,done:{},made:today()};
+  var H=holdings().filter(function(h){return h.src!=='stk';}),opts=[['','No holding: just a transfer or reminder']].concat(H.map(function(h){return [h.id,h.name+' ('+(h.cty==='in'?'India, ₹':'UK, £')+')'];}));
+  formDelete=isNew?null:function(){S.autoRules=autoRules().filter(function(x){return x.id!==r.id;});toast('Rule removed. Past investments are kept');};
+  formSheet(isNew?'Add an Autopilot rule':'Edit rule',[{k:'name',label:'Name (e.g. ISA top-up, HDFC SIP)',text:true},{k:'hid',label:'Adds to',options:opts},{k:'how',label:'How it’s paid',options:HOWS},{k:'amt',label:'Amount each month (in the holding’s currency; £ for transfers)'},{k:'day',label:'Day of the month (1–31)'},{k:'start',label:'First payment',text:true,date:true},{k:'step',label:'Step up each year (%)'},{k:'off',label:'Status',options:[['','Active'],['1','Paused']]}],
+    {name:r.name,hid:r.hid,how:r.how,amt:r.amt,day:r.day,start:r.start,step:r.step,off:r.off?'1':''},function(o){
+      var a=Math.max(0,o.amt||0);if(!a){toast('Enter an amount');return;}var st=/^\d{4}-\d{2}-\d{2}$/.test(o.start||'')?o.start:today();
+      r.name=String(o.name||'').slice(0,40)||(H.find(function(h){return h.id===o.hid;})||{}).name||'Investment';r.hid=o.hid||'';r.how=o.how;r.amt=a;r.day=Math.max(1,Math.min(31,Math.round(o.day||1)));r.start=st;r.step=Math.max(0,Math.min(50,o.step||0));r.off=o.off==='1';
+      if(isNew){r.made=today();autoRules().push(r);}applyAuto();refreshLinked();toast(isNew?'Rule added'+(r.how==='manual'?'. Setu will remind you':'. It records itself each month'):'Rule saved');},isNew?'':'<button class="btn warn" data-form="delete">Remove</button>');}
+function icsEsc(s){return String(s).replace(/[\\;,]/g,function(c){return '\\'+c;}).replace(/\n/g,'\\n');}
+function apICS(){var R=autoRules().filter(function(r){return !r.off;}),now=new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z',L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Setu//Autopilot//EN','CALSCALE:GREGORIAN'];
+  function ev(uid0,start,rule,sum0,desc){L.push('BEGIN:VEVENT','UID:'+uid0+'@setu','DTSTAMP:'+now,'DTSTART;VALUE=DATE:'+start.replace(/-/g,''),'RRULE:'+rule,'SUMMARY:'+icsEsc(sum0),'DESCRIPTION:'+icsEsc(desc),'BEGIN:VALARM','ACTION:DISPLAY','TRIGGER:PT9H','DESCRIPTION:'+icsEsc(sum0),'END:VALARM','END:VEVENT');}
+  var pd=payDay(),d0=new Date();if(d0.getDate()>pd)d0.setMonth(d0.getMonth()+1);d0.setDate(Math.min(pd,28));
+  ev('payday-'+pd,isoD(d0),'FREQ=MONTHLY;BYMONTHDAY='+Math.min(pd,28),'Setu: payday routine','Open Setu and check this month’s Autopilot.');
+  R.forEach(function(r){var day=Math.min(r.day,28),d=new Date();if(d.getDate()>day)d.setMonth(d.getMonth()+1);d.setDate(day);
+    ev('ap-'+r.id,isoD(d),'FREQ=MONTHLY;BYMONTHDAY='+day,'Setu: '+(r.name||'Investment')+' '+ruleMoney(r)(ruleAmt(r)),(r.how==='manual'?'Make this payment, then mark it done in Setu.':'This should happen automatically ('+howLabel(r.how)+'). Check it went through.'));});
+  var y=new Date().getFullYear(),apr=new Date(y,3,6)<new Date()?(y+1)+'-04-06':y+'-04-06';ev('stepup',apr,'FREQ=YEARLY','Setu: step up your investing','New tax year. Raise your SIPs and standing orders, and use your new £20,000 ISA allowance.');
+  L.push('END:VCALENDAR');return L.join('\r\n');}
+/* Home nudge: manual Autopilot payments due soon */
+function apDueSoon(){var t=today(),ym=t.slice(0,7);return autoRules().filter(function(r){if(r.off||r.how!=='manual'||r.done[ym])return false;var d=ruleDue(r,ym);return (new Date(d+'T12:00')-new Date(t+'T12:00'))/864e5<=3;});}
+
+/* events for these views */
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('button');if(!t)return;var d=t.dataset;
+  if(d.fiwhere){if(!S.fi||typeof S.fi!=='object')S.fi={};S.fi.where=d.fiwhere==='uk'?'uk':'in';save();var y=(document.getElementById('main')||{}).scrollTop;render();var m=document.getElementById('main');if(m)m.scrollTop=y;return;}
+  if(t.hasAttribute('data-fireset')){var w=(S.fi||{}).where;S.fi={where:w};save();var y2=(document.getElementById('main')||{}).scrollTop;render();var m2=document.getElementById('main');if(m2)m2.scrollTop=y2;toast('Back to your plan’s figures');return;}
+  if(t.hasAttribute('data-apnew')){ruleForm(null);return;}
+  if(d.apedit){var r=autoRules().find(function(x){return x.id===d.apedit;});if(r)ruleForm(r);return;}
+  if(d.apsug!=null&&d.apsug!==''){var x=split()[+d.apsug];if(!x)return;var H=holdings(),pick=null,how='so';
+    if(x.title==='Emergency savings'){pick=H.find(function(h){return goalOf(h)==='emergency';});}
+    else if(x.title==='Home in India'){pick=H.find(function(h){return goalOf(h)==='home';});how='wise';}
+    else if(x.title==='Long-term investing'){pick=H.find(function(h){return h.cty==='uk'&&(h.type==='isa'||h.src==='etf');})||H.find(function(h){return goalOf(h)==='retire';});}
+    else how='manual';
+    var amt=pick&&pick.cty==='in'?Math.round(x.amt*fxNow()/500)*500:Math.round(x.amt/10)*10;ruleForm(null,{name:x.title,hid:pick?pick.id:'',how:how,amt:amt,step:x.title==='Long-term investing'?10:0});return;}
+  if(d.apdone){var r2=autoRules().find(function(x){return x.id===d.apdone;});if(r2){ruleRecord(r2,ruleDue(r2)>today()?today():ruleDue(r2));save();refreshLinked();buzz();render();toast('Recorded. Nice work');}return;}
+  if(d.apskip){var r3=autoRules().find(function(x){return x.id===d.apskip;});if(r3){r3.done[today().slice(0,7)]='skip';save();render();toast('Skipped this month');}return;}
+  if(t.hasAttribute('data-apics')){var ok=downloadFile('setu-autopilot.ics',apICS(),'text/calendar');toast(ok?'Calendar file saved. Open it to add the reminders':'Download isn’t available here');return;}
+});
+document.addEventListener('input',function(e){var el=e.target;if(!el||!el.dataset||!el.dataset.fi)return;var k=el.dataset.fi,v=+el.value;fiSet(k,v);var lab=document.getElementById('fiv-'+k);if(lab)lab.textContent=FI_FMT[k](v);fiRefresh();});
+document.addEventListener('change',function(e){if(e.target&&e.target.dataset&&e.target.dataset.fi)save();});
 
 /* ---------- events ---------- */
 document.addEventListener('click',function(e){

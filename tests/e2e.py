@@ -320,7 +320,7 @@ try:
     go(pg,'insights');pg.wait_for_timeout(300)
     check('Insights shows the month and categories',pg.locator('.inshead svg.bars').count()==1 and pg.locator('.icrow').count()>=5 and 'Pret' in pg.text_content('.insplaces'))
     pg.click('.tabbar [data-tab="plan"]');pg.wait_for_timeout(300);pg.click('.subnav [data-tab="stay"]');pg.wait_for_timeout(300)
-    check('Plan groups goals, the moving checklist and ILR',pg.locator('.ilrhero').count()==1 and pg.locator('.tabbar [data-tab="plan"][aria-current="page"]').count()==1 and pg.locator('.subnav button').count()==3 and not pe,pe[:2])
+    check('Plan groups goals, freedom, the moving checklist and ILR',pg.locator('.ilrhero').count()==1 and pg.locator('.tabbar [data-tab="plan"][aria-current="page"]').count()==1 and pg.locator('.subnav button').count()==4 and not pe,pe[:2])
     pg.click('.tabbar [data-tab="wealth"]');pg.wait_for_timeout(300);pg.click('.subnav [data-tab="wuk"]');pg.wait_for_timeout(300);pg.click('[data-ukdebt="new"]');pg.wait_for_timeout(200)
     pg.fill('[data-f="bal"]','640');pg.fill('[data-f="pay"]','80');pg.fill('[data-f="day"]','12');pg.click('[data-form="save"]');pg.wait_for_timeout(300)
     P5=pg.evaluate("JSON.parse(localStorage.getItem('setu-v1')).profile")
