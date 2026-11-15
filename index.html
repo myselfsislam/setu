@@ -138,7 +138,7 @@ main>*{flex-shrink:0}
 .it span{display:block;font-size:12px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .done b{color:var(--soft);text-decoration:line-through;text-decoration-color:var(--rule)}
 .tag{font-style:normal;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:7px;margin-left:4px;vertical-align:2px}
-.tag.in{background:var(--t-marigold);color:#A0650A}.tag.uk{background:var(--t-indigo);color:var(--indigo)}.tag.both{background:var(--t-teal);color:#0B7C72}
+.tag.in{background:var(--t-marigold);color:#A0650A}.tag.uk{background:var(--t-indigo);color:var(--indigo)}.tag.both{background:var(--t-teal);color:#08665E}
 .done .tag{opacity:.55}
 .alldone{display:flex;gap:12px;align-items:center}.alldone svg{width:72px;height:60px;flex-shrink:0}
 
@@ -795,6 +795,11 @@ h3{font-size:17px;line-height:1.25}.ptitle{font-size:24px}.phd h1{font-size:30px
 .wback{align-self:flex-start;padding:2px 0}.wctylinks{display:flex;gap:16px;flex-wrap:wrap;padding:0 4px}@media (min-width:880px){.v-wealth .wctylinks{grid-column:1/-1}}
 @media (min-width:880px){main>.guide,.v-home .gstart,.v-home .jump,main>.wback,.v-wealth .wempty2{grid-column:1/-1}.jgrid{grid-template-columns:repeat(6,minmax(0,1fr))}.v-home .gsteps{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}.v-home .gsteps .gs:nth-child(2){border-top:0}}
 .impbtn{display:block;text-align:center;margin:12px 0 4px}.implist{max-height:46vh;overflow:auto;margin-top:10px}.impli{background:var(--t-indigo);border-radius:16px;padding:12px!important;width:100%}
+.chips.xchips{display:flex;flex-wrap:wrap;margin:8px 0 4px;padding:0;overflow:visible}.chips.xchips .chip{flex:0 0 auto;overflow:visible;padding:8px 12px}
+.xsoon{background:var(--t-mint);border-radius:14px;padding:10px 12px;margin:10px 0 2px;font-size:14px}
+.xrows{display:flex;flex-direction:column}.xrow{border-top:1px solid var(--rule);padding:12px 0 4px}.xrows .xrow:first-child{border-top:0}
+.xrow .xt{display:flex;align-items:center;gap:10px;min-width:0}.xrow .xt .num{width:26px;height:26px;font-size:13px;border-radius:9px}.xrow p{margin:6px 0 0}.xrow small{display:block;font-size:11.5px;color:var(--soft);font-weight:600;text-align:right}
+.xrec{margin-top:8px}.xrec select{padding:9px 12px;font-size:14.5px}.xfx{margin:10px 0 0}.isanote{margin:0 0 12px;line-height:1.45}.backcard .field{margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -911,7 +916,7 @@ function makeMoveLink(){var code=String(Math.floor(100000+Math.random()*900000))
 function openMoveLink(frag,code){var parts=frag.split('.');if(parts.length!==4)return Promise.reject('bad');var z=parts[0]==='1',salt=ub64u(parts[1]),iv=ub64u(parts[2]),ct=ub64u(parts[3]);
   return moveKey(code,salt).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);}).then(function(pt){return z?zip(new Uint8Array(pt),true):new Uint8Array(pt);}).then(function(b){var o=JSON.parse(new TextDecoder().decode(b));if(!o||o.v!==1||!o.profile)throw 'bad';return o;});}
 /* ================= Sync: email sign-in + end-to-end encryption (Supabase stores only encrypted data) ================= */
-var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','credits','startDate','splitFrom','ilr','rebDis','rebHDis','autoRules','fi','seen','gsHide'];
+var SYNC_KEYS=['v','profile','checks','items','cats','months','recur','holdings','pay','skip','bankAdj','transfers','credits','startDate','splitFrom','ilr','rebDis','rebHDis','autoRules','fi','seen','gsHide','xtraSeen'];
 var SKEY='setu-sync',SBASE='setu-sync-base';
 function syncOn(){return !!(SYNC_CFG.url&&SYNC_CFG.anon);}
 function sGet(){try{return JSON.parse(localStorage.getItem(SKEY)||'null');}catch(e){return null;}}
@@ -1290,6 +1295,7 @@ function nudges(){
   var p=S.profile,m=month(),out=[],fx=+p.fx||129,now=new Date();
   var due=TASKS.filter(function(t){var d=dueDate(t);return !S.checks[t.id]&&d&&(d-now)<7*864e5;});
   var late=due.filter(function(t){return dueDate(t)<now;});
+  var xn=typeof xtraNudge==='function'?xtraNudge():null;if(xn)out.push(xn);
   var apd=typeof apDueSoon==='function'?apDueSoon():[];if(apd.length)out.push({tone:'indigo',ic:'chart',t:apd.length+' Autopilot payment'+(apd.length>1?'s':'')+' due',x:apd.map(function(r){return r.name;}).join(', ')+'. Make the payment, then mark it done.',cta:'Open Autopilot',go:'tab:wauto'});
   if(due.length)out.push({tone:'rani',ic:'clock',t:late.length?late.length+' checklist step'+(late.length>1?'s are':' is')+' overdue':due.length+' step'+(due.length>1?'s':'')+' due this week',x:'Start with: '+(late[0]||due[0]).title+'.',cta:'Open checklist',go:'tab:check'});
   var efT=m.ukCosts*(+p.efMonths||4),have=+p.savedUK||0;
@@ -1444,7 +1450,7 @@ function vHome(){
   var rows=[],dg=null;plan.forEach(function(x,i){var debt=x.title==='Clear the credit card'||x.title==='Pay down personal loans';if(debt){if(!dg){dg={title:'Pay off expensive debt',where:'Credit card first, then personal loans',guide:'Clear your expensive debt',amt:0,col:'var(--rust)',key:'debt',n:0};rows.push(dg);}dg.amt+=x.amt;dg.n++;dg.first=dg.first==null?i:dg.first;}else rows.push(Object.assign({key:i},x));});
   if(dg&&dg.n===1){var only=plan[dg.first];Object.assign(dg,only,{key:dg.first});}
   rows.forEach(function(x,i){h+='<button class="step" data-plan="'+x.key+'"><span class="num" style="background:'+x.col+'">'+(i+1)+'</span><span class="grow"><span class="st">'+esc(x.guide||x.title)+'</span><span class="sd">'+esc(x.where)+'</span></span><span class="chev">›</span></button>';});
-  h+='<p class="fine">General guidance only, not financial advice.</p></section>';
+  h+='<div class="acts" style="margin-top:8px"><button class="btn sm go" data-sheet="xtra">I have extra money to invest</button></div><p class="fine">General guidance only, not financial advice.</p></section>';
   return h;
 }
 
@@ -1453,7 +1459,8 @@ function vCheck(){
   if(!phase){var f=PHASES.find(function(P){return TASKS.some(function(t){return t.ph===P.k&&!S.checks[t.id];});});phase=(f||PHASES[0]).k;}
   var done=doneCount(TASKS),nt=nextTask(),pc=Math.round(done/TASKS.length*100);
   var h='<section class="card journey">'+bridgeSVG(done/TASKS.length,true)+'<div><div class="big2 f"><span data-count="'+pc+'" data-fmt="pct" data-key="jr">'+pc+'%</span><small> of the way</small></div><div class="small soft">'+done+' of '+TASKS.length+' steps done</div>'+(nt?'<div class="small" style="margin-top:4px;font-weight:600">Next: '+esc(nt.title)+'</div>':'<div class="small ok" style="margin-top:4px;font-weight:700">All done. You’re settled in.</div>')+'</div></section>';
-  h+='<div class="phases" aria-label="Checklist phases">'+PHASES.map(function(P){var ts=TASKS.filter(function(t){return t.ph===P.k;}),dn=doneCount(ts);return '<button class="ph'+(dn===ts.length?' full':'')+'" data-phase="'+P.k+'" aria-pressed="'+(phase===P.k)+'"><span class="pl">'+P.label+'</span><span class="ps" aria-hidden="true">'+({india:'India',w2:'Wk 1–2',m1:'Month 1',d90:'Day 90',yr:'Yearly'}[P.k]||P.label)+'</span><small>'+(dn===ts.length?'✓':dn+'/'+ts.length)+'</small></button>';}).join('')+'</div>';
+  h+='<div class="phases" aria-label="Checklist phases">'+PHASES.map(function(P){var ts=TASKS.filter(function(t){return t.ph===P.k;}),dn=doneCount(ts);return '<button class="ph'+(dn===ts.length?' full':'')+'" data-phase="'+P.k+'" aria-pressed="'+(phase===P.k)+'"><span class="pl">'+P.label+'</span><span class="ps" aria-hidden="true">'+({india:'India',w2:'Wk 1–2',m1:'Month 1',d90:'Day 90',yr:'Yearly'}[P.k]||P.label)+'</span><small>'+(dn===ts.length?'✓':dn+'/'+ts.length)+'</small></button>';}).join('')+'<button class="ph" data-phase="back" aria-pressed="'+(phase==='back')+'"><span class="pl">Moving back</span><span class="ps" aria-hidden="true">Back</span><small>'+(backPlan().k==='never'?'–':BACK.filter(function(x){return S.checks[x[0]];}).length+'/'+BACK.length)+'</small></button></div>';
+  if(phase==='back')return h+backCard();
   var P=PHASES.find(function(x){return x.k===phase;}),ts=TASKS.filter(function(t){return t.ph===phase;}),dd=P.due?addDays(S.profile.moved,P.due):null;
   h+='<section class="card"><div class="small soft" style="margin-bottom:4px;font-weight:600">'+(dd?'Aim to finish by '+dLabel(dd):'Do these once a year')+'</div>';
   ts.forEach(function(t){var on=!!S.checks[t.id];h+='<div class="item'+(on?' done':'')+'"><button class="tick'+(t.id===lastTicked&&on?' pop':'')+'" role="checkbox" aria-checked="'+on+'" aria-label="'+esc(t.title)+'" data-tick="'+t.id+'"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button><button class="it" data-task="'+t.id+'"><b>'+esc(t.title)+' <em class="tag '+ctry(t)+'">'+({in:'India',uk:'UK',both:'Both'})[ctry(t)]+'</em></b><span>'+esc(t.text.split('. ')[0].replace(/\.$/,''))+'.</span></button>'+((EMAILS[t.id]||t.link)?'<span class="iacts">'+(EMAILS[t.id]?'<button class="iact" data-email="'+t.id+'" aria-label="Email draft: '+esc(t.title)+'" title="Email draft ready">'+gl('mail')+'</button>':'')+(t.link?'<a class="iact" href="'+t.link+'" target="_blank" rel="noopener" aria-label="Official guidance: '+esc(t.title)+' (opens in a new tab)" title="Official guidance">'+gl('ext')+'</a>':'')+'</span>':'')+'</div>';});
@@ -2339,7 +2346,7 @@ function fiSim(o){var real=(1+o.ret/100)/(1+o.inf/100)-1,mr=Math.pow(1+real,1/12
   for(var m=1;m<=600;m++){v=v*(1+mr)+k;put+=k;if(m%12===0)k*=1+stepR;if(hit===null&&v>=o.target)hit=m;if(m%3===0)pts.push([m,v]);if(m>=Math.max(120,(hit||0)+24)&&(hit!==null||m>=480))break;}
   return {hit:hit,pts:pts,end:v};}
 function fiCalc(over){var c=Object.assign(fiCfg(),over||{}),p=S.profile||{},fx=fxNow(),cur=c.where,toCur=function(g){return cur==='in'?g*fx:g;};
-  var target=c.spend*12/(c.wd/100),now=fiHave(cur),baseM=fiMonthlyGBP(),monthly=toCur(baseM+c.extra);
+  var target=c.spend*12/(c.wd/100),now=fiHave(cur)+toCur(+c.addNow||0),baseM=fiMonthlyGBP(),monthly=toCur(baseM+c.extra);
   var sim=fiSim({now:now,monthly:monthly,target:target,ret:c.ret,inf:c.inf,step:c.step}),age=+p.age||30,yrsToRet=Math.max(1,(+p.retireAge||55)-age);
   var real=(1+c.ret/100)/(1+c.inf/100)-1,coast=target/Math.pow(1+real,yrsToRet);
   return {c:c,cur:cur,money:cur==='in'?inr:gbp,target:target,now:now,monthly:monthly,baseM:baseM,sim:sim,hit:sim.hit,age:age,fiAge:sim.hit==null?null:age+sim.hit/12,pct:target>0?Math.min(100,now/target*100):0,coast:coast,coastAge:+p.retireAge||55,passive:now*c.wd/100/12};}
@@ -2536,7 +2543,7 @@ function jumpCard(){var W=worth(),fi=fiCalc(),a=autoMonthly(),dn=doneCount(TASKS
     ['wealth','chart','Net worth',H.length?gbp(W.net):'Add yours','var(--teal)','data-tab="wealth"'],
     ['free','sun','Free at',fi.hit===0?'Now':fi.hit!=null?'Age '+Math.floor(fi.fiAge):'Plan it','var(--mint)','data-tab="free"'],
     ['wauto','clock','Autopilot',a.gbp>0?gbp(a.gbp)+'/mo':'Set up','var(--indigo)','data-tab="wauto"'],
-    ['goals','home','Goals','Check','var(--marigold)','data-tab="goals"'],
+    ['xtra','spark','Spare money?','Invest it','var(--marigold)','data-sheet="xtra"'],
     ['check','shield','Checklist',dn+' of '+TASKS.length,'var(--rani)','data-tab="check"'],
     ['add','rupee','Investment','+ Add','var(--ink)','data-sheet2="haddpick"']];
   return '<section class="card jump"><h3>Your money at a glance</h3><div class="jgrid">'+T.map(function(x){return '<button class="jt" '+x[5]+' style="--jc:'+x[4]+'"><i>'+gl(x[1])+'</i><span class="jl">'+x[2]+'</span><b class="f">'+esc(x[3])+'</b></button>';}).join('')+'</div></section>';}
@@ -2628,6 +2635,108 @@ document.addEventListener('click',function(e){var t=e.target.closest&&e.target.c
   if(t.hasAttribute('data-impopen')){IMP={st:'idle'};openSheet(function(){return SHEETS_EXTRA.import();});return;}
 });
 SHEETS.import=function(){return SHEETS_EXTRA.import();};
+/* =====================================================================
+   Moving back to India, and Invest extra money
+   ===================================================================== */
+var BACKOPTS=[['never','No, I’m staying in the UK'],['unsure','Maybe, not sure when']];(function(){var y=new Date().getFullYear();for(var i=0;i<=15;i++)BACKOPTS.push([String(y+i),'Yes, in '+(y+i)]);})();
+function backPlan(){var p=S.profile||{},k=p.backPlan==='never'||p.backPlan==='year'?p.backPlan:'unsure',y=+p.backYear||0;if(k==='year'&&!y)k='unsure';return {k:k,y:y,v:k==='year'?String(y):k};}
+function setBack(v){var p=S.profile;if(v==='never'||v==='unsure'){p.backPlan=v;p.backYear='';}else{p.backPlan='year';p.backYear=+v;}save();}
+function backSelect(id){var b=backPlan();return '<label class="field"><span>Planning to move back to India?</span><select id="'+id+'" data-back>'+BACKOPTS.map(function(o){return '<option value="'+o[0]+'"'+(b.v===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label>';}
+function yearsAbroad(y){var m=(S.profile||{}).moved;return y-(m?+m.slice(0,4):new Date().getFullYear());}
+/* India's RNOR rules are detailed; this is a rough guide: 5+ years away with short visits usually gives about 2 years of RNOR */
+function rnorInfo(){var b=backPlan();if(b.k!=='year')return null;var ab=yearsAbroad(b.y);
+  return ab>=5?{likely:true,window:'until about March '+(b.y+2),txt:'You’ll have been away about '+ab+' years, so you’ll probably be “RNOR” for about 2 years after you return. Gains you take in that time are usually not taxed in India, and the ISA isn’t taxed in the UK. Likely window: until about March '+(b.y+2)+'.'}
+    :{likely:false,window:'before you move back in '+b.y,txt:'You’ll have been away about '+Math.max(0,ab)+' year'+(ab===1?'':'s')+', which is usually too short for RNOR, so India may tax your gains soon after you return. Selling before you move back usually avoids that, and the ISA isn’t taxed in the UK.'};}
+/* ---------- the Moving back checklist ---------- */
+var BACK=[
+  ['b-isa','Tell your ISA provider you’re leaving','You can keep your ISA, and it stays free of UK tax. You just can’t add money once you’re no longer UK resident. Selling is allowed from abroad.','uk','2–3 months before you go'],
+  ['b-bank','Keep a UK bank account open','Most ISA and pension providers only pay into a UK account in your name. Some banks close accounts when you move abroad, so check yours allows it.','uk','2–3 months before you go'],
+  ['b-sell','Decide: keep or sell each ISA','','both','Before you go'],
+  ['b-pension','Decide what to do with your UK pension','You can leave it invested and take it from 57 (from April 2028), even from India. Moving a pension abroad has strict rules and charges, so get advice first.','uk','Before you go'],
+  ['b-hmrc','Tell HMRC you’re leaving','Fill in form P85 when you leave, so your UK tax is settled and any refund is paid.','uk','When you leave'],
+  ['b-nre','Change your NRE and NRO accounts','Once you’re resident in India again, tell your bank. NRE and NRO accounts become resident accounts, and an RFC account can hold the pounds you bring home.','in','Within a month of arriving'],
+  ['b-funds','Update your status with fund houses and brokers','Change from NRI to resident with CAMS, KFintech and your broker, and give your Indian address.','in','Within a month of arriving'],
+  ['b-fa','Declare UK accounts in your Indian tax return','Once fully resident, list your ISA, pension and UK bank accounts under “Foreign Assets” (Schedule FA) every year. The penalties for leaving them out are heavy.','in','Every year once fully resident']];
+function backText(x){if(x[0]!=='b-sell')return x[2];var r=rnorInfo();return r?r.txt:'When you know the year you’ll move back, Setu works out when you can sell without tax in either country. Usually that’s before you move, or in your first years back if you qualify as “RNOR”.';}
+function backCard(){var b=backPlan(),done=BACK.filter(function(x){return S.checks[x[0]];}).length;
+  var h='<section class="card backcard">'+backSelect('backsel');
+  if(b.k==='never')return h+'<p class="small soft">Nothing to do here. If your plans change, choose a year above and Setu lists what to sort out before and after you move.</p></section>';
+  h+='<div class="small soft" style="margin:8px 0 4px;font-weight:600">'+(b.k==='year'?'Moving back in '+b.y+' · ':'')+done+' of '+BACK.length+' done</div>';
+  BACK.forEach(function(x){var on=!!S.checks[x[0]];h+='<div class="item'+(on?' done':'')+'"><button class="tick" role="checkbox" aria-checked="'+on+'" aria-label="'+esc(x[1])+'" data-btick="'+x[0]+'"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button><button class="it" data-btask="'+x[0]+'"><b>'+esc(x[1])+' <em class="tag '+x[3]+'">'+({in:'India',uk:'UK',both:'Both'})[x[3]]+'</em></b><span>'+esc(x[4])+'</span></button></div>';});
+  return h+'<p class="fine">General guidance on UK and Indian rules, not tax advice. Check your dates with an adviser before selling large amounts.</p></section>';}
+SHEETS_EXTRA.btask=function(id){var x=BACK.find(function(y){return y[0]===id;})||BACK[0],on=!!S.checks[x[0]];return {title:x[1],body:'<p class="small soft">'+esc(x[4])+'</p><p>'+esc(backText(x))+'</p><div class="acts"><button class="btn go" data-btick="'+x[0]+'" data-bclose>'+(on?'Mark as not done':'Mark as done')+'</button></div>'};};
+/* ISA notes for people who may move back */
+function isaHoldings(){return holdings().filter(function(h){return h.cty==='uk'&&(h.type==='isa'||h.type==='cashisa');});}
+function isaBackNote(){var b=backPlan();if(b.k==='never')return '';var L=isaHoldings(),v=sum(L.map(function(h){return +h.value||0;})),pd=sum(L.map(function(h){return +h.paid||0;})),r=rnorInfo();
+  return '<div class="recdiff isanote"><b>If you move back to India</b><br>'+(L.length?'Your ISAs are worth '+gbp(v)+(pd?' ('+(v>=pd?'+':'−')+gbp(Math.abs(v-pd))+' gain)':'')+'. ':'')+'You can keep them or sell any time, even from India; the money is paid to a UK bank account. '+(r?'<b>Tax-free selling window: '+esc(r.window)+'.</b> '+esc(r.txt):'Set when you might move back in Plan → Checklist → Moving back, and Setu shows the best time to sell.')+'</div>';}
+(function(){var _wt=SHEETS_EXTRA.wtype;SHEETS_EXTRA.wtype=function(key){var r=_wt(key);if(key==='uk:isa')r.body=isaBackNote()+r.body;return r;};})();
+/* ---------- Invest extra money ---------- */
+function taxYearStart(){var t=today(),y=+t.slice(0,4);return (t>=y+'-04-06'?y:y-1)+'-04-06';}
+function isaRoom(){var st=taxYearStart(),end=(+st.slice(0,4)+1)+'-04-05',used=0,planned=0;
+  isaHoldings().forEach(function(h){(h.tx||[]).forEach(function(t){if(t.d>=st)used+=+t.amt||0;});(h.contrib||[]).forEach(function(c){if(c[0]>=st)used+=+c[1]||0;});});
+  autoRules().forEach(function(r){var h=ruleHolding(r);if(r.off||!h||h.cty!=='uk'||!(h.type==='isa'||h.type==='cashisa'))return;var nx=new Date();nx.setDate(nx.getDate()+1);monthlyDates(isoD(nx),r.day,end).forEach(function(d){if(d>=r.start)planned+=ruleAmt(r,d);});});
+  return {room:Math.max(0,20000-used-planned),used:used,planned:planned};}
+function houseShare(){var L=holdings().filter(function(h){return h.cty==='in'&&h.type==='mf';}),tot=sum(L.map(function(h){return +h.value||0;})),g={};if(tot<=0)return null;
+  L.forEach(function(h){var k=String(h.name).split(/\s+/)[0];g[k]=(g[k]||0)+(+h.value||0);});var top=Object.keys(g).sort(function(a,b){return g[b]-g[a];})[0];return {name:top,pct:g[top]/tot*100};}
+function spareNow(){var m=month(),B=bankParts(mKey()),bud=sum(cats().map(function(c){return +c.budget||0;})),budLeft=Math.max(0,bud-B.spent);return Math.max(0,Math.round(B.bank-m.bl.dueUK-budLeft));}
+function xtraPlan(amt){var p=S.profile,fx=fxNow(),b=backPlan(),H=holdings(),L=Math.max(0,+amt||0),out=[];
+  function add(k,title,a,why,where,cty,goal){a=Math.max(0,Math.min(L,Math.round(a)));if(a<1)return;out.push({k:k,title:title,amt:a,why:why,where:where,cty:cty,goal:goal});L-=a;}
+  var m=month(),efT=Math.round((+p.efMonths||4)*m.ukCosts),efH=H.filter(function(h){return goalOf(h)==='emergency';}),haveEF=efH.length?sum(efH.map(function(h){return h.cty==='in'?(+h.value||0)/fx:(+h.value||0);})):(+p.savedUK||0);
+  if(efT-haveEF>0)add('ef','Emergency savings',efT-haveEF,'You have '+gbp(haveEF)+' of a '+gbp(efT)+' safety net ('+(p.efMonths||4)+' months of UK costs). On a work visa this comes first.','An easy-access UK savings account','uk','emergency');
+  var card=(+p.cardBal||0)/fx,ukHi=sum((p.ukDebts||[]).filter(function(d){return +d.rate>=8&&d.type!=='student';}).map(function(d){return +d.bal||0;})),pl=(+p.plBal||0)/fx;
+  if(card>0)add('card','Pay off your credit card',card,'Card interest is often 36–45% a year. Clearing it beats any investment.','Pay the card from your bank','in');
+  if(ukHi>0)add('ukdebt','Pay down expensive UK debt',ukHi,'Debt costing 8% or more a year is worth clearing before you invest.','Overpay from your bank','uk');
+  if(pl>0)add('pl','Pay down personal loans',Math.min(pl,L*0.5),'Personal loans usually cost 11–16% a year, more than safe savings earn.','Prepay when your loan allows it','in');
+  if(b.k==='never'&&(+p.salary||0)>50270)add('pen','Top up your pension',L*0.3,'You pay 40% tax on part of your pay, so £100 into your pension costs about £60 after tax relief. It’s locked until 57 (from April 2028), which suits money for later life.','Your workplace pension or a SIPP','uk','retire');
+  var home=goalTracks().find(function(g){return g.k==='home';});if(home&&home.hit==null&&home.end<home.target)add('home','Home in India',Math.min((home.target-home.end)/fx,L*0.25),'Your home goal is behind. Money you need within a few years is safer away from the share market.','NRE fixed deposit or a liquid fund in India','in','home');
+  var R=isaRoom();if(R.room>0)add('isa','Stocks & shares ISA',R.room,'Up to '+gbp(R.room)+' more can go in this tax year (to 5 April), free of UK tax. '+(b.k==='never'?'':'You can take it out any time, even after moving back to India.')+(b.k==='year'?' No new money can go in once you’ve left the UK.':''),'A low-cost global index fund in an ISA','uk','retire');
+  var hs=houseShare(),conc=hs&&hs.pct>=30?' '+Math.round(hs.pct)+'% of your Indian funds are with '+hs.name+', so a broad index fund elsewhere spreads the risk.':'';
+  if(b.k==='never')add('uklt','Other long-term investing',L,'You’ve used your ISA allowance. More into your pension, or a general investment account, are the usual next steps.','Pension or a general investment account','uk','retire');
+  else add('inlt','Long-term investing in India',L,(R.room>0?'':'You’ve used your ISA allowance. ')+'Useful if you’re moving back. As a UK resident, gains on Indian funds are usually taxed in the UK as income, so keep records.'+conc,'An index fund through your NRE account','in','retire');
+  return out;}
+var XA=null;
+function xtraDefaults(r){var H=holdings(),pick=null;
+  if(r.k==='ef')pick=H.find(function(h){return goalOf(h)==='emergency'&&h.cty==='uk';});
+  else if(r.k==='isa')pick=H.find(function(h){return h.cty==='uk'&&(h.type==='isa')&&h.src!=='stk';});
+  else if(r.k==='pen'||r.k==='uklt')pick=H.find(function(h){return h.cty==='uk'&&(h.type==='pension'||h.type==='sipp');});
+  else if(r.k==='home')pick=H.find(function(h){return goalOf(h)==='home';});
+  return pick?pick.id:'';}
+function xtraResult(){var amt=+XA||0;if(!(amt>0))return '<p class="small soft">Enter an amount to see where each £ should go.</p>';var P=xtraPlan(amt),fx=fxNow(),H=holdings(),lt=sum(P.filter(function(r){return r.goal==='retire';}).map(function(r){return r.amt;}));
+  var a=fiCalc(),b2=fiCalc({addNow:lt}),soon=a.hit!=null&&b2.hit!=null?a.hit-b2.hit:null,inPart=sum(P.filter(function(r){return r.cty==='in'&&!/card|pl/.test(r.k);}).map(function(r){return r.amt;})),fi=fxInsight();
+  var h=(soon>0?'<div class="xsoon">🎉 Investing this brings your freedom date <b>'+inMonths(soon)+' sooner</b>.</div>':'')+
+    '<div class="xrows">'+P.map(function(r,i){var debt=/card|ukdebt|pl/.test(r.k),opts=H.filter(function(h){return h.src!=='stk'&&(r.cty==='in'?h.cty==='in':h.cty==='uk');}),def=xtraDefaults(r);
+      return '<div class="xrow"><div class="row-b"><span class="xt"><span class="num" style="background:'+(['var(--indigo)','var(--rust)','var(--teal)','var(--marigold)','var(--mint)','#0C7F60','var(--rani)'][i%7])+'">'+(i+1)+'</span><b>'+esc(r.title)+'</b></span><b class="f">'+gbp(r.amt)+(r.cty==='in'?'<small> ≈ '+inr(r.amt*fx)+'</small>':'')+'</b></div>'+
+        '<p class="small">'+esc(r.why)+'</p><p class="small soft">Where: '+esc(r.where)+'</p>'+
+        (debt?'<p class="small soft">Pay this from your bank, then update the balance under Wealth.</p>':'<label class="field xrec"><span>Record it in</span><select data-xh="'+i+'"><option value="">Don’t record'+(r.k==='ef'&&!H.some(function(h){return goalOf(h)==='emergency';})?' (adds to your savings figure)':'')+'</option>'+opts.map(function(o){return '<option value="'+o.id+'"'+(o.id===def?' selected':'')+'>'+esc(o.name)+'</option>';}).join('')+'</select></label>')+'</div>';}).join('')+'</div>'+
+    (inPart>0?'<p class="small xfx">💱 '+inr(inPart*fx)+' at today’s rate (£1 = ₹'+fx.toFixed(2)+'). '+(fi?esc(fi.say)+' ':'')+'<button class="link" data-sheet="transfer">Check the transfer cost ›</button></p>':'')+
+    '<div class="acts" style="margin-top:12px"><button class="btn go" data-xrec>I’ve done this, record it</button></div><p class="fine">A guide to types of account, not advice on specific products. Rules can change; check before big decisions.</p>';
+  return h;}
+function xtraSheet(){var sp=spareNow();if(XA==null)XA=sp>=50?sp:'';
+  return {title:'Invest extra money',body:'<p class="small soft">A bonus, a tax refund, or money left at the end of the month? Setu splits it in the order that usually helps most.</p>'+
+    '<label class="field"><span>How much do you want to put to work?</span><span class="adorn"><i>£</i><input id="xamt" type="number" inputmode="decimal" min="0" step="any" value="'+esc(XA)+'" placeholder="e.g. 1000"></span></label>'+
+    '<div class="chips xchips">'+(sp>=50?'<button class="chip" data-xamt="'+sp+'">Left this month '+gbp(sp)+'</button>':'')+[250,500,1000,5000].map(function(v){return '<button class="chip" data-xamt="'+v+'">'+gbp(v)+'</button>';}).join('')+'</div>'+
+    backSelect('xback')+'<div id="xres" aria-live="polite">'+xtraResult()+'</div>'};}
+SHEETS.xtra=function(){return xtraSheet();};
+function xtraRecord(){var amt=+XA||0,P=xtraPlan(amt),fx=fxNow(),t=today(),n=0,p=S.profile;
+  P.forEach(function(r,i){var sel=document.querySelector('[data-xh="'+i+'"]');if(!sel)return;var hid=sel.value;
+    if(!hid){if(r.k==='ef'&&!holdings().some(function(h){return goalOf(h)==='emergency';})){p.savedUK=(+p.savedUK||0)+r.amt;n++;}return;}
+    var h=holdings().find(function(x){return x.id===hid;});if(!h)return;var a=h.cty==='in'?Math.round(r.amt*fx):r.amt;
+    if(hLinked(h)){h.tx=h.tx||[];h.tx.push({id:'xt-'+uid(),d:t,amt:a,xtra:1});h.tx.sort(function(x,y){return x.d<y.d?-1:1;});}
+    else{h.value=(+h.value||0)+a;h.paid=(+h.paid||0)+a;h.hist=(h.hist||[]).filter(function(x){return x[0]!==t;});h.hist.push([t,h.value]);h.hist.sort(function(x,y){return x[0]<y[0]?-1:1;});if(!Array.isArray(h.contrib))h.contrib=[];h.contrib.push([t,a]);}n++;});
+  if(!S.xtraSeen||typeof S.xtraSeen!=='object')S.xtraSeen={};S.xtraSeen[mKey()]=1;XA=null;refreshLinked();save();sheetFn=null;render();buzz();toast(n?'Recorded in '+n+' place'+(n>1?'s':'')+'. Nice work':'Saved');}
+/* month-end prompt on Home */
+function xtraNudge(){if(!S.profile)return null;if((S.xtraSeen||{})[mKey()])return null;var pd=payDay(),now=new Date(),nx=new Date(now.getFullYear(),now.getMonth(),Math.min(pd,28));if(nx<=now)nx.setMonth(nx.getMonth()+1);var left=Math.ceil((nx-now)/864e5);if(left>5)return null;var sp=spareNow();if(sp<50)return null;
+  return {tone:'mint',ic:'spark',t:'About '+gbp(sp)+' spare this month',x:'Invest it before it gets spent. Setu shows where each £ should go.',cta:'Invest it',go:'sheet:xtra'};}
+document.addEventListener('input',function(e){if(!e.target||e.target.id!=='xamt')return;XA=e.target.value;var r=document.getElementById('xres');if(r)r.innerHTML=xtraResult();});
+document.addEventListener('change',function(e){var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute('data-back'))return;setBack(t.value);if(t.id==='xback'){var r=document.getElementById('xres');if(r)r.innerHTML=xtraResult();}else{var y=(document.getElementById('main')||{}).scrollTop;render();var m=document.getElementById('main');if(m)m.scrollTop=y;}});
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('button');if(!t)return;var d=t.dataset;
+  if(d.xamt){XA=d.xamt;var i=document.getElementById('xamt');if(i)i.value=d.xamt;var r=document.getElementById('xres');if(r)r.innerHTML=xtraResult();return;}
+  if(t.hasAttribute('data-xrec')){xtraRecord();return;}
+  if(d.btick){var k=d.btick;S.checks[k]=!S.checks[k];if(!S.checks[k])delete S.checks[k];save();buzz();if(t.hasAttribute('data-bclose'))sheetFn=null;var y=(document.getElementById('main')||{}).scrollTop;render();var m=document.getElementById('main');if(m)m.scrollTop=y;return;}
+  if(d.btask){var bid=d.btask;openSheet(function(){return SHEETS_EXTRA.btask(bid);});return;}
+});
+/* a fresh amount each time the sheet is opened */
+document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-sheet="xtra"],[data-go="sheet:xtra"]'))XA=null;},true);
 /* ---------- events ---------- */
 document.addEventListener('click',function(e){
   if(railMode()==='overlay'&&!sheetFn&&e.target.closest&&!e.target.closest('#rail')&&!e.target.closest('.sheet-bg')){setRail(false);return;}
